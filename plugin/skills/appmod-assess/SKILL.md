@@ -1,10 +1,12 @@
 ---
 name: appmod-assess
-description: Run assessment and generate summary report for Java or .NET projects
+description: "Run assessment and generate summary report for Java or .NET projects. USE FOR: assess project, analyze codebase, modernization assessment, identify migration issues, appmod assess, scan for upgrade problems, evaluate .NET project, evaluate Java project, find legacy dependencies, generate assessment report. DO NOT USE FOR: creating modernization plans (use appmod-create-plan), executing plans (use appmod-run-plan)."
 allowed-tools: Bash(appmod:*)
 ---
 
 # AppMod Assess
+
+> ⛔ **MANDATORY**: Follow [global-rules](../_shared/global-rules.md) for all operations.
 
 Run an assessment on your Java or .NET project to identify modernization opportunities and generate a summary report.
 

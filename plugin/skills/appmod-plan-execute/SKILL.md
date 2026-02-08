@@ -1,10 +1,14 @@
 ---
 name: appmod-run-plan
-description: Execute an existing modernization plan for Java or .NET projects
+description: "Execute an existing modernization plan for Java or .NET projects. USE FOR: run plan, execute plan, apply changes, appmod plan execute, start migration, run modernization, apply upgrade, implement plan, carry out migration. DO NOT USE FOR: running assessments (use appmod-assess), creating new plans (use appmod-create-plan)."
 allowed-tools: Bash(appmod:*)
 ---
 
 # AppMod Run Plan
+
+> ⛔ **MANDATORY**: Follow [global-rules](../_shared/global-rules.md) for all operations.
+>
+> **NOTE**: A modernization plan must exist before executing. Plans can be created with **appmod-create-plan** or provided externally.
 
 Execute an existing modernization plan to apply the planned changes to your Java or .NET project.
 
