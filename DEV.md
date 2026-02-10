@@ -65,17 +65,3 @@ Skills are located in `plugin/skills/`:
 - `_shared/global-rules.md`
 
 After editing, run `/plugin update` to reload changes.
-
-### Configuration Files
-
-- `.claude-plugin/marketplace.json` - Marketplace registry
-- `plugin/.claude-plugin/plugin.json` - Plugin metadata
-- `plugin/.mcp.json` - MCP server configuration
-
-## Troubleshooting
-
-If skills aren't appearing:
-1. Verify the marketplace path is correct
-2. Check that plugin.json has the correct structure
-3. Try removing and re-adding the marketplace
-4. Restart Claude Code if necessary
