@@ -41,10 +41,10 @@ All parameters are optional with sensible defaults.
 
 - `prompt`: Specific instructions for executing the plan. Default: `execute the plan`
   - Prompt: "Any specific instructions for executing the plan? (Default: 'execute the plan')"
-- `--plan-name`: Which plan to execute. Default: `modernization-plan`
-- `--project`: Project directory. Default: current directory (`.`)
-- `--language`: Project language (`java` or `dotnet`). Default: auto-detect
-- `--issue-url`: GitHub issue URL to link execution progress to
+- `--plan-name <plan-name>`: The name of the modernization plan. Default: `modernization-plan`
+- `--source <source>`: Path to source project (relative or absolute local path). Default: `.`
+- `--language <DotNet|Java|Unknown>`: The programming language for the modernization plan (java or dotnet). Default: auto-detect
+- `--issue-url <issue-url>`: GitHub issue URL to link execution progress to (e.g., `https://github.com/owner/repo/issues/123`)
 
 **Example interaction:**
 ```
@@ -67,7 +67,7 @@ Or I can proceed with defaults - just say "go" or "continue".
 Before executing, validate:
 
 - **`prompt`**: If provided, must not be empty
-- **`--language`**: If provided, must be either `java` or `dotnet` (case-insensitive)
+- **`--language`**: If provided, must be either `DotNet`, `Java`, or `Unknown` (case-insensitive)
 - **`--issue-url`**: If provided, must be a valid GitHub issue URL matching pattern `https://github.com/<owner>/<repo>/issues/<number>`
 - **Plan exists**: Verify `.appmod/plans/<plan-name>/plan.md` exists before attempting execution
 
@@ -78,7 +78,7 @@ If validation fails, explain the issue clearly and ask the user to provide a cor
 Run the following command (always include `--no-tty` for plain text output):
 
 ```bash
-appmod plan execute "<prompt>" [--plan-name <name>] [--project <path>] [--language <lang>] [--issue-url <url>] --no-tty
+appmod plan execute "<prompt>" [--plan-name <plan-name>] [--source <source>] [--language <DotNet|Java|Unknown>] [--issue-url <issue-url>] --no-tty
 ```
 
 **Important:** Properly escape the user-provided prompt when constructing the shell command to prevent injection.

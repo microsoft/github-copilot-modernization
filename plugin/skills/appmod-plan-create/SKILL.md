@@ -27,7 +27,7 @@ The modernization prompt is the only required parameter. Collect it first, then 
 
 **Optional Parameters:**
 
-- `--project`: Project directory to analyze. Default: current directory (`.`)
+- `--source`: Path to source project (relative or absolute local path). Default: current directory (`.`)
 - `--plan-name`: Name for this plan. Default: `modernization-plan`
 - `--language`: Project language (`java` or `dotnet`). Default: auto-detect
 - `--issue-url`: GitHub issue URL to link to this plan
@@ -47,7 +47,7 @@ User: upgrade to .NET Core 10 and add container support
 Got it! I'll create a plan for upgrading to .NET Core 10 with container support.
 
 Would you like to customize any of these options?
-- Project directory (default: current directory)
+- Source path (default: current directory)
 - Plan name (default: modernization-plan)
 - Language (default: auto-detect)
 - Link to a GitHub issue
@@ -62,7 +62,7 @@ Before executing, validate:
 - **`prompt`**: Must not be empty or whitespace-only. If empty, ask the user to provide a modernization goal.
 - **`--language`**: If provided, must be either `java` or `dotnet` (case-insensitive)
 - **`--issue-url`**: If provided, must be a valid GitHub issue URL matching pattern `https://github.com/<owner>/<repo>/issues/<number>`
-- **`--project`**: If provided, verify the directory exists
+- **`--source`**: If provided, verify the directory exists
 
 If validation fails, explain the issue clearly and ask the user to provide a corrected value.
 
@@ -71,7 +71,7 @@ If validation fails, explain the issue clearly and ask the user to provide a cor
 Run the following command (always include `--no-tty` for plain text output):
 
 ```bash
-appmod plan create "<prompt>" [--project <path>] [--plan-name <name>] [--language <lang>] [--issue-url <url>] --no-tty
+appmod plan create "<prompt>" [--source <path>] [--plan-name <name>] [--language <lang>] [--issue-url <url>] --no-tty
 ```
 
 **Important:** Properly escape the user-provided prompt when constructing the shell command to prevent injection.
@@ -107,7 +107,7 @@ Claude: [Executes: appmod plan create "migrate my app to Azure App Service" --no
 ```
 User: /appmod-create-plan
 User: upgrade to .NET 8, call it dotnet8-upgrade, project is in ./src/MyApp
-Claude: [Executes: appmod plan create "upgrade to .NET 8" --plan-name dotnet8-upgrade --project ./src/MyApp --no-tty]
+Claude: [Executes: appmod plan create "upgrade to .NET 8" --plan-name dotnet8-upgrade --source ./src/MyApp --no-tty]
 ```
 
 **Create a plan linked to an issue:**

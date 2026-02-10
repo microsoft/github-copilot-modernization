@@ -20,21 +20,25 @@ Present the user with a streamlined overview and offer to customize options. Use
 
 **Optional Parameters:**
 
-- `--projects`: Path(s) to projects to assess. For .NET: `.csproj`, `.sln`, or `.slnx` files. For Java: workspace root. Default: auto-detect from current directory.
-- `--output-path`: Where to save assessment output. Default: `.appmod/.appcat`
+- `--source`: Path to source project (relative or absolute local path). Default: current directory (`.`)
+- `--output-path`: Path to the folder for report output. Default: `.modernize/.appmod`
+- `--multi-repo`: Enable multi-repo assess. Scan first-level subdirectories for multiple repositories. Default: false
 - `--issue-url`: GitHub issue URL to post the summary to (e.g., `https://github.com/owner/repo/issues/123`)
-- `--verbose`: Enable verbose output. Default: false
+- `--verbose`: Enable verbose output for assessment. Default: false
+
 
 **Example interaction:**
 ```
 I'll help you assess your project.
 
 I'll auto-detect the project type. The results will be saved to
-`.appmod/.appcat` by default.
+`.modernize/.appcat` by default.
 
 Before I run the assessment, would you like to customize any of these options?
-- Output path (default: .appmod/.appcat)
+- Source path (default: current directory)
+- Output path (default: .modernize/.appcat)
 - Post summary to a GitHub issue (provide URL)
+- Enable multi-repo scanning
 - Enable verbose output
 
 Or I can proceed with defaults - just say "go" or "continue".
@@ -45,7 +49,7 @@ Or I can proceed with defaults - just say "go" or "continue".
 Before executing, validate:
 
 - **`--issue-url`**: If provided, must be a valid GitHub issue URL matching pattern `https://github.com/<owner>/<repo>/issues/<number>`
-- **`--projects`**: If provided for .NET, must be valid `.csproj`, `.sln`, or `.slnx` file paths that exist
+- **`--source`**: If provided, verify the directory or file path exists
 
 If validation fails, explain the issue clearly and ask the user to provide a corrected value.
 
@@ -54,16 +58,16 @@ If validation fails, explain the issue clearly and ask the user to provide a cor
 Run the following command (always include `--no-tty` for plain text output):
 
 ```bash
-appmod assess [--projects <path>] [--output-path <path>] [--issue-url <url>] [--verbose] --no-tty
+appmod assess [--source <path>] [--output-path <path>] [--issue-url <url>] [--multi-repo] [--verbose] --no-tty
 ```
 
-Build the command by including only the parameters that were explicitly set or differ from defaults.
+Only include optional parameters if they were explicitly set or differ from defaults.
 
 ### 4. Results
 
 After execution:
 
-1. Read and summarize the contents of `<output-path>/summary.md` (default: `.appmod/.appcat/summary.md`)
+1. Read and summarize the contents of `<output-path>/summary.md` (default: `.modernize/.appmod/summary.md`)
 2. Report any errors from the command output
 3. If `--issue-url` was provided, confirm the comment was posted successfully
 4. Highlight key findings and suggest next steps (e.g., running `/appmod-create-plan` to create a modernization plan)
