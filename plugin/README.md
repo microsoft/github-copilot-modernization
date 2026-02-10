@@ -21,7 +21,7 @@ Application modernization plugin for [GitHub Copilot CLI](https://github.com/git
 
 The plugin provides three skills that work together as a modernization workflow:
 
-### 1. Assess (`appmod-assess`)
+### 1. Assess (`modernize-assess`)
 
 Run an assessment on your project to identify modernization opportunities and generate a summary report.
 
@@ -29,7 +29,7 @@ Run an assessment on your project to identify modernization opportunities and ge
 Assess my project for modernization
 ```
 
-### 2. Create Plan (`appmod-create-plan`)
+### 2. Create Plan (`modernize-create-plan`)
 
 Create a detailed modernization plan based on your specific goals and requirements.
 
@@ -37,7 +37,7 @@ Create a detailed modernization plan based on your specific goals and requiremen
 Create a plan to upgrade to .NET Core 10
 ```
 
-### 3. Run Plan (`appmod-run-plan`)
+### 3. Run Plan (`modernize-run-plan`)
 
 Execute an existing modernization plan to apply the planned changes to your project.
 
@@ -68,5 +68,5 @@ Ask Copilot CLI or Claude Code to:
 ### Common Issues
 
 - **No project detected**: Ensure you're in a directory containing a Java or .NET project
-- **Plan not found**: Run `appmod-assess` and `appmod-create-plan` before executing a plan
-- **Command failures**: Check that the `appmod` CLI tool is installed and accessible
+- **Plan not found**: Run `modernize-assess` and `modernize-create-plan` before executing a plan
+- **Command failures**: Check that the `modernize` CLI tool is installed and accessible

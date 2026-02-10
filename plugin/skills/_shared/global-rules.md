@@ -31,7 +31,7 @@ ask_user(
 
 ## Rule 2: Always Include `--no-tty`
 
-⛔ **ALWAYS** include `--no-tty` when running `appmod` commands to ensure plain text output suitable for AI processing.
+⛔ **ALWAYS** include `--no-tty` when running `modernize` commands to ensure plain text output suitable for AI processing.
 
 ## Rule 3: Validate Before Executing
 

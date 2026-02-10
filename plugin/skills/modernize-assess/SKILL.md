@@ -1,10 +1,10 @@
 ---
-name: appmod-assess
-description: "Run assessment and generate summary report for Java or .NET projects. USE FOR: assess project, analyze codebase, modernization assessment, identify migration issues, appmod assess, scan for upgrade problems, evaluate .NET project, evaluate Java project, find legacy dependencies, generate assessment report. DO NOT USE FOR: creating modernization plans (use appmod-create-plan), executing plans (use appmod-run-plan)."
-allowed-tools: Bash(appmod:*)
+name: modernize-assess
+description: "Run assessment and generate summary report for Java or .NET projects. USE FOR: assess project, analyze codebase, modernization assessment, identify migration issues, modernize assess, scan for upgrade problems, evaluate .NET project, evaluate Java project, find legacy dependencies, generate assessment report. DO NOT USE FOR: creating modernization plans (use modernize-create-plan), executing plans (use modernize-run-plan)."
+allowed-tools: Bash(modernize:*)
 ---
 
-# AppMod Assess
+# Modernize Assess
 
 > ⛔ **MANDATORY**: Follow [global-rules](../_shared/global-rules.md) for all operations.
 
@@ -21,7 +21,7 @@ Present the user with a streamlined overview and offer to customize options. Use
 **Optional Parameters:**
 
 - `--source`: Path to source project (relative or absolute local path). Default: current directory (`.`)
-- `--output-path`: Path to the folder for report output. Default: `.modernize/.appmod`
+- `--output-path`: Path to the folder for report output. Default: `.modernize`
 - `--multi-repo`: Enable multi-repo assess. Scan first-level subdirectories for multiple repositories. Default: false
 - `--issue-url`: GitHub issue URL to post the summary to (e.g., `https://github.com/owner/repo/issues/123`)
 - `--verbose`: Enable verbose output for assessment. Default: false
@@ -58,7 +58,7 @@ If validation fails, explain the issue clearly and ask the user to provide a cor
 Run the following command (always include `--no-tty` for plain text output):
 
 ```bash
-appmod assess [--source <path>] [--output-path <path>] [--issue-url <url>] [--multi-repo] [--verbose] --no-tty
+modernize assess [--source <path>] [--output-path <path>] [--issue-url <url>] [--multi-repo] [--verbose] --no-tty
 ```
 
 Only include optional parameters if they were explicitly set or differ from defaults.
@@ -67,10 +67,10 @@ Only include optional parameters if they were explicitly set or differ from defa
 
 After execution:
 
-1. Read and summarize the contents of `<output-path>/summary.md` (default: `.modernize/.appmod/summary.md`)
+1. Read and summarize the contents of `<output-path>/summary.md` (default: `.modernize/summary.md`)
 2. Report any errors from the command output
 3. If `--issue-url` was provided, confirm the comment was posted successfully
-4. Highlight key findings and suggest next steps (e.g., running `/appmod-create-plan` to create a modernization plan)
+4. Highlight key findings and suggest next steps (e.g., running `/modernize-create-plan` to create a modernization plan)
 
 ## Error Handling
 
@@ -84,22 +84,22 @@ If the command fails:
 
 **Basic assessment with defaults:**
 ```
-User: /appmod-assess
+User: /modernize-assess
 Claude: I'll run an assessment with default settings...
-[Executes: appmod assess --no-tty]
+[Executes: modernize assess --no-tty]
 ```
 
 **Assessment with GitHub issue posting:**
 ```
-User: /appmod-assess
+User: /modernize-assess
 Claude: Would you like to customize any options?
 User: post to https://github.com/myorg/myrepo/issues/42
-Claude: [Executes: appmod assess --issue-url https://github.com/myorg/myrepo/issues/42 --no-tty]
+Claude: [Executes: modernize assess --issue-url https://github.com/myorg/myrepo/issues/42 --no-tty]
 ```
 
 **Assessment with custom output path and verbose:**
 ```
-User: /appmod-assess
+User: /modernize-assess
 User: save to ./reports and enable verbose
-Claude: [Executes: appmod assess --output-path ./reports --verbose --no-tty]
+Claude: [Executes: modernize assess --output-path ./reports --verbose --no-tty]
 ```

@@ -43,11 +43,11 @@ plugin/
 └── skills/                     # EXISTING — Already contains skills
     ├── _shared/                # NEW — Shared rules across skills
     │   └── global-rules.md     # NEW — Global rules for all skills
-    ├── appmod-assess/
+    ├── modernize-assess/
     │   └── SKILL.md            # EXISTING — No changes
-    ├── appmod-plan-create/
+    ├── modernize-plan-create/
     │   └── SKILL.md            # EXISTING — No changes
-    └── appmod-plan-execute/
+    └── modernize-plan-execute/
         └── SKILL.md            # EXISTING — No changes
 ```
 
@@ -99,7 +99,7 @@ Plugin-level metadata. Describes the installed plugin.
         "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/microsoft/github-copilot-modernization",
-    "keywords": ["modernization", "migration", "java", "dotnet", "assessment", "appmod"]
+    "keywords": ["modernization", "migration", "java", "dotnet", "assessment", "modernize"]
 }
 ```
 
@@ -115,7 +115,7 @@ MCP server configuration. This is a **placeholder** — the user will provide sp
 }
 ```
 
-> **Note:** This file will be updated once MCP server details are provided. The existing skills reference `Bash(appmod:*)` as allowed tools, suggesting an MCP server or CLI integration is needed.
+> **Note:** This file will be updated once MCP server details are provided. The existing skills reference `Bash(modernize:*)` as allowed tools, suggesting an MCP server or CLI integration is needed.
 
 ---
 
@@ -160,7 +160,7 @@ After implementation, users will be able to install the plugin with:
 
 The existing SKILL.md files in `plugin/skills/` will be updated to improve skill routing and follow the patterns from the reference repo. The existing skill logic, parameters, and behavior are preserved — only frontmatter metadata and cross-references are improved.
 
-### `appmod-assess/SKILL.md` — Frontmatter Update
+### `modernize-assess/SKILL.md` — Frontmatter Update
 
 Current description:
 ```
@@ -169,12 +169,12 @@ description: Run assessment and generate summary report for Java or .NET project
 
 Updated description:
 ```
-description: "Run assessment and generate summary report for Java or .NET projects. USE FOR: assess project, analyze codebase, modernization assessment, identify migration issues, appmod assess, scan for upgrade problems, evaluate .NET project, evaluate Java project, find legacy dependencies, generate assessment report. DO NOT USE FOR: creating modernization plans (use appmod-create-plan), executing plans (use appmod-run-plan)."
+description: "Run assessment and generate summary report for Java or .NET projects. USE FOR: assess project, analyze codebase, modernization assessment, identify migration issues, modernize assess, scan for upgrade problems, evaluate .NET project, evaluate Java project, find legacy dependencies, generate assessment report. DO NOT USE FOR: creating modernization plans (use modernize-create-plan), executing plans (use modernize-run-plan)."
 ```
 
 Add global-rules reference in the Rules/Steps section.
 
-### `appmod-plan-create/SKILL.md` — Frontmatter Update
+### `modernize-plan-create/SKILL.md` — Frontmatter Update
 
 Current description:
 ```
@@ -183,12 +183,12 @@ description: Create a modernization plan based on a user prompt for Java or .NET
 
 Updated description:
 ```
-description: "Create a modernization plan based on a user prompt for Java or .NET projects. USE FOR: create plan, make migration plan, plan modernization, plan upgrade, appmod plan create, design migration strategy, plan .NET upgrade, plan Java migration, containerization plan, Azure migration plan. DO NOT USE FOR: running assessments (use appmod-assess), executing existing plans (use appmod-run-plan)."
+description: "Create a modernization plan based on a user prompt for Java or .NET projects. USE FOR: create plan, make migration plan, plan modernization, plan upgrade, modernize plan create, design migration strategy, plan .NET upgrade, plan Java migration, containerization plan, Azure migration plan. DO NOT USE FOR: running assessments (use modernize-assess), executing existing plans (use modernize-run-plan)."
 ```
 
-Add prerequisite note referencing `appmod-assess` and global-rules reference.
+Add prerequisite note referencing `modernize-assess` and global-rules reference.
 
-### `appmod-plan-execute/SKILL.md` — Frontmatter Update
+### `modernize-plan-execute/SKILL.md` — Frontmatter Update
 
 Current description:
 ```
@@ -197,10 +197,10 @@ description: Execute an existing modernization plan for Java or .NET projects
 
 Updated description:
 ```
-description: "Execute an existing modernization plan for Java or .NET projects. USE FOR: run plan, execute plan, apply changes, appmod plan execute, start migration, run modernization, apply upgrade, implement plan, carry out migration. DO NOT USE FOR: running assessments (use appmod-assess), creating new plans (use appmod-create-plan)."
+description: "Execute an existing modernization plan for Java or .NET projects. USE FOR: run plan, execute plan, apply changes, modernize plan execute, start migration, run modernization, apply upgrade, implement plan, carry out migration. DO NOT USE FOR: running assessments (use modernize-assess), creating new plans (use modernize-create-plan)."
 ```
 
-Add prerequisite note referencing `appmod-create-plan` and global-rules reference.
+Add prerequisite note referencing `modernize-create-plan` and global-rules reference.
 
 ## Open Questions
 

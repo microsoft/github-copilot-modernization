@@ -14,9 +14,9 @@ To install the modernization plugin:
 
 | Skill | Description |
 |-------|-------------|
-| **appmod-assess** | Run assessment and generate summary report for Java or .NET projects |
-| **appmod-create-plan** | Create a modernization plan based on your goals |
-| **appmod-run-plan** | Execute an existing modernization plan |
+| **modernize-assess** | Run assessment and generate summary report for Java or .NET projects |
+| **modernize-create-plan** | Create a modernization plan based on your goals |
+| **modernize-run-plan** | Execute an existing modernization plan |
 
 The recommended workflow is: **Assess** → **Plan** → **Execute**
 
