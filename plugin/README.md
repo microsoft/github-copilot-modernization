@@ -12,8 +12,13 @@ Application modernization plugin for [GitHub Copilot CLI](https://github.com/git
 
 # Install the plugin
 /plugin install modernization@github-copilot-modernization
+```
 
-# Update the plugin
+After installing, **restart Claude Code** for the skills to appear as slash commands.
+
+To update the plugin later:
+
+```
 /plugin update modernization@github-copilot-modernization
 ```
 

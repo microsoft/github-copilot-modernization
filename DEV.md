@@ -30,7 +30,11 @@ Or use a relative path from your current directory:
 /plugin install modernization@github-copilot-modernization
 ```
 
-### 4. Update after making changes
+### 4. Restart Claude Code
+
+Skills are registered on startup. After installing or updating the plugin, **restart Claude Code** for the skills to appear as slash commands.
+
+### 5. Update after making changes
 
 When you modify skill files or configuration:
 
@@ -38,7 +42,9 @@ When you modify skill files or configuration:
 /plugin update modernization@github-copilot-modernization
 ```
 
-### 5. Test the skills
+Then restart Claude Code to pick up the changes.
+
+### 6. Test the skills
 
 Try each skill to verify functionality using natural language prompts:
 
@@ -64,7 +70,7 @@ Skills are located in `plugin/skills/`:
 - `modernize-plan-execute/SKILL.md`
 - `_shared/global-rules.md`
 
-After editing, run `/plugin update` to reload changes.
+After editing, run `/plugin update` to reload changes, then restart Claude Code.
 
 ### Configuration Files
 
@@ -74,8 +80,8 @@ After editing, run `/plugin update` to reload changes.
 
 ## Troubleshooting
 
-If skills aren't appearing:
-1. Verify the marketplace path is correct
-2. Check that plugin.json has the correct structure
-3. Try removing and re-adding the marketplace
-4. Restart Claude Code if necessary
+If skills aren't appearing as slash commands:
+1. **Restart Claude Code** — skills are registered on startup and won't appear in the `/` menu until the next session
+2. Verify the marketplace path is correct
+3. Check that plugin.json has the correct structure
+4. Try removing and re-adding the marketplace
