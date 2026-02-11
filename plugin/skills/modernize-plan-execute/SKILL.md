@@ -20,13 +20,13 @@ When the user invokes this command, follow these steps:
 
 Before collecting parameters, verify that a plan exists:
 
-1. Check for the plan at `.modernize/plans/<plan-name>/plan.md` (default: `.modernize/plans/modernization-plan/plan.md`)
+1. Check for the plan at `.github/.modernize/<plan-name>/plan.md` (default: `.github/.modernize/modernization-plan/plan.md`)
 2. If no plan exists, inform the user and suggest running `/modernize-create-plan` first
 3. If a plan exists, show a brief summary and ask for confirmation before proceeding
 
 **Example when no plan exists:**
 ```
-I couldn't find a modernization plan at `.modernize/plans/modernization-plan/plan.md`.
+I couldn't find a modernization plan at `.github/.modernize/modernization-plan/plan.md`.
 
 Would you like me to:
 1. Create a new plan first using /modernize-create-plan
@@ -48,7 +48,7 @@ All parameters are optional with sensible defaults.
 
 **Example interaction:**
 ```
-I found the modernization plan at `.modernize/plans/modernization-plan/plan.md`.
+I found the modernization plan at `.github/.modernize/modernization-plan/plan.md`.
 
 Plan Summary:
 - Phase 1: Update dependencies
@@ -69,7 +69,7 @@ Before executing, validate:
 - **`prompt`**: If provided, must not be empty
 - **`--language`**: If provided, must be either `DotNet`, `Java`, or `Unknown` (case-insensitive)
 - **`--issue-url`**: If provided, must be a valid GitHub issue URL matching pattern `https://github.com/<owner>/<repo>/issues/<number>`
-- **Plan exists**: Verify `.modernize/plans/<plan-name>/plan.md` exists before attempting execution
+- **Plan exists**: Verify `.github/.modernize/<plan-name>/plan.md` exists before attempting execution
 
 If validation fails, explain the issue clearly and ask the user to provide a corrected value.
 
@@ -132,6 +132,6 @@ Claude: [Executes: modernize plan execute "focus on the dependency updates first
 **When no plan exists:**
 ```
 User: /modernize-run-plan
-Claude: I couldn't find a plan at `.modernize/plans/modernization-plan/plan.md`.
+Claude: I couldn't find a plan at `.github/.modernize/modernization-plan/plan.md`.
         Would you like to create one first with /modernize-create-plan?
 ```

@@ -32,11 +32,11 @@ Present the user with a streamlined overview and offer to customize options. Use
 I'll help you assess your project.
 
 I'll auto-detect the project type. The results will be saved to
-`.modernize/.appcat` by default.
+`.github/.modernize/.appcat` by default.
 
 Before I run the assessment, would you like to customize any of these options?
 - Source path (default: current directory)
-- Output path (default: .modernize/.appcat)
+- Output path (default: .github/.modernize/.appcat)
 - Post summary to a GitHub issue (provide URL)
 - Enable multi-repo scanning
 - Enable verbose output
@@ -67,7 +67,7 @@ Only include optional parameters if they were explicitly set or differ from defa
 
 After execution:
 
-1. Read and summarize the contents of `<output-path>/summary.md` (default: `.modernize/summary.md`)
+1. Read and summarize the contents of `<output-path>/summary.md` (default: `.github/.modernize/summary.md`)
 2. Report any errors from the command output
 3. If `--issue-url` was provided, confirm the comment was posted successfully
 4. Highlight key findings and suggest next steps (e.g., running `/modernize-create-plan` to create a modernization plan)
