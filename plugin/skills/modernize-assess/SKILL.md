@@ -21,7 +21,7 @@ Present the user with a streamlined overview and offer to customize options. Use
 **Optional Parameters:**
 
 - `--source`: Path to source project (relative or absolute local path). Default: current directory (`.`)
-- `--output-path`: Path to the folder for report output. Default: `.modernize`
+- `--output-path`: Path to the folder for report output. Default: `.modernize/.appcat`
 - `--multi-repo`: Enable multi-repo assess. Scan first-level subdirectories for multiple repositories. Default: false
 - `--issue-url`: GitHub issue URL to post the summary to (e.g., `https://github.com/owner/repo/issues/123`)
 - `--verbose`: Enable verbose output for assessment. Default: false
@@ -67,7 +67,7 @@ Only include optional parameters if they were explicitly set or differ from defa
 
 After execution:
 
-1. Read and summarize the contents of `<output-path>/summary.md` (default: `.modernize/summary.md`)
+1. Read and summarize the contents of `<output-path>/summary.md` (default: `.modernize/.appcat/summary.md`)
 2. Report any errors from the command output
 3. If `--issue-url` was provided, confirm the comment was posted successfully
 4. Highlight key findings and suggest next steps (e.g., running `/modernize-create-plan` to create a modernization plan)

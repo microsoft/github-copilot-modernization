@@ -20,13 +20,13 @@ When the user invokes this command, follow these steps:
 
 Before collecting parameters, verify that a plan exists:
 
-1. Check for the plan at `.modernize/plans/<plan-name>/plan.md` (default: `.modernize/plans/modernization-plan/plan.md`)
+1. Check for the plan at `.github/modernize/<plan-name>/plan.md` (default: `.github/modernize/modernization-plan/plan.md`)
 2. If no plan exists, inform the user and suggest running `/modernize-create-plan` first
 3. If a plan exists, show a brief summary and ask for confirmation before proceeding
 
 **Example when no plan exists:**
 ```
-I couldn't find a modernization plan at `.modernize/plans/modernization-plan/plan.md`.
+I couldn't find a modernization plan at `.github/modernize/modernization-plan/plan.md`.
 
 Would you like me to:
 1. Create a new plan first using /modernize-create-plan
@@ -43,12 +43,11 @@ All parameters are optional with sensible defaults.
   - Prompt: "Any specific instructions for executing the plan? (Default: 'execute the plan')"
 - `--plan-name <plan-name>`: The name of the modernization plan. Default: `modernization-plan`
 - `--source <source>`: Path to source project (relative or absolute local path). Default: `.`
-- `--language <DotNet|Java|Unknown>`: The programming language for the modernization plan (java or dotnet). Default: auto-detect
-- `--issue-url <issue-url>`: GitHub issue URL to link execution progress to (e.g., `https://github.com/owner/repo/issues/123`)
+- `--language <java|dotnet>`: The programming language for the modernization plan. Default: auto-detect
 
 **Example interaction:**
 ```
-I found the modernization plan at `.modernize/plans/modernization-plan/plan.md`.
+I found the modernization plan at `.github/modernize/modernization-plan/plan.md`.
 
 Plan Summary:
 - Phase 1: Update dependencies
@@ -57,7 +56,6 @@ Plan Summary:
 
 Would you like to customize the execution?
 - Specific instructions (default: "execute the plan")
-- Link progress to a GitHub issue
 
 Or I can proceed with defaults - just say "go" or "continue".
 ```
@@ -67,9 +65,8 @@ Or I can proceed with defaults - just say "go" or "continue".
 Before executing, validate:
 
 - **`prompt`**: If provided, must not be empty
-- **`--language`**: If provided, must be either `DotNet`, `Java`, or `Unknown` (case-insensitive)
-- **`--issue-url`**: If provided, must be a valid GitHub issue URL matching pattern `https://github.com/<owner>/<repo>/issues/<number>`
-- **Plan exists**: Verify `.modernize/plans/<plan-name>/plan.md` exists before attempting execution
+- **`--language`**: If provided, must be either `java` or `dotnet` (case-insensitive)
+- **Plan exists**: Verify `.github/modernize/<plan-name>/plan.md` exists before attempting execution
 
 If validation fails, explain the issue clearly and ask the user to provide a corrected value.
 
@@ -78,7 +75,7 @@ If validation fails, explain the issue clearly and ask the user to provide a cor
 Run the following command (always include `--no-tty` for plain text output):
 
 ```bash
-modernize plan execute "<prompt>" [--plan-name <plan-name>] [--source <source>] [--language <DotNet|Java|Unknown>] [--issue-url <issue-url>] --no-tty
+modernize plan execute "<prompt>" [--plan-name <plan-name>] [--source <source>] [--language <java|dotnet>] --no-tty
 ```
 
 **Important:** Properly escape the user-provided prompt when constructing the shell command to prevent injection.
@@ -90,7 +87,7 @@ After execution:
 1. Report the execution status (success, partial success, or failure)
 2. Summarize what changes were made
 3. List completed tasks vs remaining tasks
-4. If `--issue-url` was provided, confirm progress was posted
+4. Report execution progress
 5. Suggest next steps based on results:
    - If all tasks completed: Suggest reviewing changes and running tests
    - If some tasks remain: Offer to continue execution or investigate issues
@@ -122,16 +119,16 @@ User: run the dotnet8-upgrade plan
 Claude: [Executes: modernize plan execute "execute the plan" --plan-name dotnet8-upgrade --no-tty]
 ```
 
-**Execute with custom instructions and issue tracking:**
+**Execute with custom instructions:**
 ```
 User: /modernize-run-plan
-User: focus on the dependency updates first, track at https://github.com/myorg/myrepo/issues/15
-Claude: [Executes: modernize plan execute "focus on the dependency updates first" --issue-url https://github.com/myorg/myrepo/issues/15 --no-tty]
+User: focus on the dependency updates first
+Claude: [Executes: modernize plan execute "focus on the dependency updates first" --no-tty]
 ```
 
 **When no plan exists:**
 ```
 User: /modernize-run-plan
-Claude: I couldn't find a plan at `.modernize/plans/modernization-plan/plan.md`.
+Claude: I couldn't find a plan at `.github/modernize/modernization-plan/plan.md`.
         Would you like to create one first with /modernize-create-plan?
 ```
