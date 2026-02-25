@@ -1,7 +1,6 @@
 ---
 name: modernize-assess
 description: "Run assessment and generate summary report for Java or .NET projects. USE FOR: assess project, analyze codebase, modernization assessment, identify migration issues, modernize assess, scan for upgrade problems, evaluate .NET project, evaluate Java project, find legacy dependencies, generate assessment report. DO NOT USE FOR: creating modernization plans (use modernize-create-plan), executing plans (use modernize-run-plan)."
-allowed-tools: Bash(modernize:*)
 ---
 
 # Modernize Assess

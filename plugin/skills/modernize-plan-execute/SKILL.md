@@ -1,7 +1,6 @@
 ---
 name: modernize-plan-execute
 description: "Execute an existing modernization plan for Java or .NET projects. USE FOR: run plan, execute plan, apply changes, modernize plan execute, start migration, run modernization, apply upgrade, implement plan, carry out migration. DO NOT USE FOR: running assessments (use modernize-assess), creating new plans (use modernize-create-plan)."
-allowed-tools: Bash(modernize:*)
 ---
 
 # Modernize Run Plan

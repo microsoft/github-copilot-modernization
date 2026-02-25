@@ -1,7 +1,6 @@
 ---
 name: modernize-plan-create
 description: "Create a modernization plan based on a user prompt for Java or .NET projects. USE FOR: create plan, make migration plan, plan modernization, plan upgrade, modernize plan create, design migration strategy, plan .NET upgrade, plan Java migration, containerization plan, Azure migration plan. DO NOT USE FOR: running assessments (use modernize-assess), executing existing plans (use modernize-run-plan)."
-allowed-tools: Bash(modernize:*)
 ---
 
 # Modernize Create Plan
