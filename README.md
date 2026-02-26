@@ -1,13 +1,14 @@
-# GitHub Copilot Modernization
+# GitHub Copilot modernization
 
-Application modernization plugin for [GitHub Copilot CLI](https://github.com/github/copilot-cli) and Claude Code. Assess, plan, and execute Java and .NET project modernization directly from your development environment.
+This is the GitHub Copilot modernization plugin for [GitHub Copilot CLI](https://github.com/github/copilot-cli). This plugin enables you to use the Github Copilot modernization CLI from GitHub Copilot CLI so that you can assess, plan, and modernize your Java and .NET applications directly from GitHub Copilot. For more information, see [GitHub Copilot modernization CLI](https://aka.ms/ghcp-pupr-modernization-agent).
 
 ## Installation
 
 1. Add the marketplace: `/plugin marketplace add microsoft/github-copilot-modernization`
-2. Install the plugin: `/plugin install modernization@github-copilot-modernization`
-3. **Restart Claude Code** to make the skills available as slash commands
-4. To update later: `/plugin update modernization@github-copilot-modernization`
+1. Install the plugin: `/plugin install modernization@github-copilot-modernization`
+1. Update the plugin: `/plugin update modernization@github-copilot-modernization`
+
+Note: the first use of the plugin will install the GitHub Copilot modernization CLI.
 
 ## Skills
 
@@ -16,8 +17,6 @@ Application modernization plugin for [GitHub Copilot CLI](https://github.com/git
 | **modernize-assess** | Run assessment and generate summary report for Java or .NET projects |
 | **modernize-create-plan** | Create a modernization plan based on your goals |
 | **modernize-run-plan** | Execute an existing modernization plan |
-
-The recommended workflow is: **Assess** → **Plan** → **Execute**
 
 ## Contributing
 
