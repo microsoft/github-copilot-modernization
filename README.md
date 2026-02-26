@@ -1,6 +1,6 @@
 # GitHub Copilot modernization
 
-This is the GitHub Copilot modernization plugin for [GitHub Copilot CLI](https://github.com/github/copilot-cli). This plugin enables you to use the Github Copilot modernization CLI from GitHub Copilot CLI so that you can assess, plan, and modernize your Java and .NET applications directly from GitHub Copilot. For more information, see GitHub Copilot modernization CLI.
+This is the GitHub Copilot modernization plugin for [GitHub Copilot CLI](https://github.com/github/copilot-cli). This plugin enables you to use the Github Copilot modernization CLI from GitHub Copilot CLI so that you can assess, plan, and modernize your Java and .NET applications directly from GitHub Copilot. For more information, see [GitHub Copilot modernization CLI](https://aka.ms/ghcp-pupr-modernization-agent).
 
 ## Installation
 
