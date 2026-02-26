@@ -30,11 +30,9 @@ Or use a relative path from your current directory:
 /plugin install modernization@github-copilot-modernization
 ```
 
-### 4. Restart Claude Code
+If you are using Claude Code, you'll need to restart Claude Code for the skills to appear as slash commands.
 
-Skills are registered on startup. After installing or updating the plugin, **restart Claude Code** for the skills to appear as slash commands.
-
-### 5. Update after making changes
+### 4. Update after making changes
 
 When you modify skill files or configuration:
 
@@ -44,7 +42,7 @@ When you modify skill files or configuration:
 
 Then restart Claude Code to pick up the changes.
 
-### 6. Test the skills
+### 5. Test the skills
 
 Try each skill to verify functionality using natural language prompts:
 
