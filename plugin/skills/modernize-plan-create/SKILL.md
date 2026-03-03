@@ -27,7 +27,7 @@ The modernization prompt is the only required parameter. Collect it first, then 
 **Optional Parameters:**
 
 - `--source`: Path to root of repository (relative or absolute local path). Default: current directory (`.`)
-- `--plan-name`: Name for this plan. Default: `modernization-plan`
+- `--plan-name`: Name for this plan. Generate a default name based on the prompt (e.g., "azure-migration-plan") if not provided
 - `--language`: Project language (`java` or `dotnet`). Default: auto-detect
 - `--issue-url`: GitHub issue URL to link to this plan
 
