@@ -79,7 +79,7 @@ modernize plan create "<prompt>" [--source <path>] [--plan-name <name>] [--langu
 
 After execution:
 
-1. Read and present the generated plan from `.modernize/plans/<plan-name>/plan.md`
+1. Read and present the generated plan from `.modernize/plans/<plan-name>/plan.md` and `.modernize/plans/<plan-name>/tasks.json`
 2. Provide a summary of the plan's key phases and tasks
 3. Offer to explain any part of the plan in detail
 4. Suggest running `/modernize-run-plan` as a next step to execute the plan
