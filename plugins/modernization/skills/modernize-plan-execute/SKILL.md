@@ -15,7 +15,23 @@ Execute an existing modernization plan to apply the planned changes to your Java
 
 When the user invokes this command, follow these steps:
 
-### 1. Pre-Execution Check
+### 1. Ensure the modernize CLI is installed
+
+Before doing anything else, check if the `modernize` CLI is available:
+
+```bash
+export PATH="$PATH:$HOME/.modernize/bin" && command -v modernize
+```
+
+If `modernize` is **not found**, install it:
+- **Linux/macOS**: `curl -fsSL https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.sh | sh`
+- **Windows (PowerShell)**: `irm https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.ps1 | iex`
+
+After installation, ensure the binary is on PATH: `export PATH="$PATH:$HOME/.modernize/bin"`
+
+If the installation fails, explain the error and link the user to https://github.com/microsoft/modernize-cli for manual installation.
+
+### 2. Pre-Execution Check
 
 Before collecting parameters, verify that a plan exists:
 
@@ -32,7 +48,7 @@ Would you like me to:
 2. Specify a different plan name if you have an existing plan elsewhere
 ```
 
-### 2. Parameter Collection
+### 3. Parameter Collection
 
 All parameters are optional with sensible defaults.
 
@@ -59,7 +75,7 @@ Would you like to customize the execution?
 Or I can proceed with defaults - just say "go" or "continue".
 ```
 
-### 3. Validation
+### 4. Validation
 
 Before executing, validate:
 
@@ -69,7 +85,7 @@ Before executing, validate:
 
 If validation fails, explain the issue clearly and ask the user to provide a corrected value.
 
-### 4. Execution
+### 5. Execution
 
 Run the following command (always include `--no-tty` for plain text output):
 
@@ -79,7 +95,7 @@ modernize plan execute "<prompt>" [--plan-name <plan-name>] [--source <source>] 
 
 **Important:** Properly escape the user-provided prompt when constructing the shell command to prevent injection.
 
-### 5. Results
+### 6. Results
 
 After execution:
 

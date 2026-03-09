@@ -15,7 +15,23 @@ Create a modernization plan for your Java or .NET project based on your specific
 
 When the user invokes this command, follow these steps:
 
-### 1. Parameter Collection
+### 1. Ensure the modernize CLI is installed
+
+Before doing anything else, check if the `modernize` CLI is available:
+
+```bash
+export PATH="$PATH:$HOME/.modernize/bin" && command -v modernize
+```
+
+If `modernize` is **not found**, install it:
+- **Linux/macOS**: `curl -fsSL https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.sh | sh`
+- **Windows (PowerShell)**: `irm https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.ps1 | iex`
+
+After installation, ensure the binary is on PATH: `export PATH="$PATH:$HOME/.modernize/bin"`
+
+If the installation fails, explain the error and link the user to https://github.com/microsoft/modernize-cli for manual installation.
+
+### 2. Parameter Collection
 
 The modernization prompt is the only required parameter. Collect it first, then offer optional customizations.
 
@@ -54,7 +70,7 @@ Would you like to customize any of these options?
 Or I can proceed with defaults - just say "go" or "continue".
 ```
 
-### 2. Validation
+### 3. Validation
 
 Before executing, validate:
 
@@ -65,7 +81,7 @@ Before executing, validate:
 
 If validation fails, explain the issue clearly and ask the user to provide a corrected value.
 
-### 3. Execution
+### 4. Execution
 
 Run the following command (always include `--no-tty` for plain text output):
 
@@ -75,7 +91,7 @@ modernize plan create "<prompt>" [--source <path>] [--plan-name <name>] [--langu
 
 **Important:** Properly escape the user-provided prompt when constructing the shell command to prevent injection.
 
-### 4. Results
+### 5. Results
 
 After execution:
 

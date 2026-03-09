@@ -2,6 +2,35 @@
 
 > **MANDATORY** — These rules apply to ALL skills. Violations are unacceptable.
 
+## Rule 0: Ensure the modernize CLI is Installed
+
+⛔ **ALWAYS** verify the `modernize` CLI is available before running any `modernize` command.
+
+Run the following check:
+
+```bash
+export PATH="$PATH:$HOME/.modernize/bin" && command -v modernize
+```
+
+If `modernize` is **not found**, install it by running the appropriate installer for the platform:
+
+- **Linux/macOS (bash)**:
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.sh | sh
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  irm https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.ps1 | iex
+  ```
+
+After installation, ensure the binary is on PATH for subsequent commands:
+
+```bash
+export PATH="$PATH:$HOME/.modernize/bin"
+```
+
+If the installation fails, explain the error and link the user to https://github.com/microsoft/modernize-cli for manual installation instructions.
+
 ## Rule 1: Destructive Actions Require User Confirmation
 
 ⛔ **ALWAYS use `ask_user`** before ANY destructive action.
