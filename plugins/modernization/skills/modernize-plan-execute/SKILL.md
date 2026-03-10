@@ -35,13 +35,14 @@ If the installation fails, explain the error and link the user to https://github
 
 Before collecting parameters, verify that a plan exists:
 
-1. Check for the plan at `.github/modernize/<plan-name>/plan.md` (default: `.github/modernize/modernization-plan/plan.md`)
+1. Check for the plan at `.github/modernize/<plan-name>` (default: `.github/modernize/modernization-plan`), there should be a `plan.md` and `tasks.json` file inside that directory
 2. If no plan exists, inform the user and suggest running `/modernize-create-plan` first
 3. If a plan exists, show a brief summary and ask for confirmation before proceeding
+4. If multiple plans are found, list them and ask the user to specify which one to execute using `--plan-name <plan-name>`
 
 **Example when no plan exists:**
 ```
-I couldn't find a modernization plan at `.github/modernize/modernization-plan/plan.md`.
+I couldn't find a modernization plan at `.github/modernize/<plan-name>`.
 
 Would you like me to:
 1. Create a new plan first using /modernize-create-plan
@@ -56,13 +57,13 @@ All parameters are optional with sensible defaults.
 
 - `prompt`: Specific instructions for executing the plan. Default: `execute the plan`
   - Prompt: "Any specific instructions for executing the plan? (Default: 'execute the plan')"
-- `--plan-name <plan-name>`: The name of the modernization plan. Default: `modernization-plan`
+- `--plan-name <plan-name>`: The name of the modernization plan. Default: `modernization-plan`, it is expected to be located at `.github/modernize/<plan-name>`
 - `--source <source>`: Path to source project (relative or absolute local path). Default: `.`
 - `--language <java|dotnet>`: The programming language for the modernization plan. Default: auto-detect
 
 **Example interaction:**
 ```
-I found the modernization plan at `.github/modernize/modernization-plan/plan.md`.
+I found the modernization plan at `.github/modernize/modernization-plan`.
 
 Plan Summary:
 - Phase 1: Update dependencies
@@ -81,7 +82,7 @@ Before executing, validate:
 
 - **`prompt`**: If provided, must not be empty
 - **`--language`**: If provided, must be either `java` or `dotnet` (case-insensitive)
-- **Plan exists**: Verify `.github/modernize/<plan-name>/plan.md` exists before attempting execution
+- **Plan exists**: Verify `.github/modernize/<plan-name>` exists before attempting execution
 
 If validation fails, explain the issue clearly and ask the user to provide a corrected value.
 
@@ -144,6 +145,6 @@ Claude: [Executes: modernize plan execute "focus on the dependency updates first
 **When no plan exists:**
 ```
 User: /modernize-run-plan
-Claude: I couldn't find a plan at `.github/modernize/modernization-plan/plan.md`.
+Claude: I couldn't find a plan at `.github/modernize/modernization-plan`.
         Would you like to create one first with /modernize-create-plan?
 ```

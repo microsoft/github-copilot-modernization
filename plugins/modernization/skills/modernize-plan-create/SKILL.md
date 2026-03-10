@@ -43,7 +43,7 @@ The modernization prompt is the only required parameter. Collect it first, then 
 **Optional Parameters:**
 
 - `--source`: Path to root of repository (relative or absolute local path). Default: current directory (`.`)
-- `--plan-name`: Name for this plan. Default: `modernization-plan`
+- `--plan-name`: Name for this plan. Generate a name based on the prompt (e.g., "azure-migration-plan") if not provided. I will create a folder under `.github/modernize/`. The name should not duplicate existing plans in `.github/modernize/`.
 - `--language`: Project language (`java` or `dotnet`). Default: auto-detect
 - `--issue-url`: GitHub issue URL to link to this plan
 
@@ -95,7 +95,7 @@ modernize plan create "<prompt>" [--source <path>] [--plan-name <name>] [--langu
 
 After execution:
 
-1. Read and present the generated plan from `.modernize/plans/<plan-name>/plan.md`
+1. Read and present the generated plan from `.github/modernize/plans/<plan-name>/plan.md` and `.github/modernize/plans/<plan-name>/tasks.json`
 2. Provide a summary of the plan's key phases and tasks
 3. Offer to explain any part of the plan in detail
 4. Suggest running `/modernize-run-plan` as a next step to execute the plan
