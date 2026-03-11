@@ -1,13 +1,13 @@
 ---
 name: modernize-plan-execute
-description: "Execute an existing modernization plan for Java or .NET projects. USE FOR: run plan, execute plan, apply changes, modernize plan execute, start migration, run modernization, apply upgrade, implement plan, carry out migration. DO NOT USE FOR: running assessments (use modernize-assess), creating new plans (use modernize-create-plan)."
+description: "Execute an existing modernization plan for Java or .NET projects. USE FOR: run plan, execute plan, apply changes, modernize plan execute, start migration, run modernization, apply upgrade, implement plan, carry out migration. DO NOT USE FOR: running assessments (use modernize-assess), creating new plans (use modernize-plan-create)."
 ---
 
 # Modernize Run Plan
 
 > ⛔ **MANDATORY**: Follow [global-rules](../_shared/global-rules.md) for all operations.
 >
-> **NOTE**: A modernization plan must exist before executing. Plans can be created with **modernize-create-plan** or provided externally.
+> **NOTE**: A modernization plan must exist before executing. Plans can be created with **modernize-plan-create** or provided externally.
 
 Execute an existing modernization plan to apply the planned changes to your Java or .NET project.
 
@@ -15,12 +15,51 @@ Execute an existing modernization plan to apply the planned changes to your Java
 
 When the user invokes this command, follow these steps:
 
+## Rule 0: Ensure the modernize CLI is Installed
+
+⛔ **ALWAYS** verify the `modernize` CLI is available before running any `modernize` command.
+
+Run the following check:
+
+- **Linux/macOS (bash)**:
+  ```bash
+  export PATH="$PATH:$HOME/.local/bin" && command -v modernize
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  $env:PATH += ";$env:LOCALAPPDATA\Programs\modernize"; Get-Command modernize -ErrorAction SilentlyContinue
+  ```
+
+If `modernize` is **not found**, install it by running the appropriate installer for the platform:
+
+- **Linux/macOS (bash)**:
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.sh | sh
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  irm https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.ps1 | iex
+  ```
+
+After installation, the install script will print the exact PATH entry to add. Use that output to ensure the binary is on PATH for subsequent commands. If the script did not print a path, fall back to the default:
+
+- **Linux/macOS (bash)**:
+  ```bash
+  export PATH="$PATH:$HOME/.local/bin"
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  $env:PATH += ";$env:LOCALAPPDATA\Programs\modernize"
+  ```
+
+If the installation fails, explain the error and link the user to https://github.com/microsoft/modernize-cli for manual installation instructions.
+
 ### 1. Pre-Execution Check
 
 Before collecting parameters, verify that a plan exists:
 
 1. Check for the plan at `.github/modernize/<plan-name>` (default: `.github/modernize/modernization-plan`), there should be a `plan.md` and `tasks.json` file inside that directory
-2. If no plan exists, inform the user and suggest running `/modernize-create-plan` first
+2. If no plan exists, inform the user and suggest running `/modernize-plan-create` first
 3. If a plan exists, show a brief summary and ask for confirmation before proceeding
 4. If multiple plans are found, list them and ask the user to specify which one to execute using `--plan-name <plan-name>`
 
@@ -29,7 +68,7 @@ Before collecting parameters, verify that a plan exists:
 I couldn't find a modernization plan at `.github/modernize/<plan-name>`.
 
 Would you like me to:
-1. Create a new plan first using /modernize-create-plan
+1. Create a new plan first using /modernize-plan-create
 2. Specify a different plan name if you have an existing plan elsewhere
 ```
 
@@ -78,7 +117,7 @@ Run the following command (always include `--no-tty` for plain text output):
 modernize plan execute "<prompt>" [--plan-name <plan-name>] [--source <source>] [--language <java|dotnet>] --no-tty
 ```
 
-**Important:** Properly escape the user-provided prompt when constructing the shell command to prevent injection.
+**Important:** Properly escape the user-provided prompt when constructing the shell command to prevent injection. The command will execute for long-running tasks (up to 1 hour), so set the timeout to run the command to more than 1 hour, wait for it to complete and capture all output for the next step.
 
 ### 5. Results
 
@@ -105,7 +144,7 @@ If the command fails:
 
 **Execute with defaults:**
 ```
-User: /modernize-run-plan
+User: /modernize-plan-execute
 Claude: [Checks for plan, shows summary]
 Claude: Ready to execute. Proceed?
 User: go
@@ -114,21 +153,21 @@ Claude: [Executes: modernize plan execute "execute the plan" --no-tty]
 
 **Execute a specific plan:**
 ```
-User: /modernize-run-plan
+User: /modernize-plan-execute
 User: run the dotnet8-upgrade plan
 Claude: [Executes: modernize plan execute "execute the plan" --plan-name dotnet8-upgrade --no-tty]
 ```
 
 **Execute with custom instructions:**
 ```
-User: /modernize-run-plan
+User: /modernize-plan-execute
 User: focus on the dependency updates first
 Claude: [Executes: modernize plan execute "focus on the dependency updates first" --no-tty]
 ```
 
 **When no plan exists:**
 ```
-User: /modernize-run-plan
+User: /modernize-plan-execute
 Claude: I couldn't find a plan at `.github/modernize/modernization-plan`.
-        Would you like to create one first with /modernize-create-plan?
+        Would you like to create one first with /modernize-plan-create?
 ```

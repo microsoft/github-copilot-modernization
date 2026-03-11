@@ -34,7 +34,7 @@ Run an assessment on your project to identify modernization opportunities and ge
 Assess my project for modernization
 ```
 
-### 2. Create Plan (`modernize-create-plan`)
+### 2. Create Plan (`modernize-plan-create`)
 
 Create a detailed modernization plan based on your specific goals and requirements.
 
@@ -42,7 +42,7 @@ Create a detailed modernization plan based on your specific goals and requiremen
 Create a plan to upgrade to .NET Core 10
 ```
 
-### 3. Run Plan (`modernize-run-plan`)
+### 3. Run Plan (`modernize-plan-execute`)
 
 Execute an existing modernization plan to apply the planned changes to your project.
 
@@ -73,5 +73,5 @@ Ask Copilot CLI or Claude Code to:
 ### Common Issues
 
 - **No project detected**: Ensure you're in a directory containing a Java or .NET project
-- **Plan not found**: Run `modernize-assess` and `modernize-create-plan` before executing a plan
+- **Plan not found**: Run `modernize-assess` and `modernize-plan-create` before executing a plan
 - **Command failures**: Check that the `modernize` CLI tool is installed and accessible

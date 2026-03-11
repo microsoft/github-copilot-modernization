@@ -2,6 +2,45 @@
 
 > **MANDATORY** — These rules apply to ALL skills. Violations are unacceptable.
 
+## Rule 0: Ensure the modernize CLI is Installed
+
+⛔ **ALWAYS** verify the `modernize` CLI is available before running any `modernize` command.
+
+Run the following check:
+
+- **Linux/macOS (bash)**:
+  ```bash
+  export PATH="$PATH:$HOME/.local/bin" && command -v modernize
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  $env:PATH += ";$env:LOCALAPPDATA\Programs\modernize"; Get-Command modernize -ErrorAction SilentlyContinue
+  ```
+
+If `modernize` is **not found**, install it by running the appropriate installer for the platform:
+
+- **Linux/macOS (bash)**:
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.sh | sh
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  irm https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.ps1 | iex
+  ```
+
+After installation, the install script will print the exact PATH entry to add. Use that output to ensure the binary is on PATH for subsequent commands. If the script did not print a path, fall back to the default:
+
+- **Linux/macOS (bash)**:
+  ```bash
+  export PATH="$PATH:$HOME/.local/bin"
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  $env:PATH += ";$env:LOCALAPPDATA\Programs\modernize"
+  ```
+
+If the installation fails, explain the error and link the user to https://github.com/microsoft/modernize-cli for manual installation instructions.
+
 ## Rule 1: Destructive Actions Require User Confirmation
 
 ⛔ **ALWAYS use `ask_user`** before ANY destructive action.
