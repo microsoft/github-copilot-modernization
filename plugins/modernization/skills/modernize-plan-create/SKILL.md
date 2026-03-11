@@ -114,7 +114,7 @@ Run the following command (always include `--no-tty` for plain text output):
 modernize plan create "<prompt>" [--source <path>] [--plan-name <name>] [--language <lang>] [--overwrite] --no-tty
 ```
 
-**Important:** Properly escape the user-provided prompt when constructing the shell command to prevent injection.
+**Important:** Properly escape the user-provided prompt when constructing the shell command to prevent injection. The command will execute for long-running tasks (up to 20 minutes), so set the timeout to run the command to more than 20 minutes, wait for it to complete, and capture all output for the next step.
 
 ### 4. Results
 
