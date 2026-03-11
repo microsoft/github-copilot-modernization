@@ -15,23 +15,7 @@ Create a modernization plan for your Java or .NET project based on your specific
 
 When the user invokes this command, follow these steps:
 
-### 1. Ensure the modernize CLI is installed
-
-Before doing anything else, check if the `modernize` CLI is available:
-
-```bash
-export PATH="$PATH:$HOME/.modernize/bin" && command -v modernize
-```
-
-If `modernize` is **not found**, install it:
-- **Linux/macOS**: `curl -fsSL https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.sh | sh`
-- **Windows (PowerShell)**: `irm https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.ps1 | iex`
-
-After installation, ensure the binary is on PATH: `export PATH="$PATH:$HOME/.modernize/bin"`
-
-If the installation fails, explain the error and link the user to https://github.com/microsoft/modernize-cli for manual installation.
-
-### 2. Parameter Collection
+### 1. Parameter Collection
 
 The modernization prompt is the only required parameter. Collect it first, then offer optional customizations.
 
@@ -43,9 +27,9 @@ The modernization prompt is the only required parameter. Collect it first, then 
 **Optional Parameters:**
 
 - `--source`: Path to root of repository (relative or absolute local path). Default: current directory (`.`)
-- `--plan-name`: Name for this plan. Generate a name based on the prompt (e.g., "azure-migration-plan") if not provided. I will create a folder under `.github/modernize/`. The name should not duplicate existing plans in `.github/modernize/`.
-- `--language`: Project language (`java` or `dotnet`). Default: auto-detect
-- `--issue-url`: GitHub issue URL to link to this plan
+- `--plan-name`: Name for this plan. Generate a name based on the prompt (e.g., "azure-migration-plan") if not provided. The name should not duplicate existing plans in `.github/modernize/`.
+- `--overwrite`: Pass this flag to replace an existing plan that has the same `--plan-name`. Before passing it, **always ask the user to confirm** (per global-rules Rule 1), e.g., "A plan named `<name>` already exists. Overwrite it?". Do not pass `--overwrite` silently.
+- `--language`: Project language (`java` or `dotnet`). Default empty to auto detect based on source code analysis. If provided, must be either `java` or `dotnet`.
 
 **Example interaction:**
 ```
@@ -65,33 +49,35 @@ Would you like to customize any of these options?
 - Source path (default: current directory)
 - Plan name (default: modernization-plan)
 - Language (default: auto-detect)
-- Link to a GitHub issue
+- Override existing plan if it exists (default: no)
 
 Or I can proceed with defaults - just say "go" or "continue".
 ```
 
-### 3. Validation
+### 2. Validation
 
 Before executing, validate:
 
 - **`prompt`**: Must not be empty or whitespace-only. If empty, ask the user to provide a modernization goal.
 - **`--language`**: If provided, must be either `java` or `dotnet` (case-insensitive)
-- **`--issue-url`**: If provided, must be a valid GitHub issue URL matching pattern `https://github.com/<owner>/<repo>/issues/<number>`
 - **`--source`**: If provided, verify the directory exists
+- **`--plan-name`**: If provided, check if a plan with the same name already exists in `.github/modernize/`. If it does, ask the user to confirm overwriting (per global-rules Rule 1).
+- **`--overwrite`**: If provided, allows overwriting an existing plan. Always ask the user to confirm before proceeding.
+
 
 If validation fails, explain the issue clearly and ask the user to provide a corrected value.
 
-### 4. Execution
+### 3. Execution
 
 Run the following command (always include `--no-tty` for plain text output):
 
 ```bash
-modernize plan create "<prompt>" [--source <path>] [--plan-name <name>] [--language <lang>] [--issue-url <url>] --no-tty
+modernize plan create "<prompt>" [--source <path>] [--plan-name <name>] [--language <lang>] [--overwrite] --no-tty
 ```
 
 **Important:** Properly escape the user-provided prompt when constructing the shell command to prevent injection.
 
-### 5. Results
+### 4. Results
 
 After execution:
 

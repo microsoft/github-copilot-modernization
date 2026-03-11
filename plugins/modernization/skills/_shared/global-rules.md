@@ -8,9 +8,14 @@
 
 Run the following check:
 
-```bash
-export PATH="$PATH:$HOME/.modernize/bin" && command -v modernize
-```
+- **Linux/macOS (bash)**:
+  ```bash
+  export PATH="$PATH:$HOME/.local/bin" && command -v modernize
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  $env:PATH += ";$env:LOCALAPPDATA\Programs\modernize"; Get-Command modernize -ErrorAction SilentlyContinue
+  ```
 
 If `modernize` is **not found**, install it by running the appropriate installer for the platform:
 
@@ -23,11 +28,16 @@ If `modernize` is **not found**, install it by running the appropriate installer
   irm https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.ps1 | iex
   ```
 
-After installation, ensure the binary is on PATH for subsequent commands:
+After installation, the install script will print the exact PATH entry to add. Use that output to ensure the binary is on PATH for subsequent commands. If the script did not print a path, fall back to the default:
 
-```bash
-export PATH="$PATH:$HOME/.modernize/bin"
-```
+- **Linux/macOS (bash)**:
+  ```bash
+  export PATH="$PATH:$HOME/.local/bin"
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  $env:PATH += ";$env:LOCALAPPDATA\Programs\modernize"
+  ```
 
 If the installation fails, explain the error and link the user to https://github.com/microsoft/modernize-cli for manual installation instructions.
 
