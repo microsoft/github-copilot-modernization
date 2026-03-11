@@ -1,6 +1,6 @@
 ---
 name: modernize-plan-create
-description: "Create a modernization plan based on a user prompt for Java or .NET projects. USE FOR: create plan, make migration plan, plan modernization, plan upgrade, modernize plan create, design migration strategy, plan .NET upgrade, plan Java migration, containerization plan, Azure migration plan. DO NOT USE FOR: running assessments (use modernize-assess), executing existing plans (use modernize-run-plan)."
+description: "Create a modernization plan based on a user prompt for Java or .NET projects. USE FOR: create plan, make migration plan, plan modernization, plan upgrade, modernize plan create, design migration strategy, plan .NET upgrade, plan Java migration, containerization plan, Azure migration plan. DO NOT USE FOR: running assessments (use modernize-assess), executing existing plans (use modernize-plan-execute)."
 ---
 
 # Modernize Create Plan
@@ -14,6 +14,45 @@ Create a modernization plan for your Java or .NET project based on your specific
 ## Instructions
 
 When the user invokes this command, follow these steps:
+
+## Rule 0: Ensure the modernize CLI is Installed
+
+⛔ **ALWAYS** verify the `modernize` CLI is available before running any `modernize` command.
+
+Run the following check:
+
+- **Linux/macOS (bash)**:
+  ```bash
+  export PATH="$PATH:$HOME/.local/bin" && command -v modernize
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  $env:PATH += ";$env:LOCALAPPDATA\Programs\modernize"; Get-Command modernize -ErrorAction SilentlyContinue
+  ```
+
+If `modernize` is **not found**, install it by running the appropriate installer for the platform:
+
+- **Linux/macOS (bash)**:
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.sh | sh
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  irm https://raw.githubusercontent.com/microsoft/modernize-cli/main/scripts/install.ps1 | iex
+  ```
+
+After installation, the install script will print the exact PATH entry to add. Use that output to ensure the binary is on PATH for subsequent commands. If the script did not print a path, fall back to the default:
+
+- **Linux/macOS (bash)**:
+  ```bash
+  export PATH="$PATH:$HOME/.local/bin"
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  $env:PATH += ";$env:LOCALAPPDATA\Programs\modernize"
+  ```
+
+If the installation fails, explain the error and link the user to https://github.com/microsoft/modernize-cli for manual installation instructions.
 
 ### 1. Parameter Collection
 
@@ -84,7 +123,7 @@ After execution:
 1. Read and present the generated plan from `.github/modernize/plans/<plan-name>/plan.md` and `.github/modernize/plans/<plan-name>/tasks.json`
 2. Provide a summary of the plan's key phases and tasks
 3. Offer to explain any part of the plan in detail
-4. Suggest running `/modernize-run-plan` as a next step to execute the plan
+4. Suggest running `/modernize-plan-execute` as a next step to execute the plan
 
 ## Error Handling
 
@@ -98,7 +137,7 @@ If the command fails:
 
 **Create a plan for Azure migration:**
 ```
-User: /modernize-create-plan
+User: /modernize-plan-create
 Claude: What modernization goal would you like to achieve?
 User: migrate my app to Azure App Service
 Claude: [Executes: modernize plan create "migrate my app to Azure App Service" --no-tty]
@@ -106,14 +145,14 @@ Claude: [Executes: modernize plan create "migrate my app to Azure App Service" -
 
 **Create a named plan with custom directory:**
 ```
-User: /modernize-create-plan
+User: /modernize-plan-create
 User: upgrade to .NET 8, call it dotnet8-upgrade, project is in ./src/MyApp
 Claude: [Executes: modernize plan create "upgrade to .NET 8" --plan-name dotnet8-upgrade --source ./src/MyApp --no-tty]
 ```
 
 **Create a plan linked to an issue:**
 ```
-User: /modernize-create-plan
+User: /modernize-plan-create
 User: containerize the app, link to https://github.com/myorg/myrepo/issues/15
 Claude: [Executes: modernize plan create "containerize the app" --issue-url https://github.com/myorg/myrepo/issues/15 --no-tty]
 ```

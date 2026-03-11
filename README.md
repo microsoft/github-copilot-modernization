@@ -15,8 +15,8 @@ Note: the first use of the plugin will install the GitHub Copilot modernization 
 | Skill | Description |
 |-------|-------------|
 | **modernize-assess** | Run assessment and generate summary report for Java or .NET projects |
-| **modernize-create-plan** | Create a modernization plan based on your goals |
-| **modernize-run-plan** | Execute an existing modernization plan |
+| **modernize-plan-create** | Create a modernization plan based on your goals |
+| **modernize-plan-execute** | Execute an existing modernization plan |
 
 ## Contributing
 
