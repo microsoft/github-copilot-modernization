@@ -1,6 +1,22 @@
-# GitHub Copilot modernization
+# GitHub Copilot modernization plugin
 
 This is the GitHub Copilot modernization plugin for [GitHub Copilot CLI](https://github.com/github/copilot-cli). This plugin enables you to use the Github Copilot modernization CLI from GitHub Copilot CLI so that you can assess, plan, and modernize your Java and .NET applications directly from GitHub Copilot. For more information, see [GitHub Copilot modernization CLI](https://aka.ms/ghcp-pupr-modernization-agent).
+
+## Getting Started
+
+### Opening Copilot CLI
+
+1. **Download Copilot CLI**: Download from [https://github.com/github/copilot-cli](https://github.com/github/copilot-cli?locale=en-US) and follow the installation instructions for your platform.
+
+2. **Navigate to your project**: Open a terminal and navigate to your project directory:
+   ```bash
+   cd /path/to/your/project
+   ```
+
+3. **Start Copilot CLI**: Simply run:
+   ```bash
+   copilot
+   ```
 
 ## Installation
 
@@ -17,6 +33,33 @@ Note: the first use of the plugin will install the GitHub Copilot modernization 
 | **modernize-assess** | Run assessment and generate summary report for Java or .NET projects |
 | **modernize-plan-create** | Create a modernization plan based on your goals |
 | **modernize-plan-execute** | Execute an existing modernization plan |
+
+## Usage
+
+Once the plugin is installed, you can use the modernization skills directly in GitHub Copilot CLI:
+
+### Running an Assessment
+
+To assess your Java or .NET project for modernization opportunities:
+
+```
+Assess my Java project for modernization
+```
+
+### Creating a Modernization Plan
+
+To create a modernization plan:
+
+```
+Create a plan to migrate the project to Azure
+```
+
+### Executing a Modernization Plan
+
+To execute an existing modernization plan:
+```
+Execute my modernization plan
+```
 
 ## Contributing
 
