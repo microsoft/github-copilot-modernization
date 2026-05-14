@@ -1,0 +1,55 @@
+# Language → source-file extension mapping.
+#
+# Single source of truth for "what counts as code" when computing LOC.
+# Only high-frequency languages are enumerated. For others, infer from
+# manifest signals (see bottom section).
+#
+# Rule: extensions only — no globs, no path patterns. Path/dir filters
+# live in exclude-patterns.yaml.
+
+languages:
+
+  python:
+    exts: [.py, .pyi]
+
+  java:
+    exts: [.java]
+
+  csharp:
+    exts: [.cs, .cshtml, .razor]
+
+  javascript:
+    # Covers JS + TS + ESM/CJS + JSX/TSX in one bucket.
+    exts: [.js, .jsx, .mjs, .cjs, .ts, .tsx]
+
+# Generated/minified file suffixes to exclude from LOC.
+# Matched as filename suffixes, not extensions.
+skip_file_suffixes:
+  - .min.js
+  - .min.css
+  - .bundle.js
+  - .bundle.css
+  - .d.ts
+  - .designer.cs
+  - .g.cs
+  - .generated.cs
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Inferring long-tail languages
+#
+# Spot a manifest file → infer language → pick canonical extensions.
+#
+#   manifest signal          → language    → exts
+#   ─────────────────────────────────────────────────────────────────
+#   go.mod                   → Go          → [.go]
+#   Cargo.toml               → Rust        → [.rs]
+#   mix.exs                  → Elixir      → [.ex, .exs]
+#   Gemfile / *.gemspec      → Ruby        → [.rb, .erb]
+#   composer.json            → PHP         → [.php]
+#   pubspec.yaml             → Dart        → [.dart]
+#   build.gradle.kts / *.kt  → Kotlin      → [.kt, .kts]
+#   *.scala / build.sbt      → Scala       → [.scala, .sc]
+#   *.swift / Package.swift  → Swift       → [.swift]
+#
+# Prefer fewer extensions over more — false-positives hurt more than
+# missing a niche template extension.
