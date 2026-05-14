@@ -12,7 +12,7 @@
   "plugins": [
     {
       "name": "github-copilot-modernization",
-      "source": "./plugins/github-copilot-modernization"
+      "source": "./github-copilot-modernization"
     }
   ]
 }

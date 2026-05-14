@@ -43,15 +43,15 @@ Enterprise modernization intent — target architectures, upgrade standards, gua
 
 ## Installation
 
-```
+```bash
 # Add the marketplace
-/plugin marketplace add microsoft/github-copilot-modernization
+copilot plugin marketplace add microsoft/github-copilot-modernization
 
 # Install the plugin
-/plugin install github-copilot-modernization@github-copilot-modernization
+copilot plugin install github-copilot-modernization@github-copilot-modernization
 
 # Update the plugin (when a new version is available)
-/plugin update github-copilot-modernization@github-copilot-modernization
+copilot plugin update github-copilot-modernization@github-copilot-modernization
 ```
 
 ## Usage
@@ -242,15 +242,15 @@ mvn spring-boot:run
 
 ### Plugin Not Found
 
-```
+```bash
 # Verify marketplace is added
-/plugin marketplace list
+copilot plugin marketplace list
 
 # Re-add marketplace if needed
-/plugin marketplace add microsoft/github-copilot-modernization
+copilot plugin marketplace add microsoft/github-copilot-modernization
 
 # Reinstall
-/plugin install github-copilot-modernization@github-copilot-modernization
+copilot plugin install github-copilot-modernization@github-copilot-modernization
 ```
 
 ### Assessment Fails: No Application Found
