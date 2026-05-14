@@ -1,0 +1,26 @@
+# Build outputs
+kg-output/
+kg-test/
+**/kg-output/
+**/kg-test/
+
+# Node modules (if using JS version)
+node_modules/
+bun.lockb
+package-lock.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+scripts/vendor/
+
+# Python virtual environment
+.venv/

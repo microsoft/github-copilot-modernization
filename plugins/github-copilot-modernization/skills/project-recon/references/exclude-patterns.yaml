@@ -1,0 +1,76 @@
+# Directory exclusion rules for LOC counting.
+#
+# Two layers, both applied:
+#   1. global       — always excluded regardless of language
+#   2. per_language — activated when that language is detected
+#
+# Per-language exclusions are NOT mutually exclusive. A .NET project with
+# wwwroot/js/ should also apply node excludes if node_modules exists.
+
+global:
+  dirs:
+    - .git
+    - .svn
+    - .hg
+    - node_modules
+    - .vscode
+    - .idea
+    - .vs
+    - __pycache__
+    - .pytest_cache
+    - .mypy_cache
+    - .tox
+    - venv
+    - .venv
+    - env
+
+per_language:
+
+  csharp:
+    dirs:
+      - bin
+      - obj
+      - packages
+      - TestResults
+      - publish
+
+  java:
+    dirs:
+      - target
+      - build
+      - .gradle
+      - out
+      - .mvn
+
+  javascript:
+    dirs:
+      - dist
+      - build
+      - .next
+      - .nuxt
+      - coverage
+      - .turbo
+      - .parcel-cache
+
+  python:
+    dirs:
+      - dist
+      - build
+      - .eggs
+      - htmlcov
+      - site-packages
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Long-tail language excludes
+#
+#   language → exclude dirs
+#   ────────────────────────────────────────────
+#   Go       → vendor, bin
+#   Rust     → target
+#   Elixir   → _build, deps, .elixir_ls
+#   Ruby     → vendor/bundle, .bundle, log, tmp
+#   PHP      → vendor
+#   Dart     → .dart_tool, build
+#   Kotlin   → build, .gradle, out
+#   Scala    → target, project/target, .bloop, .metals
+#   Swift    → .build, DerivedData

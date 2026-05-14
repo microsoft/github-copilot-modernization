@@ -1,0 +1,19 @@
+# Runtime Validation Configuration (User-Provided, Optional)
+#
+# Place this file in one of these locations (searched in order):
+#   1. <feature_dir>/runtime-validation-config.yaml
+#   2. <modernize_dir>/runtime-validation-config.yaml  (.github/modernize/)
+#   3. .github/runtime-validation-config.yaml
+#
+# All fields are optional. The agent auto-detects settings for anything
+# not specified here. User-provided values take precedence over auto-detection.
+
+# --- Application Startup ---
+startup:
+  # command: "mvn spring-boot:run -Dspring-boot.run.profiles=test"  # override auto-detected start command
+  # health_endpoint: "/actuator/health"                              # poll this endpoint for 2xx
+  # startup_timeout_seconds: 60                                      # max wait time (default: 60)
+  # readiness_pattern: "Started Application in"                      # stdout pattern (alternative to health endpoint)
+
+# --- Test Script (optional) ---
+# test_script: "tests/run-smoke-test.sh"   # path to a test script; exit code 0 = pass
