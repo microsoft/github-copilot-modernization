@@ -1,0 +1,320 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Modernization Tasks Template",
+  "description": "Schema for tasks-template.json. Preserve field descriptions because they are used to generate the JSON by LLM.",
+  "type": "object",
+  "required": ["$schema", "description", "tasks", "metadata"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference used by the template."
+    },
+    "description": {
+      "type": "string",
+      "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks."
+    },
+    "tasks": {
+      "type": "array",
+      "description": "List of individual migration tasks.",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/transformTask" },
+          { "$ref": "#/$defs/upgradeTask" },
+          { "$ref": "#/$defs/containerizationTask" },
+          { "$ref": "#/$defs/deploymentTask" },
+          { "$ref": "#/$defs/infrastructureTask" }
+        ]
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata for the plan.",
+      "additionalProperties": false,
+      "required": ["planName", "projectName", "language", "createdAt", "version"],
+      "properties": {
+        "planName": {
+          "type": "string",
+          "description": "[Plan name]"
+        },
+        "projectName": {
+          "type": "string",
+          "description": "[Application Name]"
+        },
+        "language": {
+          "type": "string",
+          "description": "[Programming language]"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "[ISO 8601 timestamp]",
+          "format": "date-time"
+        },
+        "version": {
+          "type": "string",
+          "description": "Version of the template schema.",
+          "const": "1.0"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "taskBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "description", "requirements", "environmentConfiguration"],
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Human guidance for the task template; used by LLM and not required in generated tasks.json."
+        },
+        "type": {
+          "type": "string",
+          "description": "Task type identifier."
+        },
+        "id": {
+          "type": "string",
+          "description": "[Unique identifier for this task, start with sequence and category name, like '001-transform-migration-rabbitmq-to-servicebus']"
+        },
+        "description": {
+          "type": "string",
+          "description": "[Brief description of what this task achieves from the user's perspective]"
+        },
+        "requirements": {
+          "type": "string",
+          "description": "[The specific requirements for this task including: what to migrate (features, APIs, patterns), constraints (backward compatibility, modules to avoid), target Azure services, and technical preferences (authentication methods, patterns)]"
+        },
+        "environmentConfiguration": {
+          "type": ["string", "null"],
+          "description": "[Environment configuration from user input (e.g. endpoint, access id), null if not specified]"
+        },
+        "status": {
+          "type": ["string", "null"],
+          "description": "Task execution status. Only has value after task is executed.",
+          "enum": [null, "pending", "started", "success", "failed", "skipped"]
+        },
+        "taskSummary": {
+          "type": "string",
+          "description": "Summary of task execution result. Only has value after task is executed."
+        }
+      }
+    },
+    "skill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "location"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "[The skill name that will be used for this task, e.g., 'migration-rabbitmq-to-servicebus'.]"
+        },
+        "location": {
+          "type": "string",
+          "description": "Skill location: project, remote and builtin, builtin is renamed from custom",
+          "enum": ["project","remote","builtin"]
+        }
+      }
+    },
+    "successCriteria": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passBuild",
+        "generateNewUnitTests",
+        "generateNewIntegrationTests",
+        "passUnitTests",
+        "passIntegrationTests",
+        "securityComplianceCheck"
+      ],
+      "description": "The task success criteria to validate after task execution.",
+      "properties": {
+        "passBuild": {
+          "type": ["string", "null"],
+          "default": "true",
+          "description": "Project must compile successfully after migration, use default value if user does not specify"
+        },
+        "generateNewUnitTests": {
+          "type": ["string", "null"],
+          "default": "false",
+          "description": "Create mock-based unit tests for newly added Azure integration code to ensure test coverage, use default value if user does not specify"
+        },
+        "generateNewIntegrationTests": {
+          "type": ["string", "null"],
+          "default": "false",
+          "description": "Create integration tests for Azure service interactions. If Azure resources are provided: tests interact with actual services. If not: tests use mocked Azure SDK clients or test containers, use default value if user does not specify"
+        },
+        "passUnitTests": {
+          "type": ["string", "null"],
+          "default": "true",
+          "description": "All unit tests must pass; mock dependent Azure resources if not provided, use default value if user does not specify"
+        },
+        "passIntegrationTests": {
+          "type": ["string", "null"],
+          "default": "false",
+          "description": "Integration tests must pass when generated. With Azure resources: validates actual connectivity. Without: validates integration logic using mocked clients, use default value if user does not specify"
+        },
+        "securityComplianceCheck": {
+          "type": ["string", "null"],
+          "default": "false",
+          "description": "No known CVEs exist in project dependencies, use default value if user does not specify"
+        }
+      }
+    },
+    "successCriteriaStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Validation status for each success criteria. Only has values after success criteria validation is complete. true means passed, false means failed.",
+      "properties": {
+        "passBuild": {
+          "type": ["string", "null"],
+          "description": "Validation status of passBuild criterion. true means passed, false means failed, null means not yet validated."
+        },
+        "generateNewUnitTests": {
+          "type": ["string", "null"],
+          "description": "Validation status of generateNewUnitTests criterion. true means passed, false means failed, null means not yet validated."
+        },
+        "generateNewIntegrationTests": {
+          "type": ["string", "null"],
+          "description": "Validation status of generateNewIntegrationTests criterion. true means passed, false means failed, null means not yet validated."
+        },
+        "passUnitTests": {
+          "type": ["string", "null"],
+          "description": "Validation status of passUnitTests criterion. true means passed, false means failed, null means not yet validated."
+        },
+        "passIntegrationTests": {
+          "type": ["string", "null"],
+          "description": "Validation status of passIntegrationTests criterion. true means passed, false means failed, null means not yet validated."
+        },
+        "securityComplianceCheck": {
+          "type": ["boolean", "null"],
+          "description": "Validation status of securityComplianceCheck criterion. true means passed, false means failed, null means not yet validated."
+        }
+      }
+    },
+    "transformTask": {
+      "allOf": [
+        { "$ref": "#/$defs/taskBase" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "skills", "successCriteria"],
+          "properties": {
+            "type": {
+              "const": "transform",
+              "description": "transform task template"
+            },
+            "skills": {
+              "type": "array",
+              "description": "The skills that must be used for this task, e.g., 'migration-rabbitmq-to-servicebus-mi'",
+              "items": { "$ref": "#/$defs/skill" }
+            },
+            "successCriteria": { "$ref": "#/$defs/successCriteria" },
+            "successCriteriaStatus": { "$ref": "#/$defs/successCriteriaStatus" }
+          }
+        }
+      ]
+    },
+    "upgradeTask": {
+      "allOf": [
+        { "$ref": "#/$defs/taskBase" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "skills", "successCriteria"],
+          "properties": {
+            "type": {
+              "const": "upgrade",
+              "description": "Upgrade task template"
+            },
+            "skills": {
+              "type": "array",
+              "description": "The skills that must be used for this task, e.g., 'migration-rabbitmq-to-servicebus-mi'",
+              "items": { "$ref": "#/$defs/skill" }
+            },
+            "successCriteria": { "$ref": "#/$defs/successCriteria" },
+            "successCriteriaStatus": { "$ref": "#/$defs/successCriteriaStatus" }
+          }
+        }
+      ]
+    },
+    "containerizationTask": {
+      "allOf": [
+        { "$ref": "#/$defs/taskBase" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "dockerfilePath"],
+          "properties": {
+            "type": {
+              "const": "containerization",
+              "description": "Containerization task template - Only include if the target deployment requires containerization (e.g., AKS, ACA) or if the user explicitly requested containerization. Skip for non-containerized deployments."
+            },
+            "dockerfilePath": {
+              "type": "string",
+              "description": "[Path to Dockerfile, indicate if existing or to be created]"
+            }
+          }
+        }
+      ]
+    },
+    "deploymentTask": {
+      "allOf": [
+        { "$ref": "#/$defs/taskBase" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "targetAzureService", "resourceStatus", "deploymentTool"],
+          "properties": {
+            "type": {
+              "const": "deployment",
+              "description": "Deployment task template - Only include if the user explicitly requested deployment."
+            },
+            "targetAzureService": {
+              "type": "string",
+              "description": "[Azure service name, e.g., Azure Container Apps, AKS, App Service]"
+            },
+            "resourceStatus": {
+              "type": "string",
+              "description": "[Specify if using existing resource or will create new service]"
+            },
+            "deploymentTool": {
+              "type": "string",
+              "description": "Deployment tool name.",
+              "const": "bicep"
+            }
+          }
+        }
+      ]
+    },
+    "infrastructureTask": {
+      "allOf": [
+        { "$ref": "#/$defs/taskBase" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "skills", "iacType", "provision"],
+          "properties": {
+            "type": {
+              "const": "infrastructure",
+              "description": "Infrastructure task template - Generate IaC files (Bicep or Terraform) to provision Azure resources."
+            },
+            "skills": {
+              "type": "array",
+              "description": "The skill used for this task, e.g., 'infrastructure-bicep-generation' or 'infrastructure-terraform-generation'",
+              "items": { "$ref": "#/$defs/skill" }
+            },
+            "iacType": {
+              "type": "string",
+              "description": "Infrastructure as Code tool type.",
+              "enum": ["bicep", "terraform"]
+            },
+            "provision": {
+              "type": "boolean",
+              "description": "Whether to provision Azure resources after generating IaC files."
+            }
+          }
+        }
+      ]
+    }
+  }
+}
