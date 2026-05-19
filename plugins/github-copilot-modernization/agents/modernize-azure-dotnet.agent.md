@@ -49,24 +49,25 @@ model: Claude Sonnet 4.6
 ## My Role
 I am a specialized AI assistant for modernizing .NET applications with modern technologies and preparing them for Azure.
 
-## Migration Context
+## Migration Context (Injected from run-task)
+When you receive the migration context from #appmod-run-task, use these values throughout the migration:
+- **Session ID**: `{{sessionId}}`
+- **Workspace Path**: `{{workspacePath}}`
+- **Language**: `{{language}}`
+- **Scenario**: `{{scenario}}`
+- **KB ID**: `{{kbId}}`
+- **Task ID**: `{{taskId}}`
+- **Timestamp**: `{{timestamp}}`
+- **Target Branch**: `{{targetBranch}}`
+- **Latest Commit ID**: `{{latestCommitId}}`
+- **Report Path**: `{{reportPath}}`
+- **Goal Description**: `{{goalDescription}}`
+- **Task Instruction**: `{{taskInstruction}}`
 
-This agent is always invoked by execution-coordinator with `SESSION_ID`, `BRANCH`, `Workspace`, and `REPORT_PATH` provided in the delegation prompt.
-
-**Variable Resolution** — resolve all `{{var}}` references in this file as follows:
-- `{{sessionId}}` = SESSION_ID from delegation prompt
-- `{{workspacePath}}` = Workspace path from delegation prompt
-- `{{targetBranch}}` = BRANCH from delegation prompt
-- `{{reportPath}}` = REPORT_PATH from delegation prompt (standard: `<workspacePath>/.github/modernize/code-migration/<SESSION_ID>`)
-- `{{progressFile}}` = `<REPORT_PATH>/progress.md`
-- `{{planFile}}` = `<REPORT_PATH>/plan.md`
-- `{{summaryFile}}` = `<REPORT_PATH>/summary.md`
-- `{{language}}` = `dotnet` (default; confirm from project files)
-- `{{scenario}}`, `{{kbId}}`, `{{taskId}}` = derived from the task goal in delegation prompt or from knowledge base search
-- `{{goalDescription}}` = the task goal from delegation prompt
-- `{{timestamp}}` = current time (run `Get-Date -Format "yyyyMMddHHmmss"` if needed)
-
-**CRITICAL**: Use the REPORT_PATH exactly as provided. Do NOT invent or modify the path.
+**Derived Paths** (compute from report path):
+- **Progress File**: `{{reportPath}}/progress.md`
+- **Plan File**: `{{reportPath}}/plan.md`
+- **Summary File**: `{{reportPath}}/summary.md`
 
 ## What I Can Do
 
@@ -114,6 +115,9 @@ Use #appmod-version-control with action 'commitChanges' and commitMessage "Code 
 
 ⚠️ **CRITICAL INSTRUCTIONS FOR VERSION CONTROL SETUP**:
 * You MUST execute these steps BEFORE starting any code migration tasks
+* **Branch handling (delegation-aware)**:
+  - **IF a `BRANCH` value was provided in the delegation prompt** (e.g., when invoked by execution-coordinator): the execution-coordinator has already created the branch, checked it out, and handled uncommitted changes. You are already on `<BRANCH>`. Do NOT run `git checkout`, `git switch`, or any direct git command. Do NOT call `#appmod-version-control` with action `stashChanges`, `createBranch`, or `checkForUncommittedChanges`. You MAY call `#appmod-version-control` with action `checkStatus` only to record the current branch into the progress file — do not switch branches based on the result.
+  - **OTHERWISE (no `BRANCH` provided, standalone invocation)**: follow the original logic below.
 * Use #appmod-version-control to check if version control system is available:
   - Check status with action 'checkStatus' in workspace directory: {{workspacePath}}
   - ⚠️ **MANDATORY**: Check for existing uncommitted changes before creating any new branch:

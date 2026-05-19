@@ -81,26 +81,25 @@ When a worker agent returns (success OR failure):
 
 Delegate to a custom agent as a subagent with:
 - Agent name: `modernize-java-upgrade` (or other agent name)
-- Prompt: Task goal + workspace path + playbook path (if exists)
+- Prompt: Task goal + workspace path + BRANCH + playbook path (if exists)
 
-**IMPORTANT: Keep delegation prompts minimal.** Only include the goal (one sentence), workspace path, BRANCH, and SESSION_ID. Do NOT include task lists, phase/step details, or commit strategies — workers have their own complete workflows and will skip phases if they see too much detail.
+**IMPORTANT: Keep delegation prompts minimal.** Only include the goal (one sentence), workspace path, and BRANCH. Do NOT include task lists, phase/step details, or commit strategies — workers have their own complete workflows and will skip phases if they see too much detail. Do NOT pass SESSION_ID — workers handle their own session IDs.
 
 ## Input
 
 - `planning-path`: Path to plan.md (OPTIONAL - only for planned execution mode)
-- `task-details`: Direct task specification (OPTIONAL - only for specific task intent mode)
+- `task-details`: Direct single-task specification (OPTIONAL - only for single-task direct mode)
 
 **Two execution modes:**
 
 1. **Planned Execution Mode** (planning-path provided):
    - Load tasks from `.github/modernize/<app>/plan.md` and `tasks.json`
    - Execute tasks according to the plan
-   - Used when user went through assess → plan → execute workflow
+   - Used when: broad intent (assess → plan → execute) OR multiple specific tasks (skip assess, plan → execute)
 
-2. **Specific Task Intent Mode** (task-details provided):
-   - Receive task details directly from orchestrator
-   - No planning file required
-   - Used when user specified exact task (e.g., "migrate S3 to Blob Storage")
+2. **Single Task Direct Mode** (task-details provided):
+   - Receive a single task's details directly from orchestrator (no planning file required)
+   - Used when: user specified exactly **one** task (e.g., "upgrade Java to 21", "migrate RabbitMQ to Service Bus")
    - Generate ad-hoc task on the fly and execute immediately
 
 **Example task-details format:**
@@ -265,9 +264,8 @@ Before delegating tasks, check if a playbook exists and pass its context to all 
 
    Delegate to the appropriate agent as a subagent with playbook context:
    ```
-   Execute <task-type> for project at <workspace>. Session ID: <uuid>.
-   BRANCH: appmod/java-migration-<timestamp>
-   REPORT_PATH: <workspace>/.github/modernize/code-migration/<timestamp>
+   Execute <task-type> for project at <workspace>.
+   BRANCH: modernize/java-<timestamp>
 
      Playbook: .github/modernize/playbook/
      - <filename1>.md: <summarize relevant content>
@@ -277,9 +275,9 @@ Before delegating tasks, check if a playbook exists and pass its context to all 
    Playbook content takes precedence over default MCP patterns.
    ```
 
-## Branching and Session ID Strategy
+## Branching Strategy
 
-**You create ONE branch and ONE session ID before delegating, and pass both to ALL workers.**
+**You create ONE branch before delegating, and pass it to ALL workers. You do NOT generate or pass session IDs — workers handle their own session IDs.**
 
 1. Generate timestamp with **second-level precision**: `YYYYMMDDHHMMSS` (e.g., `20260424153045`). This MUST include hours, minutes, AND seconds — never truncate to just the date or hour.
    - **DO NOT guess the time.** Run a terminal command to get the real current time:
@@ -287,10 +285,9 @@ Before delegating tasks, check if a playbook exists and pass its context to all 
      - Bash/Linux: `date +"%Y%m%d%H%M%S"`
    - Use the exact output as the timestamp. Never fabricate a round number like `120000`.
 2. Branch name depends on detected language:
-   - Java projects: `appmod/java-migration-<timestamp>`
-   - .NET projects: `appmod/dotnet-migration-<timestamp>`
-3. Session ID: use the same `<timestamp>` value
-4. **Handle uncommitted changes BEFORE creating the branch:**
+   - Java projects: `modernize/java-<timestamp>`
+   - .NET projects: `modernize/dotnet-<timestamp>`
+3. **Handle uncommitted changes BEFORE creating the branch:**
    - First, retrieve the policy: Try calling `appmod-get-vscode-config(configName: "uncommittedChangesAction")` to get the user's configured policy. If the tool is not available (e.g., in CLI mode), default to **"Always Stash"**.
    - Use `appmod-version-control(action: "checkForUncommittedChanges", workspacePath: <path>)` to check
    - If uncommitted changes exist, handle them according to the retrieved policy:
@@ -299,26 +296,25 @@ Before delegating tasks, check if a playbook exists and pass its context to all 
      - **Always Discard**: Use `appmod-version-control(action: "discardChanges", workspacePath: <path>)`
      - **Always Ask**: Inform the user about the uncommitted changes and ask how they would like to proceed (stash, commit, or discard). Wait for the user's response before taking action.
    - Verify clean: Use `appmod-version-control(action: "checkForUncommittedChanges", workspacePath: <path>)` to confirm working directory is clean
-5. Create the branch via `appmod-version-control(action: "createBranch", branchName: "appmod/<lang>-migration-<timestamp>", workspacePath: <path>)`
-6. Compute `REPORT_PATH: <workspacePath>/.github/modernize/code-migration/<timestamp>`
-7. Pass `BRANCH: appmod/<lang>-migration-<timestamp>`, `SESSION_ID: <timestamp>`, and `REPORT_PATH` in every delegation prompt
+4. Create the branch via `appmod-version-control(action: "createBranch", branchName: "modernize/<lang>-<timestamp>", workspacePath: <path>)`
+5. Pass `BRANCH: modernize/<lang>-<timestamp>` in every delegation prompt
 
 **Workers MUST NOT handle uncommitted changes** — this is already done here before branch creation.
 
-Workers use the provided branch and session ID, skipping their own generation.
+Workers use the provided branch (skipping their own branch creation) but generate their own session IDs.
 
 ## Process
 
 ### Mode 1: Planned Execution (planning-path provided)
 
-1. **Create Branch and Session ID**
+1. **Create Branch**
    - Generate timestamp by running a terminal command (do NOT guess):
      - PowerShell: `Get-Date -Format "yyyyMMddHHmmss"`
      - Bash/Linux: `date +"%Y%m%d%H%M%S"`
    - Detect language from `tasks.json` metadata or project indicators
-   - **Handle uncommitted changes** (per Branching Strategy step 4): try `appmod-get-vscode-config` for policy (default: Always Stash) → check → handle per policy → verify clean
-   - Create branch: `appmod/java-migration-<timestamp>` (Java) or `appmod/dotnet-migration-<timestamp>` (.NET)
-   - Session ID: `<timestamp>`
+   - **Handle uncommitted changes** (per Branching Strategy step 3): try `appmod-get-vscode-config` for policy (default: Always Stash) → check → handle per policy → verify clean
+   - Create branch: `modernize/java-<timestamp>` (Java) or `modernize/dotnet-<timestamp>` (.NET)
+   - **Do NOT generate or pass a session ID.** Each worker generates its own.
 
 2. **Load Plan**
    - Read `.github/modernize/<app>/tasks.json`
@@ -360,20 +356,33 @@ Workers use the provided branch and session ID, skipping their own generation.
    ```
    Fix security issues: remove hard-coded credentials (CWE-798), replace System.out.println with SLF4J logging (CWE-778).
 
-   BRANCH: appmod/java-migration-<timestamp>
-   SESSION_ID: <timestamp>
+   BRANCH: modernize/java-<timestamp>
    Workspace: /path/to/app
-   REPORT_PATH: /path/to/app/.github/modernize/code-migration/<timestamp>
-   Do NOT create a new branch — the branch already exists. Switch to it and commit on it.
+   The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
    ```
 
-   **Example - Java Upgrade (bundled):**
+   **Example - Java Upgrade (bundled, version specified by user):**
 
    Delegate to `modernize-java-upgrade` subagent with prompt:
    ```
    Upgrade Java to Java 21 (and any required framework upgrades).
 
-   BRANCH: appmod/java-migration-<timestamp>
+   BRANCH: modernize/java-<timestamp>
+   Workspace: /path/to/app
+   The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
+
+   Playbook: .github/modernize/playbook/ (if exists)
+   ```
+
+   **Example - Java Upgrade (no version specified by user):**
+
+   When the user did NOT specify a target version (e.g., "upgrade this java project"), do NOT infer or default to any version. Pass the raw request so the upgrade agent's precheck phase detects "Missing target version" and asks the user to choose:
+
+   Delegate to `modernize-java-upgrade` subagent with prompt:
+   ```
+   Upgrade this Java project. No specific target version was requested — please analyze the project and ask the user to select the desired Java/Spring Boot target version(s) before proceeding.
+
+   BRANCH: modernize/java-<timestamp>
    SESSION_ID: <timestamp>
    Workspace: /path/to/app
    Do NOT create a new branch — the branch already exists. Switch to it and commit on it.
@@ -381,17 +390,17 @@ Workers use the provided branch and session ID, skipping their own generation.
    Playbook: .github/modernize/playbook/ (if exists)
    ```
 
+   > **CRITICAL**: Never infer or default a Java/Spring Boot target version when the user did not specify one. Inferring a version (e.g., defaulting to Java 21) bypasses the upgrade agent's precheck interaction and removes the user's choice.
+
    **Example - Azure Migrations (one per task):**
 
    Delegate to `modernize-azure-java-cli` subagent with prompt:
    ```
    Migrate RabbitMQ to Azure Service Bus.
 
-   BRANCH: appmod/java-migration-<timestamp>
-   SESSION_ID: <timestamp>
+   BRANCH: modernize/java-<timestamp>
    Workspace: /path/to/app
-   REPORT_PATH: /path/to/app/.github/modernize/code-migration/<timestamp>
-   Do NOT create a new branch — the branch already exists. Switch to it and commit on it.
+   The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
 
    Playbook: .github/modernize/playbook/ (if exists)
    ```
@@ -402,11 +411,9 @@ Workers use the provided branch and session ID, skipping their own generation.
    ```
    Migrate SQL Server to Azure SQL Database.
 
-   BRANCH: appmod/dotnet-migration-<timestamp>
-   SESSION_ID: <timestamp>
+   BRANCH: modernize/dotnet-<timestamp>
    Workspace: /path/to/dotnet-app
-   REPORT_PATH: /path/to/dotnet-app/.github/modernize/code-migration/<timestamp>
-   Do NOT create a new branch — the branch already exists. Switch to it and commit on it.
+   The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
    ```
 
 5. **Task Dependency Management**
@@ -414,7 +421,6 @@ Workers use the provided branch and session ID, skipping their own generation.
    - Wait for dependencies before starting dependent tasks
    - Track task completion status
    - **Propagate context between tasks**: If `modernize-java-upgrade` upgrades the Java version (e.g., 17 → 21), note the new target JDK version and pass it to subsequent delegations so workers use the correct JDK for builds (e.g., include `Target JDK: 21` or `jdkPath: C:\JDK\jdk-21...` in the delegation prompt)
-   - **Progress file continuity**: If a prior worker already created `REPORT_PATH/progress.md`, tell the next worker: `Progress file already exists at REPORT_PATH/progress.md — append to it, do NOT recreate.`
 
 6. **Collect Results (DO NOT RE-DELEGATE)**
    - Take each worker's return text as the final result for that task
@@ -425,14 +431,14 @@ Workers use the provided branch and session ID, skipping their own generation.
 
 ### Mode 2: Specific Task Intent (task-details provided)
 
-1. **Create Branch and Session ID**
+1. **Create Branch**
    - Generate timestamp by running a terminal command (do NOT guess):
      - PowerShell: `Get-Date -Format "yyyyMMddHHmmss"`
      - Bash/Linux: `date +"%Y%m%d%H%M%S"`
    - Detect language from task-details or project indicators
-   - **Handle uncommitted changes** (per Branching Strategy step 4): try `appmod-get-vscode-config` for policy (default: Always Stash) → check → handle per policy → verify clean
-   - Create branch: `appmod/java-migration-<timestamp>` (Java) or `appmod/dotnet-migration-<timestamp>` (.NET)
-   - Session ID: `<timestamp>`
+   - **Handle uncommitted changes** (per Branching Strategy step 3): try `appmod-get-vscode-config` for policy (default: Always Stash) → check → handle per policy → verify clean
+   - Create branch: `modernize/java-<timestamp>` (Java) or `modernize/dotnet-<timestamp>` (.NET)
+   - **Do NOT generate or pass a session ID.** The worker generates its own.
 
 2. **Check for Playbook** (see [Playbook-Aware Execution](#playbook-aware-execution))
 
@@ -453,11 +459,9 @@ Workers use the provided branch and session ID, skipping their own generation.
    ```
    Migrate from Amazon S3 to Azure Blob Storage.
 
-   BRANCH: appmod/java-migration-<timestamp>
-   SESSION_ID: <timestamp>
+   BRANCH: modernize/java-<timestamp>
    Workspace: /testbed/java-migration-examples/containerproxy
-   REPORT_PATH: /testbed/java-migration-examples/containerproxy/.github/modernize/code-migration/<timestamp>
-   Do NOT create a new branch — the branch already exists. Switch to it and commit on it.
+   The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
 
    Playbook: .github/modernize/playbook/ (if exists)
    ```
@@ -511,6 +515,8 @@ These scenarios have RAG prompts. Any task matching one of these goes to `modern
 
 ### Migration vs Rearchitecture
 
+**Routing priority:** task type takes precedence over language. First classify the task as *migration/upgrade* or *rearchitecture*, then pick the worker. Language-based rules (see below) only apply within the *migration/upgrade* category — they do not override rearchitecture routing.
+
 - **Migration** = replacing a technology with another, keeping the same architecture (e.g., ActiveMQ → Service Bus, Oracle → PostgreSQL)
 - **Rearchitecture** = fundamentally changing the application structure (e.g., Monolith → Microservices, Desktop → Web SPA)
 
@@ -553,7 +559,7 @@ If a task does NOT match any known scenario but is a simple technology swap → 
 
 ### Language-Based Routing Rule
 
-**CRITICAL:** If `tasks.json` metadata has `language: "dotnet"`, route ALL `transform` and `upgrade` tasks to `modernize-azure-dotnet`. Do NOT route .NET tasks to Java agents.
+**CRITICAL:** If `tasks.json` metadata has `language: "dotnet"`, route `transform` and `upgrade` tasks to `modernize-azure-dotnet` instead of any Java agent. This rule is about choosing the language-appropriate **migration/upgrade** worker — it does not override task-type routing. Tasks classified as **rearchitecture** (see [Migration vs Rearchitecture](#migration-vs-rearchitecture) above) are routed by task type, not by language.
 
 ## Error Handling
 
@@ -572,21 +578,20 @@ Orchestrator → You:
 }
 
 You:
-1. Create branch + session ID → appmod/java-migration-20260413120000, SESSION_ID: 20260413120000
-2. Compute REPORT_PATH: <workspace>/.github/modernize/code-migration/20260413120000
-3. Load tasks.json → 8 tasks (3 Java upgrade, 5 Azure migration)
-4. Check for playbook → Found .github/modernize/playbook/
-5. Read playbook → all .md files in playbook folder
-6. Analyze task types → 3 Java upgrade, 5 Azure migration
-7. Delegate (all with BRANCH + SESSION_ID + REPORT_PATH):
+1. Create branch → modernize/java-20260413120000
+2. Load tasks.json → 8 tasks (3 Java upgrade, 5 Azure migration)
+3. Check for playbook → Found .github/modernize/playbook/
+4. Read playbook → all .md files in playbook folder
+5. Analyze task types → 3 Java upgrade, 5 Azure migration
+6. Delegate (all with BRANCH only — no session ID):
    - Tasks 1-3 (bundled): modernize-java-upgrade → with BRANCH
-   - Task 4: modernize-azure-java-cli (Service Bus) → with BRANCH + REPORT_PATH
-   - Task 5: modernize-azure-java-cli (Azure SQL) → with BRANCH + REPORT_PATH
-   - Task 6: modernize-azure-java-cli (Azure Redis) → with BRANCH + REPORT_PATH
-   - Task 7: modernize-azure-java-cli (App Insights) → with BRANCH + REPORT_PATH
-   - Task 8: modernize-azure-java-cli (KeyVault) → with BRANCH + REPORT_PATH
-8. Collect results
-9. Return summary to orchestrator
+   - Task 4: modernize-azure-java-cli (Service Bus) → with BRANCH
+   - Task 5: modernize-azure-java-cli (Azure SQL) → with BRANCH
+   - Task 6: modernize-azure-java-cli (Azure Redis) → with BRANCH
+   - Task 7: modernize-azure-java-cli (App Insights) → with BRANCH
+   - Task 8: modernize-azure-java-cli (KeyVault) → with BRANCH
+7. Collect results
+8. Return summary to orchestrator
 ```
 
 ### Example 2: Specific Task Intent (no playbook)
@@ -604,21 +609,18 @@ Orchestrator → You:
 }
 
 You:
-1. Create branch + session ID → appmod/java-migration-20260413150000, SESSION_ID: 20260413150000
-2. Compute REPORT_PATH: /testbed/java-migration-examples/containerproxy/.github/modernize/code-migration/20260413150000
-3. Check for playbook → No playbook found, skip
-4. Determine agent → modernize-azure-java-cli (Azure migration)
-5. Delegate to `modernize-azure-java-cli` subagent with prompt:
+1. Create branch → modernize/java-20260413150000
+2. Check for playbook → No playbook found, skip
+3. Determine agent → modernize-azure-java-cli (Azure migration)
+4. Delegate to `modernize-azure-java-cli` subagent with prompt:
    ```
    Migrate from Amazon S3 to Azure Blob Storage.
 
-   BRANCH: appmod/java-migration-20260413150000
-   SESSION_ID: 20260413150000
+   BRANCH: modernize/java-20260413150000
    Workspace: /testbed/java-migration-examples/containerproxy
-   REPORT_PATH: /testbed/java-migration-examples/containerproxy/.github/modernize/code-migration/20260413150000
    ```
-6. Collect results
-7. Return summary to orchestrator
+5. Collect results
+6. Return summary to orchestrator
 ```
 
 ### Example 3: .NET Planned Execution
@@ -631,13 +633,12 @@ Orchestrator → You:
 
 You:
 1. Load plan → tasks.json has metadata.language = "dotnet", 3 tasks found
-2. Create branch + session ID → appmod/dotnet-migration-20260413120000, SESSION_ID: 20260413120000
-3. Compute REPORT_PATH: <workspace>/.github/modernize/code-migration/20260413120000
-4. Check for playbook → No playbook found, skip
-5. Route ALL tasks to modernize-azure-dotnet (all with BRANCH + SESSION_ID + REPORT_PATH):
+2. Create branch → modernize/dotnet-20260413120000
+3. Check for playbook → No playbook found, skip
+4. Route ALL tasks to modernize-azure-dotnet (all with BRANCH only — no session ID):
    - Task 1: modernize-azure-dotnet (SQL Server → Azure SQL)
    - Task 2: modernize-azure-dotnet (Local Redis → Azure Redis)
    - Task 3: modernize-azure-dotnet (Entra ID authentication)
-6. Collect results
-7. Return summary to orchestrator
+5. Collect results
+6. Return summary to orchestrator
 ```

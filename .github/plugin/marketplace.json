@@ -2,7 +2,7 @@
   "name": "github-copilot-modernization",
   "metadata": {
     "description": "Autonomous application modernization with multi-agent orchestration. Assess, plan, and execute Java and .NET modernization including upgrades, Azure migrations, CVE fixes, and rearchitecture.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "pluginRoot": "./plugins"
   },
   "owner": {

@@ -8,11 +8,16 @@ tools:
   - tool_search
   - vscode/toolSearch
   - edit
-  - search
   - read
   - execute
-  - web
   - agent
+  - search
+  - runCommands
+  - usages
+  - problems
+  - changes
+  - testFailure
+  - fetch
   - githubRepo
   - todos
   - appmod-completeness-validation
@@ -32,9 +37,29 @@ tools:
   - appmod-list-mavens
   - appmod-install-jdk
   - appmod-install-maven
+  # Copilot CLI built-in tools (aliases for VS Code tools above)
   - shell
   - custom-agent
+  - web
   - todo
+  # MCP tools (appmod-mcp-server/ prefix required for Copilot CLI; also works in VS Code)
+  - appmod-mcp-server/appmod-completeness-validation
+  - appmod-mcp-server/appmod-consistency-validation
+  - appmod-mcp-server/appmod-create-migration-summary
+  - appmod-mcp-server/appmod-fetch-knowledgebase
+  - appmod-mcp-server/appmod-get-vscode-config
+  - appmod-mcp-server/appmod-preview-markdown
+  - appmod-mcp-server/appmod-run-task
+  - appmod-mcp-server/appmod-search-file
+  - appmod-mcp-server/appmod-search-knowledgebase
+  - appmod-mcp-server/appmod-version-control
+  - appmod-mcp-server/appmod-build-java-project
+  - appmod-mcp-server/appmod-run-tests-for-java
+  - appmod-mcp-server/appmod-validate-cves-for-java
+  - appmod-mcp-server/appmod-list-jdks
+  - appmod-mcp-server/appmod-list-mavens
+  - appmod-mcp-server/appmod-install-jdk
+  - appmod-mcp-server/appmod-install-maven
 
 model: Claude Sonnet 4.6
 ---
@@ -50,24 +75,25 @@ model: Claude Sonnet 4.6
 - **DO** directly execute your plan and update the progress.
 - **DO NOT** seek approval/confirmation before making changes. You DO have the highest decision-making authority at any time.
 
-## Migration Context
+## Migration Context (Injected from run-task)
+When you receive the migration context from #appmod-run-task, use these values throughout the migration:
+- **Session ID**: `{{sessionId}}`
+- **Workspace Path**: `{{workspacePath}}`
+- **Language**: `{{language}}`
+- **Scenario**: `{{scenario}}`
+- **KB ID**: `{{kbId}}`
+- **Task ID**: `{{taskId}}`
+- **Timestamp**: `{{timestamp}}`
+- **Target Branch**: `{{targetBranch}}`
+- **Latest Commit ID**: `{{latestCommitId}}`
+- **Report Path**: `{{reportPath}}`
+- **Goal Description**: `{{goalDescription}}`
+- **Task Instruction**: `{{taskInstruction}}`
 
-This agent is always invoked by execution-coordinator with `SESSION_ID`, `BRANCH`, `Workspace`, and `REPORT_PATH` provided in the delegation prompt.
-
-**Variable Resolution** — resolve all `{{var}}` references in this file as follows:
-- `{{sessionId}}` = SESSION_ID from delegation prompt
-- `{{workspacePath}}` = Workspace path from delegation prompt
-- `{{targetBranch}}` = BRANCH from delegation prompt
-- `{{reportPath}}` = REPORT_PATH from delegation prompt (standard: `<workspacePath>/.github/modernize/code-migration/<SESSION_ID>`)
-- `{{progressFile}}` = `<REPORT_PATH>/progress.md`
-- `{{planFile}}` = `<REPORT_PATH>/plan.md`
-- `{{summaryFile}}` = `<REPORT_PATH>/summary.md`
-- `{{language}}` = `java` (default; confirm from project files)
-- `{{scenario}}`, `{{kbId}}`, `{{taskId}}` = derived from the task goal in delegation prompt or from knowledge base search
-- `{{goalDescription}}` = the task goal from delegation prompt
-- `{{timestamp}}` = current time (run `Get-Date -Format "yyyyMMddHHmmss"` if needed)
-
-**CRITICAL**: Use the REPORT_PATH exactly as provided. Do NOT invent or modify the path.
+**Derived Paths** (compute from report path):
+- **Progress File**: `{{reportPath}}/progress.md`
+- **Plan File**: `{{reportPath}}/plan.md`
+- **Summary File**: `{{reportPath}}/summary.md`
 
 ## Scope
 * DO - Collect the framework used and keep the original project framework
@@ -111,7 +137,7 @@ This agent is always invoked by execution-coordinator with `SESSION_ID`, `BRANCH
 * USE - #appmod-consistency-validation to validate code consistency after migration and ensure behavior equivalence
 * USE - #appmod-completeness-validation to validate migration completeness by systematically discovering ALL unchanged items across ALL KB patterns before fixing them - NO EXCEPTIONS for perceived "unused" or "intentional" files
 * You MUST use tool #appmod-validate-cves-for-java to validate and fix introduced CVEs
-* You MUST use tool #appmod-get-vscode-config (if available) to retrieve extension configuration settings
+* You MUST use tool #appmod-get-vscode-config to retrieve extension configuration settings
 
 ## Subagent Usage Instructions
 * You MUST use #agent tool to delegate complex, multi-step tasks that require deep analysis and systematic execution
@@ -173,16 +199,28 @@ This agent is always invoked by execution-coordinator with `SESSION_ID`, `BRANCH
 
 ## Version Control Setup Instructions
 🔴 **MANDATORY VERSION CONTROL POLICY**:
-* 🛑 NEVER USE DIRECT git COMMANDS (git checkout, git add, git commit, git stash, etc.) - ONLY USE #appmod-version-control
+* 🛑 NEVER USE DIRECT git COMMANDS - ONLY USE #appmod-version-control
 * 🛑 DO NOT EXECUTE ANY VERSION CONTROL OPERATIONS DURING PLAN GENERATION
-* 🛑 DO NOT stash, handle uncommitted changes, or createBranch — the execution-coordinator has already handled all of this.
 
 ⚠️ **CRITICAL INSTRUCTIONS FOR VERSION CONTROL SETUP**:
 * You MUST execute these steps BEFORE starting any code migration tasks
+* **Branch handling (delegation-aware)**:
+  - **IF a `BRANCH` value was provided in the delegation prompt** (e.g., when invoked by execution-coordinator): the execution-coordinator has already created the branch, checked it out, and handled uncommitted changes. You are already on `<BRANCH>`. Do NOT run `git checkout`, `git switch`, or any direct git command. Do NOT call `#appmod-version-control` with action `stashChanges`, `createBranch`, or `checkForUncommittedChanges`. You MAY call `#appmod-version-control` with action `checkStatus` only to record the current branch into the progress file — do not switch branches based on the result.
+  - **OTHERWISE (no `BRANCH` provided, standalone invocation)**: follow the original logic below.
 * Use #appmod-version-control to check if version control system is available:
   - Check status with action 'checkStatus' in workspace directory: {{workspacePath}}
-  - Verify you are on `{{targetBranch}}` and proceed.
-  - You MUST record the branch name in the general section of progress file.
+  - ⚠️ **MANDATORY**: Check for existing uncommitted changes before creating any new branch:
+    * Use #appmod-version-control with action 'checkForUncommittedChanges' in workspace directory: {{workspacePath}}
+    * ⚠️ **CRITICAL**: IF uncommitted changes exist, you MUST handle them according to the 'uncommittedChangesAction' retrieved during plan generation BEFORE proceeding to branch creation:
+      - If the policy is 'Always Stash': You MUST use #appmod-version-control with action 'stashChanges' and stashMessage "Auto-stash: Save uncommitted changes before migration" in workspace directory: {{workspacePath}}
+      - If the policy is 'Always Commit': You MUST use #appmod-version-control with action 'commitChanges' and commitMessage "Auto-commit: Save uncommitted changes before migration" in workspace directory: {{workspacePath}}
+      - If the policy is 'Always Discard': You MUST use #appmod-version-control with action 'discardChanges' in workspace directory: {{workspacePath}}
+      - If the policy is 'Always Ask': You MUST inform the user about the uncommitted changes and ask how they would like to proceed, providing these options: stash, commit, or discard. Wait for the user's response before taking any action.
+    * ⚠️ **VERIFICATION REQUIRED**: After handling uncommitted changes, you MUST use #appmod-version-control with action 'checkForUncommittedChanges' to verify that the working directory is clean in workspace directory: {{workspacePath}} before proceeding to branch creation
+    * IF no uncommitted changes exist: proceed directly to branch creation
+  - ⚠️ **ONLY AFTER handling uncommitted changes**: Use #appmod-version-control with action 'createBranch' and branchName "{{targetBranch}}" in workspace directory: {{workspacePath}}
+  - Verify branch creation was successful before proceeding
+  - You MUST check the previous branch and the new branch in the general section of progress file.
 * If NO version control system detected (as indicated by the response from #appmod-version-control):
   - Note "No version control detected" and proceed with direct migration on workspace directory: {{workspacePath}}
 
@@ -190,10 +228,7 @@ This agent is always invoked by execution-coordinator with `SESSION_ID`, `BRANCH
 
 🚨 **MANDATORY FIRST STEP - BEFORE ANYTHING ELSE**: 
   1. Create a comprehensive structured todo list of all migration tasks using the appropriate todo management capability
-  2. Check if `{{progressFile}}` already exists (e.g., from a prior task in the same session):
-     - **If it exists**: Read it, append a new section for this task (e.g., `## Task: {{goalDescription}}`). Do NOT overwrite prior task progress.
-     - **If it does not exist**: Create file `{{progressFile}}` with initial structure.
-  3. Open `{{progressFile}}` in preview mode using appmod-preview-markdown (if available)
+  2. Create file `{{progressFile}}` and open it in preview mode using appmod-preview-markdown (if available)
   
   ⚠️ Both steps above are REQUIRED before starting any other work. The progress.md file is separate from the todo list.
 
@@ -258,11 +293,13 @@ Generate a comprehensive migration plan with the following requirements:
   - If kbId is provided ({{kbId}}): Use #appmod-fetch-knowledgebase with kbId to get the knowledge base
   - If taskId is provided ({{taskId}}): Use #appmod-fetch-knowledgebase with taskId to get task references
   - If only scenario is provided ({{scenario}}): Use #appmod-search-knowledgebase to search for relevant knowledge base
+* You MUST use tool #appmod-get-vscode-config to get the configuration for key 'uncommittedChangesAction' (this will be used in the Version Control Setup step)
 * Search for source code files by the patterns if given with migration session ID **{{sessionId}}**
 * ⚠️ **Source Technology Verification**: After searching for source code files, verify that the source technology exists in the workspace. If you cannot find ANY evidence of the source technology in the search results (no relevant dependencies, imports, or configuration files), inform the user: "⚠️ **WARNING**: The source technology [technology name] was not found in the workspace. This migration task is not applicable to this project. Proceeding directly to Final Summary." Do NOT proceed with plan generation. You MUST jump to the Final Summary step and report the preconditionCheck result with status 'no-source-technology'.
 * Generate the migration plan, including:
   - Migration Session ID: **{{sessionId}}**
   - Time of this plan creation ({{timestamp}})
+  - Uncommitted Changes Policy: [The policy value retrieved from #appmod-get-vscode-config]
   - Target branch name: `{{targetBranch}}` (will be used during version control setup after plan confirmation)
   - Programming Language of this project
   - Matching the project language, if not, show a warning with "Project language mismatch: the migration task was initiated for {{language}}, but detected is [detected language] "
@@ -326,7 +363,8 @@ Generate a comprehensive migration plan with the following requirements:
 
 Follow the instructions in the **VersionControlSetupInstructions** section above, which includes:
 - Checking for version control system availability
-- Verifying you are on the correct branch `{{targetBranch}}`
+- Handling uncommitted changes according to the policy retrieved during plan generation
+- Creating a new branch for the migration
 - Updating the progress file with branch information
 
 ### Step 3. Code Migration
