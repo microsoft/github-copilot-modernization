@@ -1,7 +1,7 @@
 {
   "name": "github-copilot-modernization",
   "description": "Autonomous application modernization with assess → plan → execute workflow",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Microsoft",
     "email": "copilot-support@microsoft.com"

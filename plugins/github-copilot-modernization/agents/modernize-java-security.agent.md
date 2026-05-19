@@ -68,9 +68,9 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
 
 ### Session ID & Artifacts Directory
 
-- `SESSION_ID` is provided by the execution-coordinator in the delegation prompt. Use that **exact** ID for ALL tool calls — do NOT generate a new one. Call `#appmod-report-event(event: "securityTaskStarted", sessionId: <SESSION_ID>, phase: "precheck", status: "succeeded", details: {scope: "<SCOPE>"})` at the start. `<SCOPE>` is `"cve"` or `"deprecated-api"`.
-- Use the `SESSION_ID` for ALL subsequent tool calls.
-- Artifacts are stored in `.github/modernize/<SESSION_ID>/` (created automatically).
+- Call `#appmod-report-event(event: "securityTaskStarted", phase: "precheck", status: "succeeded", details: {scope: "<SCOPE>"})` at the start — this generates and returns a `SESSION_ID`. `<SCOPE>` is `"cve"` or `"deprecated-api"`.
+- Use the returned `SESSION_ID` for ALL subsequent tool calls.
+- Artifacts are stored in `.github/modernize/java-upgrade/<SESSION_ID>/` (created automatically).
 
 ## Workflow
 
@@ -86,7 +86,7 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
 2. **Early exit for deprecated API without context**: If the user asks to fix deprecated APIs but the prompt does NOT contain specific deprecated API details (no file names, no API names, no assessment issue descriptions):
    - Tell the user: *"To fix deprecated API usages, please run an Assessment first from the App Modernization panel. The assessment uses AppCAT rules covering 96+ deprecated/removed APIs across Java 8–21. After the assessment completes, click 'Fix' on the Deprecated APIs findings in the assessment report — the specific issues, affected files, and line numbers will be passed to me automatically."*
    - STOP immediately. Do not generate a SESSION_ID or proceed further.
-3. **Generate SESSION_ID**: If `SESSION_ID` was provided in the delegation prompt, use it directly. Otherwise, call `#appmod-report-event(event: "securityTaskStarted", phase: "precheck", status: "succeeded", details: {scope: "<SCOPE>"})` — this returns a `SESSION_ID`. Use it for all subsequent calls.
+3. **Generate SESSION_ID**: Call `#appmod-report-event(event: "securityTaskStarted", phase: "precheck", status: "succeeded", details: {scope: "<SCOPE>"})` — this returns a `SESSION_ID`. Use it for all subsequent calls.
 4. **Detect project type**: Verify this is a Maven/Gradle project. If not, report error and STOP.
 5. **Detect build tool and set up environment**:
    - Run `#appmod-list-jdks` and `#appmod-list-mavens` to detect available tools.
@@ -154,7 +154,7 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
 
    - Minimum CVE severity to fix: <user choice: CRITICAL only | HIGH and above | MEDIUM and above | ALL | None>
    - Fix deprecated API usages: <user choice: Yes / No>
-   - Working branch: `appmod/security-fix-<SESSION_ID>` (or use BRANCH from delegation prompt if provided)
+   - Working branch: `appmod/security-fix-<SESSION_ID>`
    ```
 
    - Group CVEs by dependency — each dependency is a section with its upgrade path and CVE table
@@ -167,17 +167,18 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
    - Mark deprecated API usages requiring full framework migration as `⚠️ Requires major upgrade (out of scope)`
    - Omit the `## CVE Vulnerabilities` section entirely if `SCOPE=deprecated-api`; omit `## Deprecated API Usages` section entirely if `SCOPE=cve`
    - If the scanned scope found nothing to fix, write "No security issues detected" to `plan.md` and STOP.
-10. **MANDATORY — Preview plan**: Call `#appmod-preview-markdown` with the `plan.md` file path to open it for the user. Do NOT skip this step — the user must see the plan before proceeding.
 
 ### Phase 2: Review & Version Control Setup
 
 1. **MANDATORY — Preview plan**: Call `#appmod-preview-markdown` with the `plan.md` file path to open it for the user. Do NOT skip this step — the user must see the plan before proceeding.
 2. → `#appmod-report-event(sessionId, event: "securityPlanReviewed", phase: "plan", status: "succeeded")`
-3. **Version control setup** — use `#appmod-version-control` for all git operations, **never raw git commands (git checkout, git add, git commit, etc.)**. **ALWAYS pass `sessionId: <SESSION_ID>`** to every call:
+2. **Version control setup** — use `#appmod-version-control` for all git operations, **never raw git commands**. **ALWAYS pass `sessionId: <SESSION_ID>`** to every call:
+   - **Branch handling (delegation-aware)**:
+     - **IF a `BRANCH` value was provided in the delegation prompt** (e.g., when invoked by execution-coordinator): you are already on `<BRANCH>` (the coordinator created and checked it out). Call `#appmod-version-control(sessionId: <SESSION_ID>, action: "checkStatus")` only to verify VCS availability — if unavailable set `GIT_AVAILABLE=false` and skip to Phase 3. Use `<BRANCH>` as the working branch. Do NOT run `git checkout`, `git switch`, stash, or createBranch.
+     - **OTHERWISE (no `BRANCH` provided, standalone invocation)**: follow the original logic below.
    - Call `#appmod-version-control(sessionId: <SESSION_ID>, action: "checkStatus")`. If no VCS detected, set `GIT_AVAILABLE=false` and skip to Phase 3. **Do not ask the user. Do not report failure.**
    - Call `#appmod-version-control(sessionId: <SESSION_ID>, action: "checkForUncommittedChanges")`. If uncommitted changes exist, call `#appmod-version-control(sessionId: <SESSION_ID>, action: "stashChanges", stashMessage: "Auto-stash before security fix <SESSION_ID>")`.   
-   - If `BRANCH` was provided in the delegation prompt: call `#appmod-version-control(sessionId: <SESSION_ID>, action: "createBranch", branchName: "<BRANCH>")`. The branch likely already exists — **if createBranch returns success or indicates the branch exists, simply proceed. Do NOT use `git checkout` or any direct git command.**
-   - If no `BRANCH` was provided: call `#appmod-version-control(sessionId: <SESSION_ID>, action: "createBranch", branchName: "appmod/security-fix-<SESSION_ID>")`.
+   - Call `#appmod-version-control(sessionId: <SESSION_ID>, action: "createBranch", branchName: "appmod/security-fix-<SESSION_ID>")` using the branch name from `plan.md`.
 
 ### Phase 3: Execute Fixes
 
@@ -211,7 +212,7 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
    - **Completed**: <datetime>
    - **Duration**: <total minutes>m
    - **Build attempts**: <N> (<M> failed, <K> succeeded)
-   - **Plan**: `.github/modernize/<SESSION_ID>/plan.md`
+   - **Plan**: `.github/modernize/java-upgrade/<SESSION_ID>/plan.md`
 
    ## CVE Results
 
