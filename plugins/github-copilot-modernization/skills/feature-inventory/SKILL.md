@@ -30,11 +30,13 @@ requirements-checklist.md   ← quality checklist (if applicable)
 
 1. Load constitution document (if available) to understand principles and constraints.
 
-2. Read `knowledge-graph.json` (and, if needed, the query guidance in `skills/building-java-knowledge-graph/SKILL.md`) to understand the architecture and dependencies related to this feature. Also check for research files if available.
+2. **Load `clarification.md` if it exists** (`{{BASE_PATH}}/clarification.md` or path from `dependencyArtifacts`). Treat every field that has an explicit value (i.e., `resolution: user` or `resolution: default`) as **already resolved** — do NOT re-ask the user about it and do NOT count it against the `[NEEDS CLARIFICATION]` budget below. Items listed under `blocking_gaps` should be treated as known risks but still do not count against the budget (they are surfaced separately by the coordinator).
 
-3. Load `skills/writing-feature-spec/templates/spec-template.md` for required sections.
+3. Read `knowledge-graph.json` (and, if needed, the query guidance in `skills/building-java-knowledge-graph/SKILL.md`) to understand the architecture and dependencies related to this feature. Also check for research files if available.
 
-4. Execute:
+4. Load `skills/writing-feature-spec/templates/spec-template.md` for required sections.
+
+5. Execute:
     1. Parse feature description from task
        If empty: ERROR "No feature description provided"
     2. Extract key concepts: actors, actions, data, constraints
@@ -44,6 +46,7 @@ requirements-checklist.md   ← quality checklist (if applicable)
        - Each requirement MUST have unique ID across entire feature
     4. For unclear aspects:
        - Make informed guesses based on context and industry standards
+       - **Items already answered in `clarification.md` are NOT unclear** — use the user's answer (or the recorded default) and do not mark them.
        - Only mark with [NEEDS CLARIFICATION: specific question] if:
          - The choice significantly impacts feature scope or user experience
          - Multiple reasonable interpretations exist with different implications
@@ -62,9 +65,9 @@ requirements-checklist.md   ← quality checklist (if applicable)
     8. Identify Key Entities (if data involved)
     9. Return: SUCCESS (spec ready for planning)
 
-5. Write the specification to the assigned artifact path using the template structure, replacing placeholders with concrete details derived from the feature description while preserving section order and headings.
+6. Write the specification to the assigned artifact path using the template structure, replacing placeholders with concrete details derived from the feature description while preserving section order and headings.
 
-6. Report completion with spec file path, checklist results, and readiness for the next phase.
+7. Report completion with spec file path, checklist results, and readiness for the next phase.
 
 ## Research-Driven Mode
 

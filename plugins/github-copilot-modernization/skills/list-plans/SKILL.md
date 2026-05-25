@@ -2,7 +2,7 @@
 name: list-plans
 description: |
   Discovers valid migration plans in the workspace and returns the selected plan path.
-  A valid plan is a subdirectory of .github/modernize/ that contains BOTH plan.md AND tasks.json.
+  A valid plan is a subdirectory of .github/modernize/ that contains plan.md AND tasks.json (tasks.json may be in the plan folder or in a .metadata subfolder).
   Handles 0, 1, or multiple plans and prompts the user when a choice is needed.
   Triggers: "list plans", "find plans", "select plan", "list-and-select-plan", "discover plans".
 ---
@@ -24,7 +24,7 @@ $plans = @()
 if (Test-Path $modernizeDir) {
     Get-ChildItem -Path $modernizeDir -Directory | ForEach-Object {
         $hasPlan  = Test-Path (Join-Path $_.FullName "plan.md")
-        $hasTasks = Test-Path (Join-Path $_.FullName "tasks.json")
+        $hasTasks = (Test-Path (Join-Path $_.FullName "tasks.json")) -or (Test-Path (Join-Path $_.FullName ".metadata/tasks.json"))
         if ($hasPlan -and $hasTasks) {
             $plans += @{ folder = $_.Name; planPath = "$modernizeDir/$($_.Name)/plan.md" }
         }
@@ -44,7 +44,7 @@ if [ -d "$modernize_dir" ]; then
     for folder in "$modernize_dir"/*/; do
         [ -d "$folder" ] || continue
         name=$(basename "$folder")
-        if [ -f "$folder/plan.md" ] && [ -f "$folder/tasks.json" ]; then
+        if [ -f "$folder/plan.md" ] && ([ -f "$folder/tasks.json" ] || [ -f "$folder/.metadata/tasks.json" ]); then
             entry="{\"folder\":\"$name\",\"planPath\":\"$modernize_dir/$name/plan.md\"}"
             if [ "$entries" = "[]" ]; then
                 entries="[$entry]"

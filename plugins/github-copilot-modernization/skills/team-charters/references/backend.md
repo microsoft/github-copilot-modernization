@@ -8,6 +8,7 @@ Own the server-side implementation: build the logic that powers the product.
 
 - Business logic — service layer, domain rules, use cases, validation
 - API implementation — endpoints, request/response handling, error codes
+- Server-side rendering — view templates (JSP, Thymeleaf, Razor, EJS, etc.), view resolvers, layout/fragments, static asset wiring
 - Application wiring — dependency injection, middleware, filters, interceptors, bootstrap config
 - Unit tests for your own code — unit tests are YOUR responsibility, not tester's
 - Service-level integration tests — narrow tests that verify your own code's integration points with real dependencies

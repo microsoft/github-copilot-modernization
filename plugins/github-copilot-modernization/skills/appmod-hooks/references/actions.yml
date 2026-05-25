@@ -1,0 +1,41 @@
+# Action Registry
+# Each action points to a command file via `file:`.
+# Namespace: appmod.<domain>.<verb>
+
+before_all: []
+
+before_task:
+  - id: appmod.profile.read
+    file: commands/appmod.profile.sync.md
+    description: "Read progress_sync from project-profile.yaml to populate ## Progress in dispatch prompt"
+    optional: false
+
+after_task:
+  - id: appmod.profile.sync
+    file: commands/appmod.profile.sync.md
+    description: "Update progress_sync: increment completed_tasks, check phase completion, set timestamps, commit if phase done"
+    optional: false
+
+  - id: appmod.git.commit
+    file: commands/appmod.git.commit.md
+    description: "Commit all changes when a phase completes"
+    optional: true
+    condition: "all tasks in current phase are ✅"
+
+  - id: appmod.board.commit-pin
+    file: commands/appmod.board.commit-pin.md
+    description: "Pin commit SHA to board.md"
+    optional: true
+    condition: "appmod.git.commit produced commit_sha"
+
+after_all:
+  - id: appmod.git.commit
+    file: commands/appmod.git.commit.md
+    description: "Final commit of all remaining changes"
+    optional: true
+    condition: "project.git == true"
+
+  - id: appmod.profile.sync
+    file: commands/appmod.profile.sync.md
+    description: "Final sync: ensure no timestamps left empty"
+    optional: false

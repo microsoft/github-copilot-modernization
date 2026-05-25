@@ -75,8 +75,10 @@ model: Claude Sonnet 4.6
 - **DO** directly execute your plan and update the progress.
 - **DO NOT** seek approval/confirmation before making changes. You DO have the highest decision-making authority at any time.
 
-## Migration Context (Injected from run-task)
-When you receive the migration context from #appmod-run-task, use these values throughout the migration:
+## Migration Context (from #appmod-run-task)
+
+**Before any other step, you MUST call `#appmod-run-task` once.** If the delegation prompt names a kbId (any of: `kbId: <X>`, `[kbId: <X>]`, `by kbId: <X>`, `` Use the builtin skill: `<X>` ``), pass **only** `kbId` (plus `workspacePath` and `language`) — do NOT also pass `scenario`, `skillId`, or `taskId`. Otherwise, pass **only** `scenario` set to the goal sentence from the prompt. Your single source of truth is the delegation prompt text — do NOT read `tasks.json` or any other file to derive these parameters. Use the response to fill in the placeholders below throughout this workflow:
+
 - **Session ID**: `{{sessionId}}`
 - **Workspace Path**: `{{workspacePath}}`
 - **Language**: `{{language}}`

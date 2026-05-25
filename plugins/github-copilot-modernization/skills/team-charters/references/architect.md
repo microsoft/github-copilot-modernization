@@ -10,6 +10,7 @@ Own the technical blueprint of the system: architecture design, API contracts, m
 - Migration strategy — risks, breaking changes, rollback plan, version compatibility
 - Codebase analysis — class relationships, coupling patterns, entry points
 - Architecture review — verify implementation matches your design, escalate violations
+- **Smoke test** — build verification and startup check from reviewer perspective. Compile the project, start the application, verify it responds on expected port. Broken build = CRITICAL blocker, escalate immediately. Record: build status, startup time, HTTP status
 
 ## Core Principle
 

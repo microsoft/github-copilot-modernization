@@ -219,7 +219,7 @@ Delegate to `execution-coordinator` subagent with prompt:
 
 When user's message starts with "Create plan from assessment report" and contains selected categories:
 
-This intent is triggered automatically when the user clicks the **Create Plan** button in the assessment report webview. The selected categories (with issues and solutions) are included directly in the chat message.
+This intent is triggered automatically when the user clicks the **Create Plan** button in the assessment report webview. The selected categories (with issues and solutions) are included directly in the chat message. Solution strings may contain `[kbId: <id>]` markers — pass them verbatim to `planning-coordinator`, which handles the markers.
 
 → **SKIP assessment** (already completed in previous session)
 → **Delegate to `planning-coordinator`** with `assessment-report-path` + `selected-categories`
@@ -234,8 +234,8 @@ Delegate to `planning-coordinator` subagent with prompt:
   Generate plan from assessment report.
   assessment-report-path: .github/modernize/assessment/reports/report-abc123/report.json
   selected-categories:
-  - Category: "Java Version Upgrade", Issues: [Java 17 detected], Solutions: [Upgrade to Java 21]
-  - Category: "Cloud Readiness - RabbitMQ", Issues: [RabbitMQ usage], Solutions: [Migrate to Azure Service Bus]
+  - Category: "Java Version Upgrade", Issues: [Java 17 detected], Solutions: [Upgrade Java Version]
+  - Category: "Cloud Readiness - RabbitMQ", Issues: [RabbitMQ usage], Solutions: [Migrate from RabbitMQ(AMQP) to Azure Service Bus [kbId: amqp-rabbitmq-servicebus]]
   Workspace: <current workspace root>
 ```
 
@@ -416,7 +416,7 @@ Delegate to `planning-coordinator` subagent with prompt:
 
 You (orchestrator) — Step 2, after user approves plan, delegate to execution:
 Delegate to `execution-coordinator` subagent with prompt:
-  Execute plan from: .github/modernize/<app>/plan.md
+  Execute plan from: .github/modernize/<plan-name>/plan.md
 
 Note: If this were a SINGLE task (e.g., only "upgrade Java to 21"), skip planning and delegate to execution-coordinator directly with the task details.
 ```
@@ -511,9 +511,9 @@ Before starting ANY phase, you MUST verify:
 
 ## Phase Results Storage
 
-After each phase, results are saved to `.github/modernize/<app-name>/` directory:
+After each phase, results are saved to `.github/modernize/<plan-name>/` directory:
 - `plan.md` - Generated plan
-- `tasks.json` - Task definitions
+- `tasks.json` - Task definitions (may be in plan folder or `.metadata/` subfolder)
 - Assessment reports are stored under `.github/modernize/assessment/`
 
 ## Error Handling
@@ -563,7 +563,7 @@ After each phase, results are saved to `.github/modernize/<app-name>/` directory
 6. Present execution summary
 
 **Resume Workflow** (e.g., "continue the migration"):
-1. Check for existing phase results (assessment report.json, plan.md, tasks.json)
+1. Check for existing phase results (assessment report.json, plan.md, tasks.json — tasks.json may be in plan folder or `.metadata/` subfolder)
 2. Resume from last completed phase
 3. Delegate to next coordinator
 

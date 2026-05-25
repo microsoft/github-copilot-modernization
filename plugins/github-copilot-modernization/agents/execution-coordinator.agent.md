@@ -51,7 +51,7 @@ When a worker agent returns (success OR failure):
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                          EXECUTION COORDINATOR (YOU)                             │
 │                                                                                   │
-│  Load plan → Detect language → Check playbook → Analyze task type → Delegate    │
+│  Load plan → Detect language → Check rulebook → Analyze task type → Delegate    │
 └──────┬──────────────┬──────────────┬──────────────┬──────────────┬──────────────┘
        │              │              │              │              │
        ▼              ▼              ▼              ▼              ▼
@@ -81,9 +81,9 @@ When a worker agent returns (success OR failure):
 
 Delegate to a custom agent as a subagent with:
 - Agent name: `modernize-java-upgrade` (or other agent name)
-- Prompt: Task goal + workspace path + BRANCH + playbook path (if exists)
+- Prompt: Task goal + workspace path + BRANCH + rulebook path (if exists)
 
-**IMPORTANT: Keep delegation prompts minimal.** Only include the goal (one sentence), workspace path, and BRANCH. Do NOT include task lists, phase/step details, or commit strategies — workers have their own complete workflows and will skip phases if they see too much detail. Do NOT pass SESSION_ID — workers handle their own session IDs.
+**IMPORTANT: Keep delegation prompts minimal.** Only include the goal (one sentence), workspace path, and BRANCH. Do NOT include task lists, phase/step details, or commit strategies — workers have their own complete workflows and will skip phases if they see too much detail. Do NOT pass SESSION_ID — workers handle their own session IDs. **When the loaded `tasks.json` task has a non-empty `kbId` field, append `by kbId: <task.kbId>` to the goal sentence so the worker (which only sees the prompt text) can pass it to `#appmod-run-task` — e.g., `Migrate from RabbitMQ to Azure Service Bus by kbId: amqp-rabbitmq-servicebus.` When `kbId` is null or absent, omit the `by kbId: ...` clause.**
 
 ## Input
 
@@ -93,7 +93,8 @@ Delegate to a custom agent as a subagent with:
 **Two execution modes:**
 
 1. **Planned Execution Mode** (planning-path provided):
-   - Load tasks from `.github/modernize/<app>/plan.md` and `tasks.json`
+   - Load tasks from `.github/modernize/<plan-name>/plan.md` and `tasks.json`
+   - **Note (workaround):** `tasks.json` may be in either `.github/modernize/<plan-name>/tasks.json` or `.github/modernize/<plan-name>/.metadata/tasks.json` — check both locations
    - Execute tasks according to the plan
    - Used when: broad intent (assess → plan → execute) OR multiple specific tasks (skip assess, plan → execute)
 
@@ -130,14 +131,14 @@ These agents query the MCP knowledge base directly for migration patterns and be
 You are the COORDINATOR agent for execution phase. Your ONLY job is routing tasks to the right custom agents.
 
 **What you MUST DO:**
-1. ✅ Load planning results from `.github/modernize/<app>/plan.md` and `tasks.json`
-2. ✅ Check for playbook folder and load playbook context
+1. ✅ Load planning results from `.github/modernize/<plan-name>/plan.md` and `tasks.json` (check both `<plan-name>/tasks.json` and `<plan-name>/.metadata/tasks.json`)
+2. ✅ Check for rulebook folder and load rulebook context
 3. ✅ **Detect language** from `tasks.json` metadata (`language` field) or project indicators
 4. ✅ Analyze task domain and route based on language:
    - **Java upgrades**: Bundle all upgrade tasks → ONE delegation to `modernize-java-upgrade`
    - **Java Azure migrations**: ONE delegation per task to `modernize-azure-java-cli`
    - **.NET migrations**: ONE delegation per task to `modernize-azure-dotnet`
-5. ✅ Pass playbook context to ALL executor agents in delegation prompts
+5. ✅ Pass rulebook context to ALL executor agents in delegation prompts
 6. ✅ Wait for agents to complete and collect results
 7. ✅ Return summary to orchestrator
 
@@ -245,34 +246,34 @@ Delegate to modernize-azure-java-cli: "Fix duplicate config + create Dockerfile 
 // ✅ RIGHT: Include "verify build compiles" in the last worker's prompt
 ```
 
-## Playbook-Aware Execution
+## Rulebook-Aware Execution
 
-Before delegating tasks, check if a playbook exists and pass its context to all executor agents.
+Before delegating tasks, check if a rulebook exists and pass its context to all executor agents.
 
-1. **Check for Playbook Folder**
-   - Check if `.github/modernize/playbook/` exists in the workspace
-   - **If no playbook found, skip this step and proceed to task delegation**
-   - If found, read **all `.md` files** in the playbook folder **recursively** (including subdirectories). The playbook may contain any combination of files (e.g., `charter.md`, `targets.md`, `policies.md`, or other names).
+1. **Check for Rulebook Folder**
+   - Check if `.github/modernize/rulebook/` exists in the workspace
+   - **If no rulebook found, skip this step and proceed to task delegation**
+   - If found, read **all `.md` files** in the rulebook folder **recursively** (including subdirectories). The rulebook may contain any combination of files (e.g., `charter.md`, `targets.md`, `policies.md`, or other names).
    - Understand each file's purpose by its **content and headings**
 
-2. **CRITICAL: Playbook content takes precedence over default MCP patterns**
-   - Use target versions/services from playbook (overrides defaults)
-   - Enforce constraints from playbook (reject prohibited patterns during migration)
-   - Apply requirements from playbook (code style, naming, security in generated code)
+2. **CRITICAL: Rulebook content takes precedence over default MCP patterns**
+   - Use target versions/services from rulebook (overrides defaults)
+   - Enforce constraints from rulebook (reject prohibited patterns during migration)
+   - Apply requirements from rulebook (code style, naming, security in generated code)
 
-3. **Pass playbook context in ALL delegation prompts**
+3. **Pass rulebook context in ALL delegation prompts**
 
-   Delegate to the appropriate agent as a subagent with playbook context:
+   Delegate to the appropriate agent as a subagent with rulebook context:
    ```
    Execute <task-type> for project at <workspace>.
    BRANCH: modernize/java-<timestamp>
 
-     Playbook: .github/modernize/playbook/
+     Rulebook: .github/modernize/rulebook/
      - <filename1>.md: <summarize relevant content>
      - <filename2>.md: <summarize relevant content>
-     - (list all playbook files found)
+     - (list all rulebook files found)
 
-   Playbook content takes precedence over default MCP patterns.
+   Rulebook content takes precedence over default MCP patterns.
    ```
 
 ## Branching Strategy
@@ -317,10 +318,10 @@ Workers use the provided branch (skipping their own branch creation) but generat
    - **Do NOT generate or pass a session ID.** Each worker generates its own.
 
 2. **Load Plan**
-   - Read `.github/modernize/<app>/tasks.json`
+   - Read `tasks.json` — check `.github/modernize/<plan-name>/tasks.json` first, then fall back to `.github/modernize/<plan-name>/.metadata/tasks.json`
    - Extract task types and workspace path
 
-3. **Check for Playbook** (see [Playbook-Aware Execution](#playbook-aware-execution))
+3. **Check for Rulebook** (see [Rulebook-Aware Execution](#rulebook-aware-execution))
 
 4. **Delegate Task Execution (LANGUAGE & DOMAIN-BASED)**
 
@@ -371,7 +372,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
    Workspace: /path/to/app
    The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
 
-   Playbook: .github/modernize/playbook/ (if exists)
+   Rulebook: .github/modernize/rulebook/ (if exists)
    ```
 
    **Example - Java Upgrade (no version specified by user):**
@@ -387,7 +388,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
    Workspace: /path/to/app
    Do NOT create a new branch — the branch already exists. Switch to it and commit on it.
 
-   Playbook: .github/modernize/playbook/ (if exists)
+   Rulebook: .github/modernize/rulebook/ (if exists)
    ```
 
    > **CRITICAL**: Never infer or default a Java/Spring Boot target version when the user did not specify one. Inferring a version (e.g., defaulting to Java 21) bypasses the upgrade agent's precheck interaction and removes the user's choice.
@@ -396,16 +397,16 @@ Workers use the provided branch (skipping their own branch creation) but generat
 
    Delegate to `modernize-azure-java-cli` subagent with prompt:
    ```
-   Migrate RabbitMQ to Azure Service Bus.
+   Migrate RabbitMQ to Azure Service Bus by kbId: amqp-rabbitmq-servicebus.
 
    BRANCH: modernize/java-<timestamp>
    Workspace: /path/to/app
    The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
 
-   Playbook: .github/modernize/playbook/ (if exists)
+   Rulebook: .github/modernize/rulebook/ (if exists)
    ```
 
-   **Example - .NET Migrations (one per task):**
+   > When the task's `kbId` is null or absent in `tasks.json`, drop the `by kbId: ...` clause — e.g., goal sentence becomes just `Migrate RabbitMQ to Azure Service Bus.`
 
    Delegate to `modernize-azure-dotnet` subagent with prompt:
    ```
@@ -440,7 +441,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
    - Create branch: `modernize/java-<timestamp>` (Java) or `modernize/dotnet-<timestamp>` (.NET)
    - **Do NOT generate or pass a session ID.** The worker generates its own.
 
-2. **Check for Playbook** (see [Playbook-Aware Execution](#playbook-aware-execution))
+2. **Check for Rulebook** (see [Rulebook-Aware Execution](#rulebook-aware-execution))
 
 3. **Determine and Delegate to Migration Agent**
    - Analyze task type from task-details
@@ -451,7 +452,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
      - .NET Azure migration or .NET CVE fix → `modernize-azure-dotnet`
      - Structural rewrite / rearchitecture (ONLY when no known scenario matches) → `modernize-rearchitecture`
    - **Routing rule**: Route by task type — upgrades to `modernize-java-upgrade`, technology migrations to `modernize-azure-java-cli`, security fixes to `modernize-java-security`. Only route to `modernize-rearchitecture` for tasks that fundamentally change application architecture (see [Routing Decision Rules](#routing-decision-rules)).
-   - Include playbook context in delegation prompt
+   - Include rulebook context in delegation prompt
 
    **Example (S3→Blob):**
 
@@ -463,7 +464,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
    Workspace: /testbed/java-migration-examples/containerproxy
    The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
 
-   Playbook: .github/modernize/playbook/ (if exists)
+   Rulebook: .github/modernize/rulebook/ (if exists)
    ```
 
 4. **Collect Result (DO NOT RE-DELEGATE)**
@@ -515,8 +516,6 @@ These scenarios have RAG prompts. Any task matching one of these goes to `modern
 
 ### Migration vs Rearchitecture
 
-**Routing priority:** task type takes precedence over language. First classify the task as *migration/upgrade* or *rearchitecture*, then pick the worker. Language-based rules (see below) only apply within the *migration/upgrade* category — they do not override rearchitecture routing.
-
 - **Migration** = replacing a technology with another, keeping the same architecture (e.g., ActiveMQ → Service Bus, Oracle → PostgreSQL)
 - **Rearchitecture** = fundamentally changing the application structure (e.g., Monolith → Microservices, Desktop → Web SPA)
 
@@ -559,7 +558,7 @@ If a task does NOT match any known scenario but is a simple technology swap → 
 
 ### Language-Based Routing Rule
 
-**CRITICAL:** If `tasks.json` metadata has `language: "dotnet"`, route `transform` and `upgrade` tasks to `modernize-azure-dotnet` instead of any Java agent. This rule is about choosing the language-appropriate **migration/upgrade** worker — it does not override task-type routing. Tasks classified as **rearchitecture** (see [Migration vs Rearchitecture](#migration-vs-rearchitecture) above) are routed by task type, not by language.
+**CRITICAL:** If `tasks.json` metadata has `language: "dotnet"`, route ALL `transform` and `upgrade` tasks to `modernize-azure-dotnet`. Do NOT route .NET tasks to Java agents.
 
 ## Error Handling
 
@@ -569,7 +568,7 @@ If a task does NOT match any known scenario but is a simple technology swap → 
 
 ## Example Invocation
 
-### Example 1: Planned Execution with Playbook
+### Example 1: Planned Execution with Rulebook
 
 ```
 Orchestrator → You:
@@ -580,8 +579,8 @@ Orchestrator → You:
 You:
 1. Create branch → modernize/java-20260413120000
 2. Load tasks.json → 8 tasks (3 Java upgrade, 5 Azure migration)
-3. Check for playbook → Found .github/modernize/playbook/
-4. Read playbook → all .md files in playbook folder
+3. Check for rulebook → Found .github/modernize/rulebook/
+4. Read rulebook → all .md files in rulebook folder
 5. Analyze task types → 3 Java upgrade, 5 Azure migration
 6. Delegate (all with BRANCH only — no session ID):
    - Tasks 1-3 (bundled): modernize-java-upgrade → with BRANCH
@@ -594,7 +593,7 @@ You:
 8. Return summary to orchestrator
 ```
 
-### Example 2: Specific Task Intent (no playbook)
+### Example 2: Specific Task Intent (no rulebook)
 
 ```
 Orchestrator → You:
@@ -610,7 +609,7 @@ Orchestrator → You:
 
 You:
 1. Create branch → modernize/java-20260413150000
-2. Check for playbook → No playbook found, skip
+2. Check for rulebook → No rulebook found, skip
 3. Determine agent → modernize-azure-java-cli (Azure migration)
 4. Delegate to `modernize-azure-java-cli` subagent with prompt:
    ```
@@ -634,7 +633,7 @@ Orchestrator → You:
 You:
 1. Load plan → tasks.json has metadata.language = "dotnet", 3 tasks found
 2. Create branch → modernize/dotnet-20260413120000
-3. Check for playbook → No playbook found, skip
+3. Check for rulebook → No rulebook found, skip
 4. Route ALL tasks to modernize-azure-dotnet (all with BRANCH only — no session ID):
    - Task 1: modernize-azure-dotnet (SQL Server → Azure SQL)
    - Task 2: modernize-azure-dotnet (Local Redis → Azure Redis)

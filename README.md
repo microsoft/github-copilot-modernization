@@ -10,7 +10,7 @@ This plugin enables autonomous modernization of Java and .NET applications throu
 2. **Planning**: Generates executable task plans based on assessment results, enterprise policies, and user-defined constraints
 3. **Execution**: Routes tasks to specialized agents for parallel execution — including Java upgrades, Azure migrations, security fixes, and structural rewrites
 
-Enterprise modernization intent — target architectures, upgrade standards, guardrails, and compliance policies — can be embedded directly into the workflow through a playbook, ensuring every generated plan aligns with your organization's standards.
+Enterprise modernization intent — target architectures, upgrade standards, guardrails, and compliance policies — can be embedded directly into the workflow through a rulebook, ensuring every generated plan aligns with your organization's standards.
 
 ## Features
 
@@ -19,7 +19,7 @@ Enterprise modernization intent — target architectures, upgrade standards, gua
 - **CVE & Vulnerability Fixing**: Scan and fix CVE vulnerabilities in Maven and NuGet dependencies, including Log4j, Spring, Jackson, and OWASP dependency analysis
 - **Application Rearchitecture**: Structural rewrites such as monolith-to-microservices decomposition, legacy UI modernization (WinForms → React/Angular, JSP → modern SPA), and module extraction
 - **.NET Modernization**: Assess and migrate .NET applications to Azure, including NuGet security audits and ASP.NET-to-Azure migrations
-- **Enterprise Policy Support**: Embed your organization's modernization intent — target architectures, upgrade standards, guardrails, and compliance policies — directly into the workflow via a playbook
+- **Enterprise Policy Support**: Embed your organization's modernization intent — target architectures, upgrade standards, guardrails, and compliance policies — directly into the workflow via a rulebook
 - **Multi-Agent Orchestration**: 3-level agent hierarchy (orchestrator → coordinators → executors) with automatic routing — just describe what you need
 - **Parallel Execution**: Executor agents handle tasks concurrently
 - **Self-Verification**: Executors implement build, test, and validation checks with retry logic
@@ -106,10 +106,10 @@ All workflows run automatically — just describe what you want and the orchestr
 
 ### Phase 2: Planning
 
-- Loads assessment results and enterprise playbook (if present)
-- Merges enterprise constraints (target architectures, guardrails, standards) with assessment findings — **playbook policies override assessment recommendations**
+- Loads assessment results and enterprise rulebook (if present)
+- Merges enterprise constraints (target architectures, guardrails, standards) with assessment findings — **rulebook policies override assessment recommendations**
 - Generates an executable task plan with language metadata
-- Saves the plan to `.github/modernize/<app>/plan.md` and `tasks.json`
+- Saves the plan to `.github/modernize/<plan-name>/plan.md` and `tasks.json`
 
 ### Phase 3: Execution
 
@@ -124,11 +124,11 @@ All workflows run automatically — just describe what you want and the orchestr
 
 ## Enterprise Modernization Intent
 
-Organizations can embed their modernization policies, target architectures, and upgrade standards directly into the workflow through a **playbook**. This ensures every generated plan aligns with enterprise standards — without requiring manual review of each decision.
+Organizations can embed their modernization policies, target architectures, and upgrade standards directly into the workflow through a **rulebook**. This ensures every generated plan aligns with enterprise standards — without requiring manual review of each decision.
 
 ### How It Works
 
-Place markdown files in the `.github/modernize/playbook/` directory of your project. The planning phase automatically reads all `.md` files in this folder and merges them with assessment results before generating the task plan. **Playbook constraints override assessment recommendations** — if your playbook specifies "use Azure Service Bus for messaging," that takes precedence regardless of what the assessment discovers.
+Place markdown files in the `.github/modernize/rulebook/` directory of your project. The planning phase automatically reads all `.md` files in this folder and merges them with assessment results before generating the task plan. **Rulebook constraints override assessment recommendations** — if your rulebook specifies "use Azure Service Bus for messaging," that takes precedence regardless of what the assessment discovers.
 
 ### What You Can Define
 
@@ -140,9 +140,9 @@ Place markdown files in the `.github/modernize/playbook/` directory of your proj
 | **Coding Standards** | Naming conventions, authentication patterns, logging frameworks, error handling approaches |
 | **Migration Strategy** | Scope boundaries, 6R classification preferences (rehost vs refactor vs rearchitect), phasing strategy |
 
-### Example Playbook
+### Example Rulebook
 
-Create `.github/modernize/playbook/enterprise-standards.md`:
+Create `.github/modernize/rulebook/enterprise-standards.md`:
 
 ```markdown
 # Enterprise Modernization Standards
@@ -168,7 +168,7 @@ No fixed naming or structure is required — use any filenames and headings that
 
 ### Built-in Defaults
 
-Without a playbook, the plugin applies sensible defaults:
+Without a rulebook, the plugin applies sensible defaults:
 
 - **Java**: Upgrade to 17+ (21 only if explicitly requested); Spring Boot 3.x with javax → jakarta migration
 - **Azure**: Managed Identity for authentication; managed database services for relational data
