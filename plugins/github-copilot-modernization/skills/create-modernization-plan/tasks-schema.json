@@ -88,6 +88,10 @@
           "type": ["string", "null"],
           "description": "[Environment configuration from user input (e.g. endpoint, access id), null if not specified]"
         },
+        "kbId": {
+          "type": ["string", "null"],
+          "description": "[Optional knowledge-base id (matches a solutionId in solution-mapping.json, e.g., 'amqp-rabbitmq-servicebus', 'mi-postgresql', 'java-version-upgrade'). When present, the executor passes this to #appmod-run-task as the kbId parameter (no scenario, no skillId). Carried over from the assessment report's Create Plan input when the originating solution had a backing knowledge base. Leave null when the source scenario has no backing KB (e.g., bare/* placeholder solutions).]"
+        },
         "status": {
           "type": ["string", "null"],
           "description": "Task execution status. Only has value after task is executed.",

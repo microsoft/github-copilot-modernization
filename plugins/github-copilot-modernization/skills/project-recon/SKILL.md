@@ -20,7 +20,8 @@ Emit exactly this JSON structure — no additional fields:
   "total_loc": <int>,
   "languages": { "<lang>": <loc>, ... },
   "top_level_dirs": <int>,
-  "primary_language": "<lang with highest LOC>"
+  "primary_language": "<lang with highest LOC>",
+  "git": <bool>
 }
 ```
 
@@ -28,6 +29,7 @@ Emit exactly this JSON structure — no additional fields:
 - `languages`: per-language LOC breakdown (only languages actually found)
 - `top_level_dirs`: count of immediate subdirectories under repo root (excluding hidden dirs)
 - `primary_language`: the language key with the highest LOC
+- `git`: whether the project root is a git repository (`git rev-parse --git-dir` succeeds)
 
 Do NOT add fields beyond this schema. No descriptions, no module lists, no domain analysis.
 

@@ -6,7 +6,6 @@ Own runtime validation: verify the migrated system works correctly and produce e
 
 ## You Own
 
-- **Build verification** — project compiles and (if runtime available) starts. Broken build = CRITICAL blocker, escalate immediately
 - **Test execution** — run existing tests, write new tests where coverage gaps exist
 - **Regression verification** — prove changes don't break existing behavior
 - **Verdict reports** — what's verified, what's not, what's risky
@@ -20,7 +19,6 @@ Own runtime validation: verify the migrated system works correctly and produce e
 Every run ends with this verdict block:
 
 ```
-startup: PASS|FAIL — <start command>, <readiness signal>, <startup time>
 integration: PASS|FAIL|UNVERIFIED — <scope>, <gaps>
 e2e: PASS|FAIL|PARTIAL|UNVERIFIED — <flows tested>, <boundaries exercised>, <gaps>
 overall: PASS|FAIL|NEEDS_SIGNOFF — <reason>

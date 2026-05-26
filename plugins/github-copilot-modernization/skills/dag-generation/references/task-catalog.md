@@ -6,9 +6,6 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 
 **`requires` field**: Selecting this fragment forces the listed fragment to also be selected. Hard dependency.
 
-**Hard rules** (override LLM selection):
-- `db-migration` requires `data-modeling`.
-
 ---
 
 ## Plan Phase
@@ -16,13 +13,13 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 ### constitution
 - **desc**: Set up project constitution (migration principles, coding conventions, target stack rules). Provides shared guardrails when multiple workers will produce code in parallel.
 - **when**: Cross-stack rewrite with multiple workers; long-lived modernization; user asks for "rules"/"conventions"
-- **skip when**: Small project (<5K LOC, single worker); same-stack upgrade; lite scope
+- **skip when**: Small project where a single worker can hold the full codebase in context; same-stack upgrade; lite scope
 
 ### feature-inventory
 - **desc**: Inventory existing features (API endpoints, user flows, UI screens, behaviors). Produces the checklist that conformance-completeness validates against.
 - **after**: constitution
 - **when**: Full rewrite requiring feature parity validation; user says "preserve all features"; module extraction with public API
-- **skip when**: Same-stack upgrade; lite scope; small rewrite where features are obvious from code (<5K LOC, <10 endpoints)
+- **skip when**: Same-stack upgrade; lite scope; small rewrite where features are obvious from code (single-module, few controllers)
 
 ### arch-analysis
 - **desc**: Analyze current architecture (patterns, dependencies, data flow, risks).
@@ -33,8 +30,8 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 ### arch-design
 - **desc**: Design target architecture (system design, API contracts, data model, tech choices). For cross-stack migrations, defines the new project structure; for in-place changes, not needed.
 - **after**: arch-analysis, feature-inventory
-- **when**: Cross-stack rewrite (10K+ LOC or 3+ modules); module extraction with new boundary; architectural pattern change
-- **skip when**: Same-stack upgrade; small cross-stack rewrite (<5K LOC) where target architecture is straightforward; drop-in library replacement
+- **when**: Cross-stack rewrite spanning multiple independently-deployable modules; module extraction with new boundary; architectural pattern change
+- **skip when**: Same-stack upgrade; small cross-stack rewrite where target architecture is straightforward; drop-in library replacement
 
 ### data-modeling
 - **desc**: Design data model and migration strategy (schema changes, ORM mapping, data migration plan, rollback strategy).
@@ -47,10 +44,10 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 - **skip when**: Backend-only migration; no frontend changes; same-framework upgrade; frontend preserved as-is
 
 ### implementation-plan
-- **desc**: Create implementation plan + task breakdown with traceability. Needed when multiple workers implement in parallel or change spans multiple modules requiring sequenced steps.
+- **desc**: Create implementation plan + task breakdown with traceability. Needed when deep planning is required — multiple workers implement in parallel or change spans multiple modules requiring sequenced steps.
 - **after**: arch-design
-- **when**: Multiple workers needed; change spans 3+ modules; complex sequencing dependencies
-- **skip when**: Single worker handles all implementation; small project (<5K LOC); straightforward 1:1 mapping
+- **when**: `deep_planning: true` — coordinator determined that execute tasks cannot be fully defined without plan-phase artifacts
+- **skip when**: `deep_planning: false` — execute tasks are knowable upfront; single worker handles all implementation; codebase fits in one developer's context
 
 ### quality-gate-plan
 - **desc**: Quality gate — validate the implementation plan (coverage, traceability, feasibility).
@@ -61,8 +58,8 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 ### test-strategy
 - **desc**: Design test strategy — test types, scope, tooling, coverage targets, priority areas.
 - **after**: arch-analysis
-- **when**: runtime-validation is selected; cross-stack rewrite; 3+ modules; user asks for testing plan
-- **skip when**: Small project (<5K LOC, single worker); same-stack upgrade with no behavior change; no runtime-validation in pipeline
+- **when**: runtime-validation is selected; cross-stack rewrite; change spans independently-deployable boundaries; user asks for testing plan
+- **skip when**: Small project where a single worker handles everything; same-stack upgrade with no behavior change; no runtime-validation in pipeline
 
 ---
 
@@ -112,10 +109,17 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 - **when**: Frontend rewrite or UI framework change (e.g. JSP→React, Ember→React)
 - **skip when**: Backend-only migration; no frontend changes; same-framework upgrade
 
+### smoke-test
+- **desc**: Independent build and startup verification from reviewer perspective. Run the single build command that covers every module in this project, start the application, verify it responds on expected port. Record results (build status, startup time, HTTP status) in artifact. This is NOT testing — it is a gate check that the deliverable is minimally viable.
+- **scope**: global
+- **after**: all execute-phase tasks
+- **when**: Always selected when execute-phase tasks exist
+- **skip when**: Never skip — this is mandatory for any project that produces a runnable artifact
+
 ### runtime-validation
 - **desc**: Runtime validation — integration + E2E tests, regression checks, feature verification.
 - **scope**: global
-- **after**: arch-review, security-review, ux-review, deployment-setup, test-strategy
+- **after**: smoke-test, arch-review, security-review, ux-review, deployment-setup, test-strategy
 - **when**: Cross-stack rewrite; architecture change; major version upgrade with breaking changes; DB schema change; frontend framework migration; behavior-altering upgrade; change touching auth/payments/data persistence; user requests validation
 - **skip when**: Pure version bump with no API/behavior/transitive-dependency change; config/doc/metadata-only change; dev-tooling-only change producing identical build artifacts
 
@@ -146,29 +150,16 @@ Select tasks based on `change_type` (upgrade | extract | rewrite), `user_ask`, a
 
 ---
 
-## Examples
+## Calibration References
 
-### Example 1: "Upgrade Spring Boot from 2.7 to 3.2" (12K LOC, single module)
-- change_type: upgrade
-- selected: arch-analysis, implementation-plan, runtime-validation
-- excluded rationale: no new architecture (skip arch-design/scaffold), no feature change (skip feature-inventory/feature-parity-signoff/conformance-review), no DB change (skip data-modeling/db-migration), single worker (skip constitution/quality-gate-plan). Implementation tasks generated by coordinator at runtime.
+These illustrate the expected scale of fragment selection across different project profiles. They are NOT templates to copy — derive your selection from the project's actual characteristics. The point is calibrating your judgment: a 1K LOC upgrade should not produce the same ceremony as a 200K LOC rewrite.
 
-### Example 2: "Extract order module from monolith to microservice" (200K LOC, 8 modules)
-- change_type: extract
-- selected: constitution, arch-analysis, arch-design, data-modeling, implementation-plan, quality-gate-plan, test-strategy, scaffold, db-migration, deployment-setup, arch-review, security-review, runtime-validation, conformance-review
-- excluded rationale: feature-inventory/feature-parity-signoff skipped — scope is one module with known API. Implementation tasks generated via deferred DAG.
+- **1.4K LOC, 1 module, rewrite (cross-stack migration)**: ~4 fragments. Most ceremony is overhead — single worker holds full context, features are obvious from code, target architecture is straightforward. deep_planning MUST be false. Skip coordination fragments (constitution, implementation-plan, quality-gate-plan, test-strategy), inventory fragments (feature-inventory, feature-parity-signoff), and detailed review fragments (arch-design, arch-review, security-review) unless the project has specific complexity signals (auth flows, data model changes, etc.).
 
-### Example 3: "Migrate Struts 1 app to Spring Boot" (50K LOC, 3 modules)
-- change_type: rewrite
-- selected: constitution, feature-inventory, arch-analysis, arch-design, implementation-plan, quality-gate-plan, test-strategy, scaffold, arch-review, security-review, runtime-validation, feature-parity-signoff, conformance-review
-- excluded rationale: no DB schema change (skip data-modeling/db-migration), no new infra needed (skip deployment-setup). Implementation tasks generated via deferred DAG.
+- **12K LOC, single module, upgrade (version bump)**: ~3 fragments. Same-stack upgrade needs analysis, an implementation plan to sequence changes, and runtime validation. No new architecture, no feature changes, no DB changes.
 
-### Example 4: "Migrate Struts 2 app to Spring MVC" (1.4K LOC, 1 module, 3 actions)
-- change_type: rewrite
-- selected: arch-analysis, scaffold, runtime-validation, conformance-review
-- excluded rationale: tiny project (1.4K LOC, 3 actions) — single worker, no parallel coordination needed (skip constitution/implementation-plan/quality-gate-plan). Features obvious from code (skip feature-inventory/feature-parity-signoff). Target architecture straightforward 1:1 Action→Controller (skip arch-design/arch-review). No DB, no security, no deployment. Implementation tasks generated by coordinator at runtime.
+- **50K LOC, 3 modules, rewrite (cross-stack)**: ~13 fragments. Multiple modules and cross-stack migration justify full ceremony — coordination, inventory, architecture, implementation planning, reviews, and validation.
 
-### Example 5: "Update all npm dependencies to latest versions" (80K LOC)
-- change_type: upgrade
-- selected: runtime-validation
-- excluded rationale: pure dependency bump — no architecture, no new code structure, no feature change. Runtime-validation gates the build; no other validation needed. Implementation tasks generated by coordinator at runtime.
+- **200K LOC, 8 modules, extract (module separation)**: ~14 fragments. Large-scale extraction with new service boundaries needs nearly all fragments except feature inventory (scope is one module with known API).
+
+- **80K LOC, upgrade (dependency bump only)**: ~1 fragment. Pure dependency update — only runtime-validation needed to gate the build.
