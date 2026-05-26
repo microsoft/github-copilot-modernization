@@ -137,7 +137,7 @@ When user specifies EXACTLY what to do:
 | Intent | Single task | Multiple tasks |
 |---|---|---|
 | Java / Spring Boot version upgrade | `execution-coordinator` directly → hint: `modernize-java-upgrade` | `planning-coordinator` → `execution-coordinator` → hint: `modernize-java-upgrade` |
-| Java Azure service migration | `execution-coordinator` directly → hint: `modernize-azure-java-cli` | `planning-coordinator` → `execution-coordinator` → hint: `modernize-azure-java-cli` |
+| Java Azure service migration | `execution-coordinator` directly → hint: `modernize-azure-java` | `planning-coordinator` → `execution-coordinator` → hint: `modernize-azure-java` |
 | CVE / vulnerability fix (Java) | `execution-coordinator` directly → hint: `modernize-java-security` | `planning-coordinator` → `execution-coordinator` → hint: `modernize-java-security` |
 | .NET Azure migration or CVE fix | `execution-coordinator` directly → hint: `modernize-azure-dotnet` | `planning-coordinator` → `execution-coordinator` → hint: `modernize-azure-dotnet` |
 | Structural rewrite / rearchitecture | `execution-coordinator` directly → hint: `modernize-rearchitecture` | `planning-coordinator` → `execution-coordinator` → hint: `modernize-rearchitecture` |
@@ -219,7 +219,7 @@ Delegate to `execution-coordinator` subagent with prompt:
 
 When user's message starts with "Create plan from assessment report" and contains selected categories:
 
-This intent is triggered automatically when the user clicks the **Create Plan** button in the assessment report webview. The selected categories (with issues and solutions) are included directly in the chat message.
+This intent is triggered automatically when the user clicks the **Create Plan** button in the assessment report webview. The selected categories (with issues and solutions) are included directly in the chat message. Solution strings may contain `[kbId: <id>]` markers — pass them verbatim to `planning-coordinator`, which handles the markers.
 
 → **SKIP assessment** (already completed in previous session)
 → **Delegate to `planning-coordinator`** with `assessment-report-path` + `selected-categories`
@@ -234,8 +234,8 @@ Delegate to `planning-coordinator` subagent with prompt:
   Generate plan from assessment report.
   assessment-report-path: .github/modernize/assessment/reports/report-abc123/report.json
   selected-categories:
-  - Category: "Java Version Upgrade", Issues: [Java 17 detected], Solutions: [Upgrade to Java 21]
-  - Category: "Cloud Readiness - RabbitMQ", Issues: [RabbitMQ usage], Solutions: [Migrate to Azure Service Bus]
+  - Category: "Java Version Upgrade", Issues: [Java 17 detected], Solutions: [Upgrade Java Version]
+  - Category: "Cloud Readiness - RabbitMQ", Issues: [RabbitMQ usage], Solutions: [Migrate from RabbitMQ(AMQP) to Azure Service Bus [kbId: amqp-rabbitmq-servicebus]]
   Workspace: <current workspace root>
 ```
 
@@ -374,7 +374,7 @@ EXECUTE: Delegate to execution-coordinator subagent with task details directly
   ↓
   Execution-coordinator routes to appropriate custom agent:
     - Java/Spring upgrades → modernize-java-upgrade
-    - Azure migrations → modernize-azure-java-cli
+    - Azure migrations → modernize-azure-java
     - CVE/security fixes → modernize-java-security
     - .NET migrations → modernize-azure-dotnet
     - Structural rewrites → modernize-rearchitecture
@@ -469,7 +469,7 @@ Delegate to coordinators as subagents:
 **Execution Phase Detail:**
 The execution-coordinator will automatically route tasks to specialized migration agents:
 - Java upgrade tasks → `modernize-java-upgrade` (Java 8→11→17→21, Spring Boot, deprecated APIs)
-- Azure migration tasks → `modernize-azure-java-cli` (Service Bus, Azure SQL, Redis, etc.)
+- Azure migration tasks → `modernize-azure-java` (Service Bus, Azure SQL, Redis, etc.)
 - CVE/security fix tasks → `modernize-java-security` (Java/Maven vulnerability scanning and fixes)
 - .NET tasks → `modernize-azure-dotnet` (.NET Azure migrations and NuGet CVE fixes)
 - Structural rewrite tasks → `modernize-rearchitecture` (new stack, new directory, rearchitecture)
@@ -582,7 +582,7 @@ After each phase, results are saved to `.github/modernize/<app-name>/` directory
 
 **Why this matters:**
 - The execution-coordinator knows how to route tasks to specialized agents
-- Custom agents (modernize-java-upgrade, modernize-azure-java-cli, modernize-java-security, modernize-azure-dotnet, modernize-rearchitecture) have built-in retry logic
+- Custom agents (modernize-java-upgrade, modernize-azure-java, modernize-java-security, modernize-azure-dotnet, modernize-rearchitecture) have built-in retry logic
 - Custom agents self-verify and save results properly
 - Delegation enables sequential/parallel execution for multiple tasks
 
@@ -613,7 +613,7 @@ Before starting execution phase, CHECK:
 - Run assessment when user provides specific task intent ❌
 - Run assessment tools directly (delegate to assessment-coordinator)
 - **Call ANY MCP migration tools directly (appmod-* / AppModJavaUpgrade-* / AppModAzureJavaCLI-*)** ❌
-- **Invoke modernize-java-upgrade, modernize-azure-java-cli, modernize-java-security, modernize-azure-dotnet, or modernize-rearchitecture directly** ❌
+- **Invoke modernize-java-upgrade, modernize-azure-java, modernize-java-security, modernize-azure-dotnet, or modernize-rearchitecture directly** ❌
 - Execute task skills directly (delegate to execution-coordinator)
 - Proceed without user approval between phases (except in headless mode or specific task mode)
 
@@ -634,7 +634,7 @@ Before starting execution phase, CHECK:
 
 **WHY YOU CANNOT USE THESE TOOLS:**
 - You are the ORCHESTRATOR, not an EXECUTOR
-- MCP tools are for custom agents (modernize-java-upgrade, modernize-azure-java-cli, modernize-java-security, modernize-azure-dotnet, modernize-rearchitecture) only
+- MCP tools are for custom agents (modernize-java-upgrade, modernize-azure-java, modernize-java-security, modernize-azure-dotnet, modernize-rearchitecture) only
 - Your job is to ROUTE work to coordinators, not to DO the work yourself
 
 **WHAT YOU SHOULD DO INSTEAD:**

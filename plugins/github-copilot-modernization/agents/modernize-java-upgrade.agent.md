@@ -55,10 +55,6 @@ tools:
   - todo
   - ask_user
 handoffs:
-    - label: Fix CVEs
-      agent: modernize-java-security
-      prompt: Scan and fix CVE vulnerabilities in the project dependencies, using tool `#appmod-validate-cves-for-java` to verify resolution.
-      send: true
     - label: Generate Unit Tests
       agent: agent
       prompt: Generate unit tests for classes with low coverage using tool `#appmod-generate-tests-for-java`.
