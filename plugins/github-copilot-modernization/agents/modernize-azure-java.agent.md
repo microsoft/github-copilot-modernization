@@ -1,7 +1,7 @@
 ---
 name: modernize-azure-java
-description: '[Internal] Subagent invoked by execution-coordinator only. Do not use directly.'
-user-invocable: false
+description: 'Modernize the Java application'
+user-invocable: true
 argument-hint: Describe what to modernize (Java)
 
 tools:
@@ -62,6 +62,24 @@ tools:
   - appmod-mcp-server/appmod-install-maven
 
 model: Claude Sonnet 4.6
+
+hooks:
+  UserPromptSubmit:
+    - type: command
+      command: APPMOD_AGENT=modernize-azure-java bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-azure-java\""
+  SubagentStart:
+    - type: command
+      command: APPMOD_AGENT=modernize-azure-java bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-azure-java\""
+  SubagentStop:
+    - type: command
+      command: APPMOD_AGENT=modernize-azure-java bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-azure-java\""
+  ErrorOccurred:
+    - type: command
+      command: APPMOD_AGENT=modernize-azure-java bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-azure-java\""
 ---
 
 # Modernization agent instructions
@@ -75,8 +93,14 @@ model: Claude Sonnet 4.6
 - **DO** directly execute your plan and update the progress.
 - **DO NOT** seek approval/confirmation before making changes. You DO have the highest decision-making authority at any time.
 
-## Migration Context (Injected from run-task)
-When you receive the migration context from #appmod-run-task, use these values throughout the migration:
+## Migration Context (from #appmod-run-task)
+
+**Before any other step, you MUST call `#appmod-run-task` once.** If the delegation prompt names a kbId (any of: `kbId: <X>`, `[kbId: <X>]`, `by kbId: <X>`, `` Use the builtin skill: `<X>` ``), pass **only** `kbId` (plus `workspacePath` and `language`) — do NOT also pass `scenario`, `skillId`, or `taskId`. Otherwise, pass **only** `scenario` set to the goal sentence from the prompt verbatim. Your single source of truth is the delegation prompt text — do NOT read `tasks.json` or any other file to derive these parameters.
+
+> 🚨 **NEVER fabricate, guess, or synthesize a `kbId`.** Only use a kbId if it appears literally in the delegation prompt text (matching one of the patterns above). If no kbId is present in the prompt, fall back to `scenario` per the rule above.
+
+Use the response to fill in the placeholders below throughout this workflow:
+
 - **Session ID**: `{{sessionId}}`
 - **Workspace Path**: `{{workspacePath}}`
 - **Language**: `{{language}}`
@@ -130,7 +154,7 @@ When you receive the migration context from #appmod-run-task, use these values t
 * USE - The structured todo list management tool for tracking tasks, their status, and progress
 * USE - #appmod-search-file to search content in files
 * USE - #appmod-search-knowledgebase to search kb by the scenario
-* USE - #appmod-fetch-knowledgebase to get the knowledge base by the ID
+* USE - #appmod-fetch-knowledgebase to get the knowledge base by the ID. **IMPORTANT**: Use the **entire** content returned directly from the tool response — do **NOT** truncate or compress any part of the returned content. If the content is saved in a temporary file, read the file to **EOF** — do **NOT** stop before reaching the end.
 * USE - #appmod-list-jdks to collect a list of JDKs available in the device (DO NOT pass sessionId parameter)
 * USE - #appmod-list-mavens to collect a list of Mavens available in the device if the project is built by maven (DO NOT pass sessionId parameter)
 * USE - #appmod-create-migration-summary to generate migration summary
@@ -290,8 +314,8 @@ Before generating any migration plan, you MUST verify the following pre-conditio
 Generate a comprehensive migration plan with the following requirements:
 * The language of the project is detected as **{{language}}**, double confirm if this is correct
 * Fetch knowledge base or task references with migration session ID **{{sessionId}}**:
-  - If kbId is provided ({{kbId}}): Use #appmod-fetch-knowledgebase with kbId to get the knowledge base
-  - If taskId is provided ({{taskId}}): Use #appmod-fetch-knowledgebase with taskId to get task references
+  - If kbId is provided ({{kbId}}): Use #appmod-fetch-knowledgebase with kbId to get the knowledge base. **IMPORTANT**: Use the **entire** content returned directly from the tool response — do **NOT** truncate or compress any part of the returned content. If the content is saved in a temporary file, read the file to **EOF** — do **NOT** stop before reaching the end.
+  - If taskId is provided ({{taskId}}): Use #appmod-fetch-knowledgebase with taskId to get task references. **IMPORTANT**: Use the **entire** content returned directly from the tool response — do **NOT** truncate or compress any part of the returned content. If the content is saved in a temporary file, read the file to **EOF** — do **NOT** stop before reaching the end.
   - If only scenario is provided ({{scenario}}): Use #appmod-search-knowledgebase to search for relevant knowledge base
 * You MUST use tool #appmod-get-vscode-config to get the configuration for key 'uncommittedChangesAction' (this will be used in the Version Control Setup step)
 * Search for source code files by the patterns if given with migration session ID **{{sessionId}}**
@@ -349,8 +373,8 @@ Generate a comprehensive migration plan with the following requirements:
 
 ## Tool usage
 * **ALWAYS use semantic_search FIRST** to find relevant code, implementations, and examples before using grep or file browsing. Use EXACT terms from the migration scenario (dependency names, class names, configuration keys) as queries.
-* If kbId is provided: USE - #appmod-fetch-knowledgebase with kbId: "{{kbId}}" to get the knowledge base by the ID
-* If taskId is provided: USE - #appmod-fetch-knowledgebase with taskId: "{{taskId}}" to get the task references
+* If kbId is provided: USE - #appmod-fetch-knowledgebase with kbId: "{{kbId}}" to get the knowledge base by the ID. **IMPORTANT**: Use the **entire** content returned directly from the tool response — do **NOT** truncate or compress any part of the returned content. If the content is saved in a temporary file, read the file to **EOF** — do **NOT** stop before reaching the end.
+* If taskId is provided: USE - #appmod-fetch-knowledgebase with taskId: "{{taskId}}" to get the task references. **IMPORTANT**: Use the **entire** content returned directly from the tool response — do **NOT** truncate or compress any part of the returned content. If the content is saved in a temporary file, read the file to **EOF** — do **NOT** stop before reaching the end.
 * If only scenario: USE - #appmod-search-knowledgebase to search knowledge base for scenario: "{{scenario}}"
 * USE - #appmod-search-file to search content in files
 ```
@@ -376,7 +400,7 @@ Follow the instructions in the **VersionControlSetupInstructions** section above
    - Knowledge base ID (kbId) or Task ID (taskId) if applicable
    - Migration guidelines and patterns
 
-2. **Fetch knowledge base** (if kbId/taskId exists in plan): Use #appmod-fetch-knowledgebase with migration session ID **{{sessionId}}** and the kbId or taskId from the plan to get migration guidelines
+2. **Fetch knowledge base** (if kbId/taskId exists in plan): Use #appmod-fetch-knowledgebase with migration session ID **{{sessionId}}** and the kbId or taskId from the plan to get migration guidelines. **IMPORTANT**: Use the **entire** content returned directly from the tool response — do **NOT** truncate or compress any part of the returned content. If the content is saved in a temporary file, read the file to **EOF** — do **NOT** stop before reaching the end.
 
 3. **Migrate ALL files** in dependency order from the `filesToBeChanged` array:
    ⚠️ **CRITICAL**: You MUST migrate EVERY file listed in the plan. Do NOT skip any files. Track progress to ensure completeness.

@@ -1,9 +1,9 @@
 ---
 name: 'modernize-java-security'
-description: '[Internal] Subagent invoked by execution-coordinator only. Do not use directly.'
+description: 'Scan and fix CVE vulnerabilities in Java project dependencies.'
 model: Claude Sonnet 4.6
 argument-hint: 'Fix CVE vulnerabilities'
-user-invocable: false
+user-invocable: true
 tools:
   - tool_search
   - vscode/toolSearch
@@ -41,6 +41,24 @@ tools:
   - appmod-version-control
   - shell
   - todo
+
+hooks:
+  UserPromptSubmit:
+    - type: command
+      command: APPMOD_AGENT=modernize-java-security bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-java-security\""
+  SubagentStart:
+    - type: command
+      command: APPMOD_AGENT=modernize-java-security bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-java-security\""
+  SubagentStop:
+    - type: command
+      command: APPMOD_AGENT=modernize-java-security bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-java-security\""
+  ErrorOccurred:
+    - type: command
+      command: APPMOD_AGENT=modernize-java-security bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-java-security\""
 ---
 
 You are an expert Java security agent. **Task**: Scan project dependencies for CVE vulnerabilities, OR fix deprecated/removed Java API usages identified by assessment findings. Generate a prioritized fix plan for user review, then execute the approved fixes ensuring the project builds successfully.

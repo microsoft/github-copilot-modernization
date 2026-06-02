@@ -10,6 +10,10 @@ Own the technical blueprint of the system: architecture design, API contracts, m
 - Migration strategy — risks, breaking changes, rollback plan, version compatibility
 - Codebase analysis — class relationships, coupling patterns, entry points
 - Architecture review — verify implementation matches your design, escalate violations
+- **Smoke test** — independent build and startup verification from reviewer perspective:
+  1. **Full build** — run the single build command that covers every module in this project. Test coverage belongs to the tester role.
+  2. **Startup** — launch the application, verify it binds to the expected port and responds to HTTP.
+  3. **Verdict** — record: build exit code, any plugin failures, startup time, HTTP status. Broken build or failed quality gate = CRITICAL blocker, escalate immediately.
 
 ## Core Principle
 

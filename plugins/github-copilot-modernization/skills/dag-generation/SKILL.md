@@ -16,8 +16,8 @@ NOT for:
 # DAG Generation
 
 Two-stage DAG generation for modernization projects:
-1. **Stage 1** (§1.4) — select fragments from task-catalog, determine deferred_dag, produce DAG JSON
-2. **Stage 2** (§3.2.2) — read plan artifacts, produce execute+validate DAG
+1. **Stage 1** (§1.4) — select fragments from task-catalog, determine deep_planning, produce DAG JSON
+2. **Stage 2** (§3.2.2) — when deep planning, read plan artifacts, produce execute+validate DAG
 
 ## Reference Files
 
@@ -35,23 +35,43 @@ Select fragments from the task catalog and produce a DAG.
 
 ### Decision Procedure
 
-#### Step 1: Select fragments
-Read `references/task-catalog.md`. For each fragment, decide include/exclude with a one-line rationale based on:
+#### Step 1: Determine deep_planning
+
+Decide whether the project needs deep planning (two-stage DAG) or can produce a complete DAG upfront.
+
+**`deep_planning: true`** when:
+- Multiple modules with cross-module dependencies that require discovery before execute tasks can be defined
+- change_type is rewrite or extract AND the target architecture is not yet clear (needs design exploration)
+- The project is large enough that execute task structure genuinely cannot be enumerated without plan-phase artifacts
+
+**`deep_planning: false`** when:
+- Single module or few modules with clear structure
+- change_type is upgrade — target is well-defined (version to version)
+- Execute tasks can be directly derived from the project profile without intermediate artifacts
+- Small projects where one developer could hold the full context
+
+#### Step 2: Select fragments
+Read `references/task-catalog.md`. For each fragment, decide include/exclude based on:
 - change_type (upgrade | extract | rewrite)
 - user_ask intent
 - Project profile (LOC, modules)
+- `deep_planning` decision from Step 1 (drives `implementation-plan` selection)
 
 Respect `when` / `skip-when` conditions and `after` ordering from the catalog.
 
-#### Step 2: Determine deferred_dag
-- `true` if the pipeline includes an implementation-plan fragment (execute tasks depend on plan artifacts)
-- `false` if no implementation-plan — all tasks are knowable upfront
+**⛔ Skip-when enforcement (mandatory post-selection gate):**
+After initial selection, sweep every selected fragment and check its `skip-when` against the current context (deep_planning value, change_type, project scale, other selected fragments). Any fragment whose skip-when condition is satisfied MUST be removed — no exceptions. Specifically:
+- `implementation-plan`: remove if `deep_planning: false`
+
+This gate catches cases where the initial selection included fragments that looked relevant but conflict with the deep_planning decision or project scale.
+
+Fragment selection is an internal decision — do NOT output the selection rationale to the user. The DAG itself is the user-facing result.
 
 #### Step 3: Generate DAG
 Read `references/dag-rules.md` for construction rules.
 
-- **If `deferred_dag: true`** → produce only plan-phase tasks as JSON
-- **If `deferred_dag: false`** → produce the complete DAG (plan + execute + validate) as JSON
+- **If `deep_planning: true`** → produce only plan-phase tasks as JSON
+- **If `deep_planning: false`** → produce the complete DAG (plan + execute + validate) as JSON
 
 ### Output
 
@@ -59,7 +79,7 @@ Return JSON to the coordinator (do NOT write files):
 
 ```json
 {
-  "deferred_dag": true,
+  "deep_planning": true,
   "tasks": [
     {"id": "t1", "role": "<role>", "title": "<title>", "depends_on": [], "phase_label": "<label>"},
     {"id": "t2", "role": "<role>", "title": "<title>", "depends_on": ["t1"], "phase_label": "<label>"}
@@ -69,7 +89,7 @@ Return JSON to the coordinator (do NOT write files):
 
 ## Stage 2: Execute+Validate DAG
 
-When plan phase completes and `deferred_dag: true`, generate the execute+validate DAG from plan artifacts.
+When plan phase completes and `deep_planning: true`, generate the execute+validate DAG from plan artifacts.
 
 ### Inputs (provided by coordinator)
 

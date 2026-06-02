@@ -1,7 +1,7 @@
 ---
 name: modernize-azure-dotnet
-description: '[Internal] Subagent invoked by execution-coordinator only. Do not use directly.'
-user-invocable: false
+description: 'Modernize the .NET application'
+user-invocable: true
 argument-hint: Describe what to modernize (.NET)
 
 tools:
@@ -42,6 +42,24 @@ tools:
   - todo
 
 model: Claude Sonnet 4.6
+
+hooks:
+  UserPromptSubmit:
+    - type: command
+      command: APPMOD_AGENT=modernize-azure-dotnet bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-azure-dotnet\""
+  SubagentStart:
+    - type: command
+      command: APPMOD_AGENT=modernize-azure-dotnet bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-azure-dotnet\""
+  SubagentStop:
+    - type: command
+      command: APPMOD_AGENT=modernize-azure-dotnet bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-azure-dotnet\""
+  ErrorOccurred:
+    - type: command
+      command: APPMOD_AGENT=modernize-azure-dotnet bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-azure-dotnet\""
 ---
 
 # .NET Modernization agent instructions
@@ -79,7 +97,7 @@ When you receive the migration context from #appmod-run-task, use these values t
 ## ⚠️ CRITICAL: Migration Workflow
 
 ### 1. Planning Phase (REQUIRED FIRST STEP)
-**Before any migration work, I MUST call `appmod-run-task` first.**
+**Before any migration work, I MUST call `appmod-run-task` first.** If the delegation prompt names a kbId (any of: `kbId: <X>`, `[kbId: <X>]`, `by kbId: <X>`, `` Use the builtin skill: `<X>` ``), I pass **only** `kbId` (plus `workspacePath` and `language`) — I do NOT also pass `scenario`, `skillId`, or `taskId`. Otherwise, I pass **only** `scenario` set to the goal sentence from the prompt. My single source of truth is the delegation prompt text — I do NOT read `tasks.json` or any other file to derive these parameters.
 
 This tool will provide instructions for generating `plan.md` and `progress.md` files in `.github/modernize/code-migration`.
 

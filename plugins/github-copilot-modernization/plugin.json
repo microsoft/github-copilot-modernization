@@ -1,14 +1,24 @@
 {
   "name": "github-copilot-modernization",
   "description": "Autonomous application modernization with assess → plan → execute workflow",
-  "version": "1.0.1",
+  "version": "1.20.0",
   "author": {
     "name": "Microsoft",
     "email": "copilot-support@microsoft.com"
   },
   "license": "MIT",
-  "keywords": ["java", "dotnet", ".net", "modernization", "azure", "migration", "assessment"],
+  "keywords": [
+    "java",
+    "dotnet",
+    ".net",
+    "modernization",
+    "azure",
+    "migration",
+    "assessment"
+  ],
   "agents": "agents/",
-  "skills": ["skills/"],
+  "skills": [
+    "skills/"
+  ],
   "mcpServers": ".mcp.json"
 }

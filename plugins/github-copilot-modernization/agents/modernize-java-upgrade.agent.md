@@ -1,9 +1,9 @@
 ---
 name: 'modernize-java-upgrade'
-description: '[Internal] Subagent invoked by execution-coordinator only. Do not use directly.'
+description: 'Upgrades Java projects to target versions (e.g., Java 25, Spring Boot 3.5) via incremental planning and execution.'
 model: Claude Sonnet 4.6
-argument-hint: 'Target versions (e.g., Java 21, Spring Boot 3.2) and project context.'
-user-invocable: false
+argument-hint: 'Target versions (e.g., Java 25, Spring Boot 3.5) and project context.'
+user-invocable: true
 tools:
   - tool_search
   - vscode/toolSearch
@@ -55,10 +55,6 @@ tools:
   - todo
   - ask_user
 handoffs:
-    - label: Fix CVEs
-      agent: modernize-java-security
-      prompt: Scan and fix CVE vulnerabilities in the project dependencies, using tool `#appmod-validate-cves-for-java` to verify resolution.
-      send: true
     - label: Generate Unit Tests
       agent: agent
       prompt: Generate unit tests for classes with low coverage using tool `#appmod-generate-tests-for-java`.
@@ -68,6 +64,22 @@ handoffs:
       prompt: Scan my project and help me plan how to containerize my application using the `#appmod-get-containerization-plan` tool. Execute the plan. The end goal is to have Dockerfiles that are able to be built.
       send: true
 hooks:
+  UserPromptSubmit:
+    - type: command
+      command: APPMOD_AGENT=modernize-java-upgrade bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-java-upgrade\""
+  SubagentStart:
+    - type: command
+      command: APPMOD_AGENT=modernize-java-upgrade bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-java-upgrade\""
+  SubagentStop:
+    - type: command
+      command: APPMOD_AGENT=modernize-java-upgrade bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-java-upgrade\""
+  ErrorOccurred:
+    - type: command
+      command: APPMOD_AGENT=modernize-java-upgrade bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-java-upgrade\""
   PostToolUse:
     - type: command
       command: "bash .github/modernize/java-upgrade/hooks/scripts/recordToolUse.sh"
@@ -111,6 +123,7 @@ After completing changes in each step, review code changes per the **Review Code
 - **Automation tools**: Use automation tools like OpenRewrite etc. for efficiency; always verify output.
 - **Successor preference**: Compatible successor > Adapter pattern > Code rewrite.
 - **Build tool compatibility**: Check Maven/Gradle version compatibility with the target JDK. Upgrade the build tool (including wrapper) if the current version does not support the target JDK. Common minimum versions: Gradle 8.5+ for Java 21, Gradle 9.1+ for Java 25. Maven 3.9+ is recommended (3.8.x is EOL) but not strictly required for any specific Java version. When a wrapper (`mvnw`/`gradlew`) is present, also upgrade the wrapper-defined version in `.mvn/wrapper/maven-wrapper.properties` or `gradle/wrapper/gradle-wrapper.properties`.
+- **Kotlin version compatibility (MANDATORY)**: When upgrading the JDK target, you MUST also upgrade the Kotlin version if the project uses Kotlin. Search for `<kotlin.version>` in pom.xml properties or `kotlin_version` in gradle files. Minimum required versions: **Kotlin 1.9.20+** for Java 21, **Kotlin 2.3.0+** for Java 25. Kotlin < 1.9.20 does NOT support `jvmTarget=21`. You MUST update the `<kotlin.version>` property (not just `<jvmTarget>`) — the property controls `kotlin-stdlib`, `kotlin-test`, and `kotlin-maven-plugin`/`kotlin-gradle-plugin` versions. Failure to upgrade Kotlin version while setting a higher jvmTarget WILL cause compilation errors.
 - **Temporary errors OK**: Steps may pass with known errors if resolved later or pre-existing.
 - **CVE version pin protection**: Before removing or downgrading any explicit `<version>` override in `<dependencyManagement>` or `<dependencies>`, verify it is not a CVE-driven pin. Check for: (1) nearby XML comments referencing CVE IDs or security fixes, (2) whether the pinned version is **newer** than the BOM-managed version — if so, it likely exists to patch a vulnerability. When in doubt, **keep the override** and document the decision.
 
@@ -196,6 +209,8 @@ List ONLY the JDKs and build tools required/used during the upgrade (not all dis
 - Gradle 9.1+: required for Java 25
 - maven-compiler-plugin 3.11+: recommended (the plugin delegates to javac; the JDK version determines compilation support, not the plugin version)
 - maven-surefire-plugin 3.0+: recommended for Java 17+ (older versions may have issues with module system)
+- Kotlin 1.9.20+: required for Java 21 (kotlin-maven-plugin / kotlin-gradle-plugin). Kotlin < 1.9.20 does NOT support JVM target 21. You MUST update `<kotlin.version>` property in pom.xml (not just `<jvmTarget>`).
+- Kotlin 2.3.0+: required for Java 25. Kotlin < 2.3 does NOT support JVM target 25. You MUST update `<kotlin.version>` property in pom.xml (not just `<jvmTarget>`).
 
 This section is finalized during Design & Review (after step sequence is known), not during Initialize & Analyze.
 
@@ -264,7 +279,9 @@ Common derivations:
 - Spring Boot 3.2+ → Spring Framework 6.1+
 - Spring Boot 4.x → Java 17+, Jakarta EE 10+, Spring Framework 7.x
 - Java 21 → Gradle 8.5+, Maven 3.9+ (recommended), maven-compiler-plugin 3.11+ (recommended)
+- Java 21 → Kotlin 1.9.20+ (if Kotlin is used; upgrade `<kotlin.version>` property and kotlin-maven-plugin / kotlin-gradle-plugin to 1.9.20+)
 - Java 25 → Gradle 9.1+
+- Java 25 → Kotlin 2.3.0+ (if Kotlin is used; upgrade `<kotlin.version>` property and kotlin-maven-plugin / kotlin-gradle-plugin to 2.3.0+)
 - Build tool upgrade → update wrapper version
 - Non-Spring-Boot runnable application → Spring Boot (skip for library JARs; in multi-module projects apply only to the application module):
   - Add `@SpringBootApplication` main class
@@ -361,6 +378,7 @@ Step format:
 - **Step 1 (MANDATORY)**: Setup Environment — Install required JDKs/build tools marked `<TO_BE_INSTALLED>` (do NOT install the base JDK if it is unavailable — it is only needed for the optional baseline). Verify with `#appmod-list-jdks`. Expected: All required JDKs available.
 - **Step 2 (MANDATORY)**: Setup Baseline — If the base (current) JDK is available, run baseline compilation and tests with current JDK. Command: `mvn clean compile test-compile -q && mvn clean test -q`. Document SUCCESS/FAILURE, test pass rate (forms acceptance criteria). **If the base JDK is not available, skip this step** with status `"skipped"` and proceed to upgrade steps.
 - **Steps 3-N**: Upgrade steps — apply all changes from Impact Analysis. Group related changes so each step compiles. Verify with `mvn clean test-compile -q` (compile only).
+- **CVE Validation & Fix**: Extract direct deps, scan with `#appmod-validate-cves-for-java(sessionId, dependencies, projectPath)`, fix all reported CVEs by upgrading dependency versions (patch version upgrades within the same minor line are acceptable), verify build compiles, re-scan to confirm resolution.
 - **Final step (MANDATORY)**: Final Validation — Verify all goals met, resolve ALL TODOs and workarounds, clean rebuild with target JDK, run full test suite and fix ALL failures (iterative fix loop until 100% pass). Skip tests if disabled in Options. **For files flagged in Risks & Warnings as lacking test coverage, "compile + test pass" is NOT sufficient** — either (a) apply the deterministic rewrite as part of an upgrade step, or (b) document the residual runtime risk in `summary.md` Key Risks. Do not silently ship a latent JDK-version runtime bug.
 
 ## Progress Format Specification
@@ -452,7 +470,15 @@ Status values: 🔘 Not Started | ⏳ In Progress | ✅ Completed | ❗ Failed
 
 **On failure**: → `#appmod-report-event(event: "precheckCompleted", phase: "precheck", status: "failed", details: {category: "<category>", scenario: "<scenario>"}, message: "<what failed and why>")` — **Call this FIRST** before stopping or asking users. Pass the failed category (e.g., "Unsupported Project", "Invalid Goal") and scenario from the table above. **IMPORTANT**: `details.category` and `details.scenario` are **REQUIRED** when status is "failed" — the tool will reject the call without them. **Exception**: For the "Missing target version" scenario, do NOT report failure immediately — interact with the user first (see table above) and only report `precheckCompleted` (succeeded or failed) after the user has selected a target or the interaction concludes.
 
-**On success**: → `#appmod-report-event(event: "precheckCompleted", phase: "precheck", status: "succeeded", details: {baseJdkVersion: "<detected Java version, e.g. 8, 11, 17>", targetVersion: "<user-specified or derived target, e.g. Java 21, Spring Boot 3.5>"})` — **This generates a new `SESSION_ID`. Use this `SESSION_ID` for all subsequent tool calls.**
+**On success**: → `#appmod-report-event(event: "precheckCompleted", phase: "precheck", status: "succeeded", details: {components: [{name: "<component>", baseVersion: "<current version>", targetVersion: "<target version>"}, ...]})` — **This generates a new `SESSION_ID`. Use this `SESSION_ID` for all subsequent tool calls.**
+
+Pass ALL detected upgrade components in a single call. Valid component names: `jdk`, `spring-boot`, `spring-framework`, `jakarta-ee`, `quarkus`, `micronaut`, `azure-sdk`, `unknown` (use `unknown` for any framework not in this list).
+
+Examples:
+- JDK-only upgrade: `details: {components: [{name: "jdk", baseVersion: "17", targetVersion: "21"}]}`
+- JDK + Spring Boot: `details: {components: [{name: "jdk", baseVersion: "17", targetVersion: "21"}, {name: "spring-boot", baseVersion: "2.7.18", targetVersion: "3.5.0"}]}`
+
+**IMPORTANT**: `baseVersion` and `targetVersion` must be **numeric or semver only** (e.g., "17", "21", "2.7.18", "3.5.0"). Do NOT include prefixes like "Java" or "Spring Boot".
 
 ### Phase 2: Generate Upgrade Plan
 
@@ -545,20 +571,34 @@ For each step:
 2. Validate all **Upgrade Success Criteria** are met, or otherwise go back to Final Validation step to fix
 3. Call tool `#appmod-report-event(sessionId, event: "planExecutionCompleted", phase: "execute", status: "succeeded")`
 
-### Phase 5: Summarize & Cleanup
+### Phase 5: CVE Validation & Fix
+
+Execute the "CVE Validation & Fix" step from the plan. Update its entry in `progress.md` as you go.
 
 1. **Scan CVEs**: Extract direct deps (`mvn dependency:list -DexcludeTransitive=true`), call `#appmod-validate-cves-for-java(sessionId, dependencies, projectPath)`
-2. **Collect test coverage**: Run `mvn clean verify -Djacoco.skip=false` or equivalent; record metrics
-3. Generate `summary.md`:
+2. **Fix all reported CVEs** (if any found in step 1):
+   - Upgrading to a newer patch version within the same minor line is acceptable (e.g., 3.5.0 → 3.5.14) to resolve CVEs.
+   - For each CVE with an available patched version, upgrade the dependency:
+     - BOM-managed dependencies → update the BOM version (e.g., `spring-boot-dependencies`)
+     - Direct dependencies → update the `<version>` tag in `pom.xml` / `build.gradle`
+     - Property-referenced versions (e.g., `${spring.version}`) → update the property in `<properties>`
+   - After applying all fixes, verify build compiles: `mvn clean test-compile` (or equivalent)
+   - If build fails, analyze errors and apply minimal fixes
+   - Re-scan: call `#appmod-validate-cves-for-java(sessionId, dependencies, projectPath)` to verify resolution
+   - Record results: note which CVEs were fixed and which remain (no patch available)
+
+### Phase 6: Summarize & Cleanup
+
+1. **Collect test coverage**: Run `mvn clean verify -Djacoco.skip=false` or equivalent; record metrics
+2. Generate `summary.md`:
     - **Read spec**: Read `summary.template.md` (in the session directory) — it contains the format specification with rules and samples.
     - **Write**: Collect all data from `progress.md`, build output, CVE scan results, and coverage metrics. Resolve OS username (`$env:USERNAME` / `$USER` / `whoami`). Write `summary.md` as a new file using `create_file` per **Template compliance**.
     - **Self-check**: Scan the written `summary.md` for HTML comments, `<placeholder>` tokens, empty bullets, unfilled table cells, bare headings without content, duplicate section headings. Fix any issues found.
-4. Clean up temp files; remove HTML comments from all `.md` files
-5. → `#appmod-report-event(sessionId, event: "summaryGenerated", phase: "summarize", status: "succeeded", message: "<1-2 sentence summary>")`
+3. Clean up temp files; remove HTML comments from all `.md` files
+4. → `#appmod-report-event(sessionId, event: "summaryGenerated", phase: "summarize", status: "succeeded", message: "<1-2 sentence summary>")`
 
-### Phase 6: Prompt for Follow-up Actions (CONDITIONAL)
+### Phase 7: Prompt for Follow-up Actions (CONDITIONAL)
 
 If issues detected, use the ask tool (`#askQuestions`, `#ask_user`, or `#ask_questions`) to prompt user:
 
-1. **Critical/High CVEs found**: Offer to upgrade vulnerable dependencies using this custom agent; use `#appmod-validate-cves-for-java(sessionId)` to verify resolution.
-2. **Low coverage (<70%)**: Offer to generate tests via `#appmod-generate-tests-for-java(sessionId, projectPath)`.
+1. **Low coverage (<70%)**: Offer to generate tests via `#appmod-generate-tests-for-java(sessionId, projectPath)`.
