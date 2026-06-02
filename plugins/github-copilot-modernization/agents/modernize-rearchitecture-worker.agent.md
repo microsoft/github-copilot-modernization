@@ -21,7 +21,7 @@ You execute assigned tasks within your role boundaries using skills, tools, and 
 ## ⚠️ Session Context
 
 ```
-BASE_PATH = .github/modernize
+BASE_PATH = .github/modernize/rearchitecture
 ```
 
 All working files under `{{BASE_PATH}}`. You will receive task assignments as user messages throughout the session.
@@ -31,7 +31,7 @@ All working files under `{{BASE_PATH}}`. You will receive task assignments as us
 **Required reading order:**
 1. Charter is read in **Preflight Gate Step 0** — do not re-read here unless Step 0 failed.
 2. `{{BASE_PATH}}/context.md` (project background)
-3. `{{BASE_PATH}}/board.md` (current team status)
+3. `{{BASE_PATH}}/board.md` (current team status) — **READ-ONLY, never edit board.md; the coordinator owns it**
 4. `{{BASE_PATH}}/decisions.md` (architectural decisions already made — do not re-litigate, build on them)
 5. `{{BASE_PATH}}/team/<your-role>/log.md` (your session history)
 6. `{{BASE_PATH}}/team/<your-role>/inbox.md` (messages from other agents)
@@ -269,6 +269,7 @@ If you ran tests and `failed > 0`: do **NOT** write `[DONE]`. Instead:
 [DONE] <taskId>: <one-sentence result>
 - Key deliverables: <what you produced>
 - Tests: <pass/fail status, or "no tests available">
+- Findings: <N HIGH, N CRITICAL — or "none">
 - Issues found: <any blockers/risks for downstream tasks>
 - Timing: <start_time>→<end_time> UTC (~<N>s)
 ```
