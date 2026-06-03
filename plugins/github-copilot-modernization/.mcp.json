@@ -6,7 +6,7 @@
       "args": [
         "-y",
         "@microsoft/github-copilot-app-modernization-mcp-server@1.20.0",
-        "--callerId",
+        "--callerType",
         "github-copilot-modernization-plugin"
       ],
       "tools": [
