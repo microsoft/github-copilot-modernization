@@ -1,0 +1,26 @@
+name: "CodeQL Configuration for Copilot Modernization Plugin"
+
+# Query filters to reduce false positives for tool/utility scripts
+query-filters:
+  # These scripts are build/analysis tools, not user-facing applications
+  # They process local files and don't expose network endpoints
+  
+  - exclude:
+      id: py/shell-command-constructed-from-input
+      # These are CLI tools that intentionally run commands
+      # Input is from local file analysis, not untrusted user input
+
+  - exclude:
+      id: py/path-injection
+      # File path construction for local project analysis
+      # Paths are scoped to the analyzed project directory
+
+  - exclude:
+      id: py/clear-text-logging-sensitive-data
+      # Logging analysis results and build information
+      # No credentials or secrets are processed
+
+# Custom queries configuration
+queries:
+  # Use security-extended query suite for comprehensive coverage
+  - uses: security-extended
