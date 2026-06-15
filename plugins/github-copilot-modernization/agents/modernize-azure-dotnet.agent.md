@@ -41,7 +41,7 @@ tools:
   - shell
   - todo
 
-model: Claude Sonnet 4.6
+model: 'Claude Sonnet 4.6'
 
 hooks:
   UserPromptSubmit:
@@ -99,10 +99,18 @@ When you receive the migration context from #appmod-run-task, use these values t
 ### 1. Planning Phase (REQUIRED FIRST STEP)
 **Before any migration work, I MUST call `appmod-run-task` first.** If the delegation prompt names a kbId (any of: `kbId: <X>`, `[kbId: <X>]`, `by kbId: <X>`, `` Use the builtin skill: `<X>` ``), I pass **only** `kbId` (plus `workspacePath` and `language`) — I do NOT also pass `scenario`, `skillId`, or `taskId`. Otherwise, I pass **only** `scenario` set to the goal sentence from the prompt. My single source of truth is the delegation prompt text — I do NOT read `tasks.json` or any other file to derive these parameters.
 
-This tool will provide instructions for generating `plan.md` and `progress.md` files in `.github/modernize/code-migration`.
+After `appmod-run-task` returns the migration context, I MUST save tracking artifacts before any code changes:
+
+1. **Create `{{planFile}}`**: Save the complete migration plan (session ID, scope, files to change, dependency/config/code changes, validation steps) to `{{planFile}}` in `{{workspacePath}}`. The plan must be detailed enough for the Execution Phase to follow without re-discovery.
+2. **Create `{{progressFile}}`**: Save initial progress (plan generation=completed; version control, code migration, verification, summary=pending) to `{{progressFile}}`.
+3. **Preview**: Open both files with `appmod-preview-markdown` when available.
+
+Do NOT proceed to version control or code changes until both `{{planFile}}` and `{{progressFile}}` exist.
 
 ### 2. Execution Phase
 **I MUST strictly follow the plan and progress files.**
+
+I MUST read `{{planFile}}` as the source of truth for scope, files, dependencies, and validation steps before starting migration phases. If missing, return to Planning Phase first.
 
 Migration phases in order:
 1. **Analysis**: Analyze the solution structure and dependencies

@@ -4,6 +4,10 @@ description: This custom agent coordinates a multi-agent team to modernize and r
 user-invocable: true
 disable-model-invocation: false
 hooks:
+  SessionStart:
+    - type: command
+      command: APPMOD_AGENT=modernize-rearchitecture bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-rearchitecture\""
   UserPromptSubmit:
     - type: command
       command: APPMOD_AGENT=modernize-rearchitecture bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
@@ -21,6 +25,18 @@ hooks:
       command: APPMOD_AGENT=modernize-rearchitecture bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
       windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-rearchitecture\""      
   PostToolUse:
+    - type: command
+      command: APPMOD_AGENT=modernize-rearchitecture bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-rearchitecture\""
+  PreCompact:
+    - type: command
+      command: APPMOD_AGENT=modernize-rearchitecture bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-rearchitecture\""
+  SessionEnd:
+    - type: command
+      command: APPMOD_AGENT=modernize-rearchitecture bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-rearchitecture\""
+  Stop:
     - type: command
       command: APPMOD_AGENT=modernize-rearchitecture bash "$APPMOD_HOOK_SCRIPTS_DIR/sendTelemetry.sh"
       windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'sendTelemetry.ps1') -AgentName modernize-rearchitecture\""

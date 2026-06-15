@@ -1,7 +1,7 @@
 ---
 name: 'modernize-java-upgrade'
 description: 'Upgrades Java projects to target versions (e.g., Java 25, Spring Boot 3.5) via incremental planning and execution.'
-model: Claude Sonnet 4.6
+model: 'Claude Sonnet 4.6'
 argument-hint: 'Target versions (e.g., Java 25, Spring Boot 3.5) and project context.'
 user-invocable: true
 tools:
@@ -184,6 +184,7 @@ LLM training data may be outdated regarding the latest Java and Spring Boot rele
     - Java LTS: 11, 17, 21, 25
     - Spring Boot stable release lines: 2.7.x, 3.5.x, 4.0.x
 2. **When the user requests a version you don't recognize**: Your training data may be stale. Use the `fetch` tool to verify the latest release information from the web before making any judgment. Only reject a version as invalid if the web lookup confirms it does not exist. Never reject based solely on training data.
+3. **Version lookup URL**: When fetching Maven artifact version information, use `https://repo1.maven.org/maven2/<groupId-as-path>/<artifactId>/maven-metadata.xml` (e.g., `https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-parent/maven-metadata.xml`). Do NOT use `search.maven.org/solrsearch` — its index is incomplete and returns stale results.
 
 ## Plan Format Specification
 
@@ -369,13 +370,13 @@ Step format:
 ```
 
 **Step design rules:**
-- **Every step must leave the project in a compilable state.** Do not create steps that expect compilation failure — group related changes together so each step compiles cleanly. For multi-module projects, verify compilation at the reactor root level if individual module verification is impractical.
+- **Every step must leave the project in a compilable state.** Do not create steps that expect compilation failure — group related changes together so each step compiles cleanly. For multi-module projects, verify compilation at the reactor root level if individual module verification is impractical. **Exception — Degraded mode**: skip all `mvn`/`gradle` commands; continue code changes only.
 - **Reference Impact Analysis, don't duplicate it.** Steps should reference specific subsections or groups (e.g., "Apply all Dependency Changes for Spring Boot 3.x migration and corresponding Source Code Changes") rather than repeating every file change.
 - **Fewer, coarser steps.** Group related changes (e.g., all Spring Boot 3.x migration changes in one step) rather than one step per file.
 
 **Mandatory steps:**
 
-- **Step 1 (MANDATORY)**: Setup Environment — Install required JDKs/build tools marked `<TO_BE_INSTALLED>` (do NOT install the base JDK if it is unavailable — it is only needed for the optional baseline). Verify with `#appmod-list-jdks`. Expected: All required JDKs available.
+- **Step 1 (MANDATORY)**: Setup Environment — Install required JDKs/build tools marked `<TO_BE_INSTALLED>` (do NOT install the base JDK if it is unavailable — it is only needed for the optional baseline). Verify with `#appmod-list-jdks`. Expected: All required JDKs available. **If installation fails, enter "degraded mode"**: report `environmentSetup` with `status: "failed"` and `message: "<tool> install failed, entering degraded mode"`, use `""` for unavailable paths, then continue with code changes only (skip all compilation/test commands).
 - **Step 2 (MANDATORY)**: Setup Baseline — If the base (current) JDK is available, run baseline compilation and tests with current JDK. Command: `mvn clean compile test-compile -q && mvn clean test -q`. Document SUCCESS/FAILURE, test pass rate (forms acceptance criteria). **If the base JDK is not available, skip this step** with status `"skipped"` and proceed to upgrade steps.
 - **Steps 3-N**: Upgrade steps — apply all changes from Impact Analysis. Group related changes so each step compiles. Verify with `mvn clean test-compile -q` (compile only).
 - **CVE Validation & Fix**: Extract direct deps, scan with `#appmod-validate-cves-for-java(sessionId, dependencies, projectPath)`, fix all reported CVEs by upgrading dependency versions (patch version upgrades within the same minor line are acceptable), verify build compiles, re-scan to confirm resolution.
@@ -549,8 +550,8 @@ For each step:
 4. **Review Code Changes** (per **Review Code Changes** section above): Verify sufficiency (all required changes present) and necessity (no unnecessary changes, functional behavior preserved, security controls maintained).
     - Add missing changes and revert unnecessary changes. Document any unavoidable behavior changes with justification.
 5. Verify with specified command/JDK
-    - **Steps 1-N (Setup/Upgrade)**: Compilation must pass (including both main and test code, fix immediately if not). Test failures acceptable - document count.
-    - **Final Validation Step**: Achieve **Upgrade Success Criteria** - iterative test & fix loop until 100% pass (or ≥ baseline). NO deferring. **Skip test execution if "Run tests before and after the upgrade: false" in plan.md Options — only verify compilation in that case.**
+    - **Steps 1-N (Setup/Upgrade)**: Compilation must pass (including both main and test code, fix immediately if not). Test failures acceptable - document count. **In degraded mode**: skip compilation verification.
+    - **Final Validation Step**: Achieve **Upgrade Success Criteria** - iterative test & fix loop until 100% pass (or ≥ baseline). NO deferring. **Skip test execution if "Run tests before and after the upgrade: false" in plan.md Options — only verify compilation in that case.** **In degraded mode**: skip compilation and tests; note in `summary.md` that manual verification is needed.
     - After each build (`mvn clean test-compile` or equivalent): `#appmod-report-event(sessionId, event: "buildCompleted", phase: "execute", status: "succeeded"|"failed")`
     - After each test run (`mvn clean test` or equivalent): `#appmod-report-event(sessionId, event: "testCompleted", phase: "execute", status: "succeeded"|"failed")`
 6. Commit using `#appmod-version-control(sessionId: <SESSION_ID>, workspacePath, action: "commitChanges")` (if version control available; otherwise, log details in `progress.md`):

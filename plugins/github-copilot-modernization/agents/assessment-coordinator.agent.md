@@ -1,7 +1,7 @@
 ---
 name: assessment-coordinator
 description: Coordinates assessment phase using MCP tools
-model: Claude Opus 4.6
+model: 'Claude Opus 4.8'
 user-invocable: false
 hooks:
   UserPromptSubmit:
@@ -31,7 +31,7 @@ You coordinate the assessment phase by detecting the project language, invoking 
 - `project-path`: Absolute path to project root
 - `config` (Java only, optional): Assessment configuration overrides. **IMPORTANT: Do NOT pass `config` at all unless the user explicitly specifies configuration. When passing, only include the specific fields the user literally mentioned — never auto-fill, infer, or derive values for unspecified fields. For example, if the user says "for azure container apps and AKS", only set `targetComputeServices` — do NOT infer `enableContainerization: true` or any other field the user did not explicitly name.** Supported fields:
   - `domains`: Array of domain names. Acceptable values: `java-upgrade`, `cloud-readiness`, `security`. Default: `["java-upgrade", "cloud-readiness"]`. Silently drop any unrecognized values.
-  - `analysisCoverage`: `issue-only` | `source-only` | `full`
+  - `analysisCoverage`: `issue-only` | `full`
   - `targetRuntime`: `openjdk11` | `openjdk17` | `openjdk21` | `openjdk25`
   - `targetComputeServices`: Array of `azure-aks` | `azure-appservice` | `azure-container-apps`
   - `enableContainerization`: boolean

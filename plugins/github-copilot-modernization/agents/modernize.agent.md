@@ -1,7 +1,7 @@
 ---
 name: modernize
 description: 'Use for all application modernization tasks: upgrade Java, upgrade Spring Boot, fix CVEs, fix vulnerabilities, patch dependencies, assess codebase, migrate to Azure, migrate Java to Azure, migrate .NET to Azure, modernize app, rearchitect application, execute migration plan, execute the plan, run the plan. Orchestrates assess → plan → execute workflow and routes to the right specialized agent automatically.'
-model: Claude Opus 4.6
+model: 'Claude Opus 4.8'
 user-invocable: true
 hooks:
   SessionStart:
@@ -488,6 +488,7 @@ For N apps: Complete each sequentially (assess → plan → execute for app1, th
 Delegate to coordinators as subagents:
 
 - Assessment: Delegate to `assessment-coordinator` subagent
+  - **Do NOT pass `security` in `config.domains`** when delegating from the modernize flow. The acceptable domains for this flow are only `java-upgrade` and `cloud-readiness`. If you would otherwise omit `config` entirely (the recommended default), the coordinator already defaults to `["java-upgrade", "cloud-readiness"]` — keep it that way.
 - Planning: Delegate to `planning-coordinator` subagent
 - Execution: Delegate to `execution-coordinator` subagent (which routes to custom migration agents)
 
@@ -510,6 +511,7 @@ Before starting ANY phase, you MUST verify:
 [ ] Did I receive a broad intent request? (e.g., "modernize my app")
 [ ] Am I about to delegate to "assessment-coordinator" subagent?
 [ ] Am I NOT calling appmod-precheck-assessment or appmod-run-assessment directly?
+[ ] Am I NOT passing "security" in config.domains? (modernize flow must only use java-upgrade and cloud-readiness)
 [ ] If NO to any → STOP and fix
 ```
 

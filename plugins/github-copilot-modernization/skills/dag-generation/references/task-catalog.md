@@ -110,7 +110,7 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 - **skip when**: Backend-only migration; no frontend changes; same-framework upgrade
 
 ### smoke-test
-- **desc**: Independent build and startup verification from reviewer perspective. Run the single build command that covers every module in this project, start the application, verify it responds on expected port. Record results (build status, startup time, HTTP status) in artifact. This is NOT testing — it is a gate check that the deliverable is minimally viable.
+- **desc**: Independent build and startup verification from reviewer perspective. Run the project's root-level full build and emit a `## Smoke Test Verdict` block into the artifact. Execution rules (full-build requirement, frozen install, verdict block format) are in the worker agent's **Smoke-Test Build Verification** section.
 - **scope**: global
 - **after**: all execute-phase tasks
 - **when**: Always selected when execute-phase tasks exist

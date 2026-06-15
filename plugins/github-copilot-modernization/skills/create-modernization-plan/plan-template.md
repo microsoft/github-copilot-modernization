@@ -58,19 +58,13 @@ Use this template to generate modernization plans for applications. Replace plac
 
 ---
 
-## Clarifications
+## Open Questions & Questionnaire
 
-**Purpose**: Document items that were not explicitly requested by the user but may be necessary or beneficial. Ask the user to confirm or provide input.
-
-**Rule**: Only include this section if there are implicit dependencies, nice-to-have features, or ambiguities in the user's request.
+**Purpose**: Record all clarification questions raised during plan creation and their resolution status. Record all answers to questionnaire questions.
 
 **Template**:
 ```markdown
-The following items were not explicitly requested but may be needed for a complete implementation:
-
-1. **[Item Name]**: [Description of what needs clarification]
-   - **Why needed**: [Explain the dependency or benefit]
-   - **Options**: [List possible approaches or choices]
-   - **Recommendation**: [Suggest a default if user doesn't respond]
-
+- [x] Q: What authentication method should be used for Azure Storage? → A: Use managed identity
+- [ ] Which region should the deployment target?
 ```
+

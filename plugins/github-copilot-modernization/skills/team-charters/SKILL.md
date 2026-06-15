@@ -14,7 +14,7 @@ Defines the mission, ownership, core principles, quality bar, and (for most role
 
 | Role | Mission | Charter |
 |---|---|---|
-| **architect** | Own the technical blueprint: how the system is built, how it should be rebuilt, and whether the implementation follows the design | `references/architect.md` |
+| **architect** | Own the technical blueprint: how the system is built, how it should be rebuilt, whether the implementation follows the design, and build verification (smoke test) | `references/architect.md` |
 | **backend** | Own the server-side implementation: build the logic that powers the product | `references/backend.md` |
 | **dba** | Own the data layer: make sure data is modeled correctly, stored safely, and migrates reliably | `references/dba.md` |
 | **devops** | Own CI/CD pipelines, deployment automation, and operational infrastructure | `references/devops.md` |

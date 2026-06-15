@@ -9,12 +9,12 @@ This skill is used to create a modernization plan to migrate the a given project
 
 ## User Input
 
-modernization-prompt: The user input to generate the modernization plan
-modernization-work-folder (Mandatory): The folder to save the modernization plan
-github-issue-link (Optional): A github issue to track the modernization status, to be filled into plan template
-assessment-report (Optional): A assessment report for the project will be modernized, it will provide the data about the project for modernization
-plan-name (Optional): The plan name to be filled into plan template
-language (Mandatory): The programming language of the project (java or dotnet)
+- modernization-prompt: The user input to generate the modernization plan
+- modernization-work-folder (Mandatory): The folder to save the modernization plan
+- github-issue-link (Optional): A github issue to track the modernization status, to be filled into plan template
+- assessment-report (Optional): A assessment report for the project will be modernized, it will provide the data about the project for modernization
+- plan-name (Optional): The plan name to be filled into plan template
+- language (Mandatory): The programming language of the project (java or dotnet)
 
 ## Supported Task Patterns
 
@@ -36,27 +36,39 @@ Given the user input, do this:
     1) Analysis the supported patterns to find the right tasks for the issues
     2) Analysis modernization requirement from user input
 
-3. **Generate plan and tasks**: Generate plan.md and tasks.json using the appropriate templates:
+3. **Clarification and Questionnaire** (only when the `ask_user` tool is available): If there are any open issues or ambiguities that need user input, use the following steps to answer any questions. Also ask the questions outlined in `questionnaire.md` via `ask_user` tool to scope the modernization plan. For questionnaire questions, if the user input already provides the answer, skip asking that question and use the provided information as the answer.
+    1) Use the `ask_user` tool to ask the user each clarification question directly. Wait for the user's response before proceeding.
+    2) Record each question and answer for use in the summary step.
+    3) If the `ask_user` tool is not available, skip this step entirely and proceed to plan generation using best-effort defaults.
+
+4. **Generate plan and tasks**: Generate plan.md and tasks.json using the appropriate templates:
 
     **Template Selection**:
     - Use **plan-template.md** for code migration, containerization, and deployment tasks
+    - Use **security-plan-template.md** to include a security/CVE remediation task in every modernization plan. 
     - Use **infra-plan-template.md** ONLY when user explicitly requests infrastructure (e.g., "prepare infrastructure", "create landing zone", "provision resources", "generate Bicep/Terraform")
 
-    **Plan Generation**:
+     **Plan Generation**:
     1) Follow the structure of the selected template to generate the plan
     2) Follow the rules defined in the template to fill in the sections with relevant information based on the analysis of user input and content of mentioned files
     3) Save the plan in folder ${modernization-work-folder} with the filename plan.md. If a plan already exists, overwrite it.
-    4) Generate a separate tasks.json file following the tasks-schema.json schema with all upgrade, transform, infrastructure, containerization, and deployment tasks
-    5) Save the tasks in folder ${modernization-work-folder} with the filename tasks.json. If tasks.json already exists, overwrite it.
+    4) Generate a separate tasks.json file following the tasks-schema.json schema with setupBaseline, infrastructure, upgrade, transform, containerization, and deployment tasks
+    5) Save the tasks in folder ${modernization-work-folder}/.metadata/ with the filename tasks.json. If tasks.json already exists, overwrite it.
 
+    **Clarification Outcomes in Plan**: Incorporate all clarification answers from steps 3–4 into `plan.md` and `tasks.json`:
+    - Update the relevant task's `requirements` or `description` in `tasks.json` based on the answer. Do NOT create a separate task for an implementation detail—only add a new task when the answer introduces entirely new migration scope.
+    - Record all clarification questions and their outcomes in the **"## Open Questions & Questionnaire"** section of `plan.md`:
+      - Answered: `- [x] Q: ... → A: ...`
+      - Unanswered/skipped: `- [ ] ...`
+      - Remove the section entirely if no clarification questions were raised.
 
     **IMPORTANT**: The plan.md should NOT contain the detailed task breakdown. Those details go into tasks.json for better tracking and programmatic access.
 
     **Task Breakdown Rules**: When creating tasks for tasks.json and plan.md:
     - Purpose: Break down coding work into discrete migration tasks. Each task represents a user-requested migration from one service/component to another, or a specific business logic modernization.
-    - Create tasks ONLY based on what the user explicitly requested - do not infer or add implicit tasks
+    - Create tasks ONLY based on what the user explicitly requested - do not infer or add implicit tasks, **except** for the security/CVE remediation task which must always be included in every plan
+    - If an `assessment-report` is provided, the task description must identify which specific issues from the assessment report are addressed by that task (e.g., "Addresses issues: <issue-title-1>, <issue-title-2>")
     - Group related changes that serve a single user goal into one task (e.g., all changes needed to migrate to PostgreSQL)
-    - If the JDK version is under 17, add task to upgrade the JDK to latest version unless user specified not to do it
     - Find a matched skill / pattern for the task, following the following priority order.
       1. Skills available for the project, which will be listed in the `skill` tool description.
       2. Patterns that will be attached and available at plan execution phase, listed in the supported patterns file.
@@ -65,31 +77,43 @@ Given the user input, do this:
       - You MUST NOT use the pattern name as the skill name in the generated plan and tasks.json.
       - If there are similar skills defined in project skill `.github/skills/` versus other skills, MUST use the one defined in project.
       - Skills must be fully matched. For migration scenarios, both the source product and target product must match the task intent.
-    - Each task should be independently testable with integration tests
+    - Each task should be independently testable
     - Do not add tests for unimpacted code or existing functionality unless user requested
     - **IMPORTANT**: Do NOT read individual skill files at this stage; Do Not include the skill detail in the tasks.
 
-    **Java Upgrade Task Guidelines**: Only add upgrade task if the JDK version is under 17 or user explicitly requested. Upgrade task must be the first task if exists. When creating upgrade tasks for Java projects (current latest versions: Java 17+, Spring Boot 3.x+, Spring Framework 6.x+), create the highest-level upgrade task that encompasses all necessary changes:
+    **Java Upgrade Task Guidelines**: Only add an upgrade task if the user explicitly requests it. You must refer to the ./java-upgrade-guideline.md for specific rules and guidelines when creating Java upgrade tasks.
 
-    - **Spring Boot 3.x upgrade** (when Java 21+ not explicitly requested):
-      - Create a single task: "Upgrade Spring Boot to 3.x"
-      - Include in task description: This upgrade includes JDK 17, Spring Framework 6.x, and migration from JavaEE (javax.*) to Jakarta EE (jakarta.*)
+    **.NET Upgrade Task Guidelines**: You must refer to the ./dotnet-upgrade-guideline.md for specific rules and guidelines when creating .NET upgrade tasks.
 
-    - **Spring Framework 6.x upgrade** (when Java 21+ not explicitly requested and Spring Boot not being upgraded):
-      - Create a single task: "Upgrade Spring Framework to 6.x"
-      - Include in task description: This upgrade includes JDK 17
+    **Deployment Task Rules**:
+    - **IMPORTANT** Do NOT create task type with `containerization`  if deployment task already exists, deployment task will cover the containerization work if needed.
+    - Deployment Task Options: Azure App Service, Azure Kubernetes Service, Azure Container Apps (default), Azure App Service Managed Instance, Azure Static Web App, Azure Function App
 
-    - **Java 21+ upgrade** (when explicitly requested):
-      - Create a single task: "Upgrade Java to version X"
-      - Include in task description: Specify the target version and related framework impacts
+    **Security Task Guidelines**: The security task order should be after all the upgrade and transform tasks and before the deployment tasks in the generated plan. If the user provides specific security requirements, incorporate them into the security task; otherwise, use the default requirements from the template.
 
-4. **Clarification**: If there are any open issues in the plan
-    1) Return all the open issues to user for clarification
-    2) After user clarified, update the plan
+    **IMPORTANT**: The upgrade task must be the first task in the task list because subsequent transform tasks (e.g., migrating to Azure services) depend on the upgraded runtime and project format.
+
+5. **Rulebook Compliance Validation** (only when rulebook attachments are present):
+   After generating the plan and tasks, call skill `validate-rulebook-compliance` to validate that the plan tasks cover the rulebook rules:
+   - tasks-json-path: `${modernization-work-folder}/.metadata/tasks.json`
+   - compliance-output-path: `${modernization-work-folder}/rulebook-compliance.md`
+   - This validation is **best-effort only** and must **not** block or fail plan creation.
+   - If the validation call cannot run, fails, or required context/attachments are missing, you must still complete the workflow and emit `${modernization-work-folder}/plan.md` and `${modernization-work-folder}/.metadata/tasks.json`.
+   - If validation cannot be completed successfully, write a minimal warning/status report to `${modernization-work-folder}/rulebook-compliance.md` explaining that validation was skipped or failed and why, if known.
+
+6. **Summary & Confirmation** (only when the `ask_user` tool is available):
+    1) Present a summary to the user via `ask_user` that includes:
+       - All clarification questions and the user's answers (if any were asked in step 3)
+       - The planned task list with key details for each task: task name, type, matched skill/pattern, and a brief description of what it will do
+       - The supported task type in task-schema.json but not listed in the planned task list but matched with the user requirement, ask the user if they want to include those tasks in the plan or not.
+    2) Ask the user to confirm the summary is correct, or provide additional input to adjust any answers or task list.
+    3) If the user provides additional input, incorporate the changes. If the user chooses to skip or confirms, proceed to plan generation.
+    4) If the `ask_user` tool is not available, skip this step entirely.
 
 ## Completion Criteria
 
-1. All the open issues are clarified and the plan is updated
+1. All clarification & questionnaire questions have been asked (or skipped with defaults) via `ask_user`, answers incorporated into `plan.md` and `tasks.json`, and outcomes recorded in the "## Open Questions & Questionnaire" section of `plan.md`
 2. The modernization task list is built
 3. The modernization task list MUST be scoped according to user input
 4. DON'T RUN the plan if user does not explicitly ask you to run the plan
+5. The generated plan.md and tasks.json are saved in the specified folder `${modernization-work-folder}`

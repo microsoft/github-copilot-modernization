@@ -1,7 +1,7 @@
 ---
 name: execution-coordinator
 description: Coordinates execution phase using multi-agent orchestration
-model: Claude Opus 4.6
+model: 'Claude Opus 4.8'
 user-invocable: false
 hooks:
   UserPromptSubmit:

@@ -27,11 +27,13 @@ Use this template when user explicitly requests infrastructure preparation (e.g.
 ---
 
 ## Azure Resource List
-A complete list of Azure resources to be generated.
+A complete list of Azure resources to be generated. Use `#appmod-get-azure-pricing` to retrieve pricing information for each resource.
 
-| Resource Type | Resource Name | SKU | Purpose |
-|---------------|---------------|-----|---------|
-| [e.g., SQL Database] | [e.g., sqldb-myapp-prod] | [e.g., S1] | [Purpose] |
+| Resource Type | Resource Name | SKU | Est. Monthly Cost | Purpose |
+|---------------|---------------|-----|--------------------|---------|
+| [e.g., SQL Database] | [e.g., sqldb-myapp-prod] | [e.g., S1] | [e.g., $25/mo] | [Purpose] |
+
+> **Note**: The estimated costs shown above are based on Azure retail prices and serve only as a rough estimation. Actual costs may differ due to enterprise agreements, reservations, or other discounts. For consumption-based (pay-as-you-go) resources, costs depend on actual usage and cannot be accurately estimated upfront.
 
 ---
 
@@ -39,16 +41,10 @@ A complete list of Azure resources to be generated.
 
 **Description**: Generate IaC files to provision the required Azure resources.
 
-**Output**: ./infra/
+**Output**: Files of infrastructure as code
 
 **Skill**: [infrastructure-bicep-generation | infrastructure-terraform-generation]
 
 **Success Criteria**:
 - IaC files generated and validated
 - Resources provisioned successfully (if Provision=true)
-
----
-
-## Clarifications
-
-[Optional: Only list the most critical items that MUST be confirmed before provisioning. Keep it minimal.]

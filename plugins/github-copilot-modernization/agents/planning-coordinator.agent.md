@@ -1,7 +1,7 @@
 ---
 name: planning-coordinator
 description: Generates plan.md and tasks.json from assessment results or direct task specifications
-model: Claude Opus 4.6
+model: 'Claude Opus 4.8'
 user-invocable: false
 hooks:
   UserPromptSubmit:
@@ -158,7 +158,7 @@ When `intent` is `list-and-select-plan`:
 
 5. **Save Results**
    - Write to `.github/modernize/<plan-name>/plan.md`
-   - Write tasks to `.github/modernize/<plan-name>/tasks.json`
+   - Write tasks to `.github/modernize/<plan-name>/.metadata/tasks.json`
 
 6. **MANDATORY: Preview Plan**
    - Call `#appmod-preview-markdown` with the generated `plan.md` file path to open the plan preview for the user
@@ -194,7 +194,7 @@ You:
 6. Invoke create_upgrade_plan(assessmentResults={...}, rulebookConstraints={...}, language="java")
 7. Receive plan → 8 tasks (honoring rulebook requirements)
 8. Validate task schema → Pass, metadata.language = "java"
-9. Save results → .github/modernize/my-app/plan.md + tasks.json
+9. Save results → .github/modernize/my-app/plan.md + .metadata/tasks.json
 10. Call #appmod-preview-markdown to open plan preview
 11. Return summary to orchestrator
 ```
@@ -220,7 +220,7 @@ You:
 5. Invoke create_upgrade_plan with filtered assessment (one solution per category), language="java"
 6. Receive plan → 2 tasks (one per selected category, scoped to the picked solution)
 7. Validate task schema → Pass, metadata.language = "java"
-8. Save results → .github/modernize/my-app/plan.md + tasks.json
+8. Save results → .github/modernize/my-app/plan.md + .metadata/tasks.json
 9. Call #appmod-preview-markdown to open plan preview
 10. Return summary to orchestrator
 ```
@@ -239,7 +239,7 @@ You:
 4. Invoke create-modernization-plan skill with language="dotnet", assessment results
 5. Receive plan → 3 tasks (Azure SQL, Azure Redis, Entra ID)
 6. Validate task schema → Pass, metadata.language = "dotnet"
-7. Save results → .github/modernize/my-dotnet-app/plan.md + tasks.json
+7. Save results → .github/modernize/my-dotnet-app/plan.md + .metadata/tasks.json
 8. Call #appmod-preview-markdown to open plan preview
 9. Return summary to orchestrator
 ```
@@ -262,7 +262,7 @@ You:
    - language: "java"
 5. Skill generates tasks.json (tasks-schema.json format) + plan.md
 6. Validate task schema → Pass, metadata.language = "java"
-7. Save results → .github/modernize/s3-migration-java21/plan.md + tasks.json
+7. Save results → .github/modernize/s3-migration-java21/plan.md + .metadata/tasks.json
 8. Call #appmod-preview-markdown to open plan preview
 9. Return summary to orchestrator
 ```

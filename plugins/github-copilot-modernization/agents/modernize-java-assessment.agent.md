@@ -1,6 +1,6 @@
 ---
 name: modernize-java-assessment
-description: Assess codebases with evidence-based findings
+description: 'Assess codebases with evidence-based findings'
 user-invocable: true
 tools: ['tool_search', 'vscode/toolSearch', 'agent', 'search', 'edit', 'web', 'todos',
 'appmod-run-assessment-action', 'appmod-cwe-rules-assessment', 'appmod-java-cve-assessment', 'appmod-run-assessment-report',

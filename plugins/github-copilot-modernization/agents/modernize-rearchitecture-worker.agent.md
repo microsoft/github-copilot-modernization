@@ -256,6 +256,29 @@ Emit the `[learnings]` tag:
 [learnings] written: [<role>/<slug>, ...]
 ```
 
+### Smoke-Test Build Verification
+
+If you are executing the **smoke-test** task, the following rules override any coordinator summary. These apply regardless of how the task was titled.
+
+**The build counts ONLY if it is the project's full build, unmodified** — run from the repo root, building every module, without narrowing, downgrading, or weakening:
+- Maven: `mvn -B clean verify`
+- Gradle: `./gradlew build`
+- JS/TS: frozen install first (`npm ci` / `yarn install --immutable` / `pnpm install --frozen-lockfile`), then the root build (e.g. `npm run build`). Do NOT use `--no-frozen-lockfile`, `--frozen-lockfile=false`, `--no-immutable`, `--filter`/`-w`/`-F` to scope to a single package, or `--mode=skip-build`.
+
+Do NOT substitute a narrowed/downgraded command to force rc=0. If the full build fails, record its real returncode. A narrowed command (e.g. `--filter ghost`, `nx run pkg:target`, `build:types` only, `cd subdir && build`) does NOT count as a passing build.
+
+After running build (and optionally starting the app), emit exactly this block into the smoke-test artifact:
+
+```
+## Smoke Test Verdict
+- install_command: `<exact frozen-install command, or n/a for non-JS/TS>`
+- install_returncode: <integer|n/a>
+- build_command: `<exact full build command, verbatim>`
+- returncode: <integer>
+- covers_all_modules: <yes|no>
+- startup_http_status: <integer|n/a>
+```
+
 ### Task Completion Format
 
 **Implementation tasks — test gate before completion:**

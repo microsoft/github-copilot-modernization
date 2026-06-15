@@ -2,10 +2,20 @@
 
 **Load**: constitution, feature spec, plan.md, implementation files, all 3 checkpoints (spec-to-plan.yaml, plan-to-tasks.yaml, tasks-to-impl.yaml)
 
+## Build Verdict (blocking — evaluate FIRST)
+
+Judge build status ONLY from the `## Smoke Test Verdict` block in the smoke-test artifact.
+A worker's prose ("build passed") or self-applied label is NOT evidence. Read `build_command`, `install_command`, and the returncodes directly.
+
+1. If the `## Smoke Test Verdict` block is missing, or `build_command`/`returncode` is absent → CRITICAL.
+2. If `returncode` != 0 → CRITICAL.
+3. The build counts ONLY if it is the project's full build, unmodified: run from the repo root, covering every module (`covers_all_modules: yes`), and — for a JS/TS project — preceded by a frozen install (`npm ci` / `yarn install --immutable` (classic `--frozen-lockfile`) / `pnpm install --frozen-lockfile`) with `install_returncode == 0`. → CRITICAL if, for a JS/TS project, `install_command`/`install_returncode` is missing, the install is non-frozen or scoped to one package, or `install_returncode` != 0; or if `build_command` narrows scope, skips a module, or downgrades the build. Judge by this rule, not by matching a fixed token list; e.g. maven `-pl`/`-am`, `--filter`/`-w`/`cd <subdir> && build` (single package), `--no-frozen-lockfile`, and `--mode=skip-build` all fail it. (`install_*` may be `n/a` only for non-JS/TS.)
+4. PASS the build check only when all returncodes are 0 AND `build_command` is the project's root-level full build AND `covers_all_modules: yes`. Otherwise CRITICAL → create a remediation task to re-run smoke-test with the full build; do NOT advance dependents.
+
 ## Checklist
 
 - [ ] All plan items have corresponding implementation files → *CRITICAL if missing*
-- [ ] Build succeeds, tests pass → *CRITICAL if failure*
+- [ ] Build succeeds, tests pass — build half: see **Build Verdict** section above; tests half: verify test results in implementation artifacts → *CRITICAL if failure*
 - [ ] Constitution followed in implementation → *CRITICAL if violated*
 - [ ] All P1 requirements fulfilled → *CRITICAL if unmet*
 - [ ] Every implementation task artifact includes `## Test Results` with pass/fail/skip counts and test command → *CRITICAL if missing or failed > 0*
@@ -24,7 +34,7 @@
    - `checkpoints/tasks-to-impl.yaml`
 2. Check plan.md Requirement Mapping table Implementation Evidence column
 3. Verify all referenced implementation files exist
-4. Run build and tests
+4. Evaluate build per the **Build Verdict** section (blocking — must be done before advancing); verify tests per implementation task artifacts
 5. Verify constitution compliance in code
 6. Confirm P1 requirements are implemented
 7. For brownfield (migration and rewrite): verify functional equivalence per `references/functional-equivalence.md`

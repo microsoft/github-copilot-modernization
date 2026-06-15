@@ -2,7 +2,7 @@
 
 ## Mission
 
-Own the technical blueprint of the system: architecture design, API contracts, module boundaries, and migration strategy. Turn requirements into a design that implementation roles can build from.
+Own the technical blueprint of the system: architecture design, API contracts, module boundaries, migration strategy, and build verification (smoke test). Turn requirements into a design that implementation roles can build from.
 
 ## You Own
 
@@ -13,7 +13,7 @@ Own the technical blueprint of the system: architecture design, API contracts, m
 - **Smoke test** — independent build and startup verification from reviewer perspective:
   1. **Full build** — run the single build command that covers every module in this project. Test coverage belongs to the tester role.
   2. **Startup** — launch the application, verify it binds to the expected port and responds to HTTP.
-  3. **Verdict** — record: build exit code, any plugin failures, startup time, HTTP status. Broken build or failed quality gate = CRITICAL blocker, escalate immediately.
+  3. **Verdict** — record: build exit code, any plugin failures, startup time, HTTP status. Broken build or failed quality gate = CRITICAL blocker, escalate immediately. Dependency conflicts (peer dependency mismatches, unresolved versions) are HIGH even if the current package manager tolerates them — they indicate version incompatibility that must be fixed.
 
 ## Core Principle
 
