@@ -130,10 +130,10 @@ After completing changes in each step, review code changes per the **Review Code
 ### Execution Guidelines
 
 - **Wrapper preference**: Use Maven Wrapper (`mvnw`/`mvnw.cmd`) or Gradle Wrapper (`gradlew`/`gradlew.bat`) when present in the project root, unless user explicitly specifies otherwise. This ensures consistent build tool versions across environments.
-- **Version control via tool**: 🛑 NEVER use direct `git` commands in terminal — ONLY use `#appmod-version-control` for ALL version control operations (check status, create branch, commit, stash, discard changes). **ALWAYS pass `sessionId: <SESSION_ID>`** to every `#appmod-version-control` call for telemetry tracking. When `GIT_AVAILABLE=false` (git not installed or project is not a git repository), skip ALL version control operations. Files remain uncommitted in the working directory. Use `N/A` for `<current_branch>` and `<current_commit_id>` placeholders. Record a notice in `plan.md` that changes are not version-controlled during this upgrade.
+- **Version control via tool**: 🛑 NEVER use direct `git` commands in terminal — ONLY use `#appmod-version-control` for ALL version control operations (check status, prepareBranch to handle uncommitted changes and create a branch in one atomic call, commit, discard changes). **ALWAYS pass `sessionId: <SESSION_ID>`** to every `#appmod-version-control` call for telemetry tracking. When `GIT_AVAILABLE=false` (git not installed or project is not a git repository), skip ALL version control operations. Files remain uncommitted in the working directory. Use `N/A` for `<current_branch>` and `<current_commit_id>` placeholders. Record a notice in `plan.md` that changes are not version-controlled during this upgrade.
 - **Version control timing**: `#appmod-version-control` requires `SESSION_ID` which is only available after Phase 1 (Precheck) succeeds. Do NOT use `#appmod-version-control` during Precheck. Git availability detection is deferred to Phase 2 Initialize.
 - **Template compliance**: For `plan.md`, follow the **Plan Format Specification** below and write the complete file in a **single `create_file` call** — do NOT read a template or use `insert_edit_into_file` during plan generation. For `progress.md`, follow the **Progress Format Specification** below and write the initial file using `create_file` during Phase 4 Initialize — do NOT read a template file. For `summary.md`, read `summary.template.md` (in the session directory) as a spec, then write `summary.md` as a new file using `create_file`.
-- **Uninterrupted run**: Complete each phase fully without pausing for user input, except for the mandatory user confirmation after plan generation (Phase 3).
+- **Uninterrupted run**: Complete each phase fully without pausing for user input, except the mandatory plan confirmation in Phase 3.
 - **User input**: Prefer the ask tool (`#askQuestions`, `#ask_user`, or `#ask_questions`) when available to collect user input (e.g., choices, confirmations). Fall back to plain-text prompts only when none is available.
 
 ### Event Reporting (MANDATORY)
@@ -158,8 +158,8 @@ Call `#appmod-report-event` immediately at each key milestone. **NO skipping. NO
 
 ### Branch Handling (Delegation-Aware)
 
-- **IF a `BRANCH` value is provided in the delegation prompt** (e.g., when invoked by execution-coordinator): the execution-coordinator has already created the branch, checked it out, and handled uncommitted changes. You are already on `<BRANCH>`. Use it as the working branch instead of `appmod/java-upgrade-<SESSION_ID>`. Do NOT run `git checkout`, `git switch`, or any direct git command. Do NOT call `#appmod-version-control` with action `stashChanges` or `createBranch`.
-- **OTHERWISE (no `BRANCH` provided, standalone invocation)**: follow the original logic — stash uncommitted changes and create `appmod/java-upgrade-<SESSION_ID>` (or the branch defined in `plan.md`).
+- **IF a `BRANCH` value is provided in the delegation prompt** (e.g., when invoked by execution-coordinator): the execution-coordinator has already created the branch, checked it out, and handled uncommitted changes. You are already on `<BRANCH>`. Use it as the working branch instead of `appmod/java-upgrade-<SESSION_ID>`. Do not create, switch, or prepare any branch yourself, and do not run direct `git` commands.
+- **OTHERWISE (no `BRANCH` provided, standalone invocation)**: follow the original logic — use `#appmod-version-control` with action `prepareBranch` to atomically handle any uncommitted changes and create `appmod/java-upgrade-<SESSION_ID>` (or the branch defined in `plan.md`) in a single call.
 
 ### Intermediate Version Strategy
 
@@ -487,10 +487,9 @@ Examples:
 
 1. Call tool `#appmod-report-event(sessionId, event: "planGenerationStarted", phase: "plan", status: "succeeded")` — **FIRST action, before any file or version control operations**
 2. **Detect version control availability**: Use `#appmod-version-control(sessionId: <SESSION_ID>, workspacePath, action: "checkStatus")` to detect if git is available. If the response indicates version control is unavailable, set `GIT_AVAILABLE=false`. **Do not ask the user. Do not report failure.**
-3. If `GIT_AVAILABLE=true` AND no `BRANCH` was provided in the delegation prompt: Use `#appmod-version-control(sessionId: <SESSION_ID>, workspacePath, action: "stashChanges", stashMessage: "java-upgrade-precheck-<SESSION_ID>")` to stash any uncommitted changes. If `BRANCH` was provided, the coordinator already stashed — skip this step.
-4. **Project environment**: Extract user-specified guidelines. Detect all available JDKs/build tools via `#appmod-list-jdks(sessionId)`, `#appmod-list-mavens(sessionId)`. Detect wrapper presence and read wrapper properties if present. Check build tool version compatibility with target JDK — flag incompatible versions.
-5. **Technology stack analysis**: Identify core tech stack across **ALL modules** — direct deps, upgrade-critical transitive deps, build tools, and build plugins (`maven-compiler-plugin`, `maven-surefire-plugin`, `maven-war-plugin`, etc.). Flag EOL dependencies. Determine compatibility against upgrade goals.
-6. **Compatibility scan**: Perform a comprehensive scan for all upgrade-blocking patterns.
+3. **Project environment**: Extract user-specified guidelines. Detect all available JDKs/build tools via `#appmod-list-jdks(sessionId)`, `#appmod-list-mavens(sessionId)`. Detect wrapper presence and read wrapper properties if present. Check build tool version compatibility with target JDK — flag incompatible versions.
+4. **Technology stack analysis**: Identify core tech stack across **ALL modules** — direct deps, upgrade-critical transitive deps, build tools, and build plugins (`maven-compiler-plugin`, `maven-surefire-plugin`, `maven-war-plugin`, etc.). Flag EOL dependencies. Determine compatibility against upgrade goals.
+5. **Compatibility scan**: Perform a comprehensive scan for all upgrade-blocking patterns.
 
     **What to find:**
 
@@ -520,9 +519,9 @@ Examples:
 7. Verify all placeholders are filled, check for missing coverage/infeasibility/limitations. If issues found, rewrite the file.
 8. Call tool `#appmod-report-event(sessionId, event: "planReviewed", phase: "plan", status: "succeeded")`
 
-### Phase 3: Confirm Plan with User (MANDATORY)
+### Phase 3: Confirm Plan with User
 
-1. Call tool `#appmod-confirm-upgrade-plan(sessionId)` — awaits user confirmation
+1. Call tool `#appmod-confirm-upgrade-plan(sessionId, autoExecute)`. Set `autoExecute: true` only when the request asks to run in **auto-execution mode**; otherwise `false`. Proceed to Phase 4 once the tool returns.
 
 ### Phase 4: Execute Upgrade Plan
 
@@ -530,9 +529,10 @@ Examples:
 
 1. Read `.github/modernize/java-upgrade/<SESSION_ID>/plan.md` for "Options"
 2. **Branch setup**:
-   - **If `BRANCH` was provided in the delegation prompt**: you are already on `<BRANCH>` (the coordinator created and checked it out). Do NOT run `git checkout`, `git switch`, stash, or createBranch. You MAY call `#appmod-version-control(sessionId: <SESSION_ID>, workspacePath, action: "checkStatus")` only to record the current branch — do not switch based on the result.
-   - **Otherwise**: Use `#appmod-version-control(sessionId: <SESSION_ID>, workspacePath, action: "stashChanges")` to stash any uncommitted changes. Then use `#appmod-version-control(sessionId: <SESSION_ID>, workspacePath, action: "createBranch", branchName: "appmod/java-upgrade-<SESSION_ID>")` (or the branch defined in `plan.md`).
-   - If version control is unavailable (`GIT_AVAILABLE=false`), log warning in `plan.md` that changes are not version-controlled.
+   - **If `BRANCH` was provided in the delegation prompt**: you are already on `<BRANCH>` (the coordinator created and checked it out). Use `<BRANCH>` directly when recording the current branch in the progress file. Do not create, switch, or query branches yourself, and do not run direct `git` commands.
+   - **Otherwise**: Call `#appmod-version-control(sessionId: <SESSION_ID>, workspacePath, action: "prepareBranch", branchName: "appmod/java-upgrade-<SESSION_ID>")` (use the branch name from `plan.md` Options) — this single call handles any uncommitted changes and creates the branch.
+   - Handle the tool response:
+     - If `success=false` and `details.versionControlAvailable=false`: set `GIT_AVAILABLE=false` and log a warning in `plan.md` that changes are not version-controlled.
 3. Write `.github/modernize/java-upgrade/<SESSION_ID>/progress.md` using `create_file` per the **Progress Format Specification**:
     - Use actual `SESSION_ID`, `PROJECT_NAME`, and current timestamp
     - Generate step entries from `plan.md` steps, each with status 🔘 Not Started and empty fields

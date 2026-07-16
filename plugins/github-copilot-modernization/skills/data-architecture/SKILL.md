@@ -11,6 +11,61 @@ Analyze the project to document database configuration, entity models, data owne
 
 - `workspace-path` (optional): Path to the project to analyze (defaults to current directory)
 
+## ⚠ Mermaid Safety Constraints — read BEFORE you write the ```mermaid block
+
+Mermaid `erDiagram` has a stricter grammar than flowchart. One bad attribute line or one stray `{` crashes the **whole** diagram with `Syntax error in text`. Stay strictly inside this subset:
+
+1. **Chart kind.** `erDiagram` only.
+2. **Attribute grammar — exact shape.** Every attribute line inside an entity body MUST match:
+
+   ```
+   <type> <name> [<key>] ["<description>"]
+   ```
+
+   - `<type>` / `<name>`: single tokens, plain text (letters, digits, underscore). No spaces, no backticks, no `@#$%&`.
+   - `<key>`: optional. **Exactly one of** `PK`, `FK`, `UK` — never two, never combined. Compound tokens like `PK_FK`, `PKFK`, `PK/FK` crash the parser.
+   - `<description>`: optional, must be a double-quoted string on one line. Free text, but obey rule 4.
+3. **Relationships.** `<EntityA> <leftCard>--<rightCard> <EntityB> : "label"`. Each side independently picks `||` (exactly one), `|o`/`o|` (zero or one), `}o`/`o{` (zero or many), or `}|`/`|{` (one or many). The open side of `o`/`}`/`{` faces inward toward `--`. Always quote the label.
+4. **Banned characters inside any quoted description or relationship label:**
+
+   | Banned | Why it breaks | Replacement |
+   |---|---|---|
+   | `\n` (literal two chars) | escape removed | drop, or shorten |
+   | `{` `}` | opens an entity block | use `<...>` for placeholders, e.g. `"Redis key /basket/<BuyerId>"` |
+   | `"` (a second double-quote) | closes description early | `'` (single quote) |
+   | `` ` `` (backtick) | not part of grammar | drop |
+   | `—` `–` (em/en dash) | parser may treat as edge | `-` (ASCII hyphen) |
+   | smart quotes `"` `"` `'` `'` | not ASCII | regular `"` and `'` |
+   | `@` `#` `$` `%` `&` | unsafe in names/descriptions | rephrase or drop |
+
+5. **Composite PK that is also FK.** Mark every column as `PK` only and note the FK role inside the quoted description. The FK relationship is already shown by the cardinality arrow — duplicating it as a second key marker crashes the parser.
+
+### Canonical attribute examples (copy these shapes)
+
+```
+int        Id              PK
+string     Name
+int        OwnerId         FK
+int        InstructorId    PK    "also FK to Person (shared PK)"
+int        CourseId        PK    "composite PK; FK to Course"
+int        StudentId       PK    "composite PK; FK to Person"
+string     Email           UK    "unique"
+decimal    Budget                "money column"
+bytes      RowVersion            "concurrency token"
+```
+
+### Mandatory self-attestation
+
+Immediately before writing the ` ```mermaid ` opening fence, emit this exact one-line HTML comment in the markdown (it does not render — it is for your own visible attestation):
+
+```
+<!-- mermaid-checked: every attribute is `<type> <name> [<key>] ["<description>"]` with at most one of PK/FK/UK, no \n in descriptions, no {} in descriptions, every relationship label is double-quoted -->
+```
+
+If you cannot truthfully emit that comment, fix the diagram first.
+
+---
+
 ## Scope Boundaries — Avoid Redundancy with Other Skills
 
 This skill is part of a set of four complementary assessment skills. To avoid content duplication across their output documents, observe these scope rules:
@@ -69,8 +124,9 @@ Identify:
 - Include relationship labels
 - Annotate which service owns each entity group (use comments or subgraph labels)
 
-Example:
+Reference example (this block satisfies every Safety Constraint — match its shape):
 
+<!-- mermaid-checked: every attribute is `<type> <name> [<key>] ["<description>"]` with at most one of PK/FK/UK, no \n in descriptions, no {} in descriptions, every relationship label is double-quoted -->
 ~~~mermaid
 erDiagram
     Owner ||--o{ Pet : "has"
@@ -198,68 +254,23 @@ A brief introduction (1-2 sentences) summarizing the data layer.
 - Collapse join tables into relationship annotations rather than showing them as separate entities
 - In the repository methods table, focus on non-CRUD custom methods; omit standard inherited methods
 
-## Mermaid Syntax Rules
+## Common failure patterns observed in past runs
 
-Use `erDiagram`. The diagram must parse cleanly under the official Mermaid grammar — anything outside it crashes the whole diagram, not just the offending line. Stay inside the minimal legal subset below.
+Each row below is something the model actually produced that crashed the diagram. Use the ✅ form.
 
-### Attribute grammar
-
-Every attribute line inside an entity body MUST follow exactly this shape:
-
-```
-<type> <name> [<key>] ["<description>"]
-```
-
-- `<type>` and `<name>`: single tokens, plain text (letters, digits, underscore). No spaces, no backticks, no `@#$%&`.
-- `<key>`: optional. **Exactly one of** `PK`, `FK`, `UK` — never two, never combined. Compound tokens like `PK_FK`, `PKFK`, `PK/FK` are not part of the grammar.
-- `<description>`: optional, must be a double-quoted string. The description is free text BUT must not contain `{`, `}`, or unescaped double quotes.
-
-### Canonical attribute examples (copy these shapes)
-
-```
-int        Id              PK
-string     Name
-int        OwnerId         FK
-int        InstructorId    PK    "also FK to Person (shared PK)"
-int        CourseId        PK    "composite PK; FK to Course"
-int        StudentId       PK    "composite PK; FK to Person"
-string     Email           UK    "unique"
-decimal    Budget                "money column"
-bytes      RowVersion            "concurrency token"
-```
-
-Rule of thumb for **composite primary keys whose columns are also foreign keys** (join tables like `CourseAssignment`, shared-PK one-to-one tables like `OfficeAssignment`): mark every column as `PK` only, and note the FK role in the quoted description. The FK relationship itself is already conveyed by the cardinality arrows between entities — duplicating it as a second key marker is what crashes the parser.
-
-### Relationships
-
-- Cardinality is written as `<left>--<right>`, where each side independently picks one of:
-  - `||` — exactly one
-  - `|o` / `o|` — zero or one
-  - `}o` / `o{` — zero or many
-  - `}|` / `|{` — one or many
-  The "open" side of `o`/`}`/`{` always faces inward (toward the `--`). All resulting combinations are legal, e.g. `||--o{` (one-to-many), `||--||` (one-to-one), `}o--o{` (many-to-many), `}o--||` (many-to-one), `|o--o{` (zero-or-one to many), `||--o|` (one to zero-or-one).
-- Always quote the label: `Owner ||--o{ Pet : "has"`.
-- The label is free text but must not contain `{`, `}`, or unescaped double quotes.
-
-### Hard prohibitions (these crash the whole diagram, not just one line)
-
-1. **No `{` or `}` inside any quoted description or label.** Mermaid's ER parser treats `{` as the entity-body opener even inside quotes. Use `<...>` for placeholders, or rephrase in plain words.
-   - ❌ `string Key PK "Redis key /basket/{BuyerId}"`
-   - ✅ `string Key PK "Redis key /basket/<BuyerId>"`
-2. **No more than one key marker per attribute.** See the grammar above.
-3. **No backticks, no special characters (`@#$%&`) in entity names, attribute names, or types.**
-4. **No `\n` anywhere in the diagram.** The literal `\n` escape was removed in modern Mermaid (>= 9.x) and triggers "Syntax error in text". Keep every quoted description on a single line; if you need to express more, shorten the prose or split it across multiple attributes.
-   - ❌ `string Roles "comma-separated\nROLE_USER, ROLE_ADMIN"`
-   - ✅ `string Roles "comma-separated; ROLE_USER, ROLE_ADMIN"`
-
-### Self-check before emitting the diagram
-
-Before writing the ```` ```mermaid ```` block, walk every attribute line and verify it matches `<type> <name> [<key>] ["<description>"]` with **at most one** key token. Walk every quoted string and verify it contains no `{` or `}`. If a description needs to express two key roles (e.g., composite PK that is also FK), encode the second role as plain text inside the quoted description — never as a second token before the quote.
+| ❌ Past mistake | ✅ Safe form | Why the ❌ crashed |
+|---|---|---|
+| `int OwnerId PK_FK` | `int OwnerId PK "FK to Owner"` | Compound key marker is not in grammar |
+| `int OwnerId PK FK` | `int OwnerId PK "also FK to Owner"` | Two key markers on one line |
+| `string Key PK "Redis key /basket/{BuyerId}"` | `string Key PK "Redis key /basket/<BuyerId>"` | `{` opens an entity block even inside quotes |
+| `string Roles "comma-separated\nROLE_USER, ROLE_ADMIN"` | `string Roles "comma-separated; ROLE_USER, ROLE_ADMIN"` | Literal `\n` |
+| `string user-name` | `string userName` | `-` not allowed in attribute name |
+| `Owner ||--o{ Pet : has` | `Owner ||--o{ Pet : "has"` | Relationship label must be quoted |
 
 ## Error Handling
 
 - **Unsupported project type**: Output a single line: `> ERROR: Unsupported project type. This skill supports Java, .NET, JavaScript, and TypeScript projects only.`
-- **No data access layer found**: Output: `> ERROR: No recognized data access patterns or entities found at {workspace-path}. Verify the path is correct.`
+- **No data access layer found**: Output: `> ERROR: No recognized data access patterns or entities found at workspace-path. Verify the path is correct.`
 - **Insufficient info**: Generate a best-effort diagram from available data. Add a note: `> Note: Some entities or relationships could not be fully identified.`
 
 ## Success Criteria
@@ -271,4 +282,5 @@ Before writing the ```` ```mermaid ```` block, walk every attribute line and ver
 - Caching strategy section describes cache providers, patterns, and rationale
 - Data ownership boundaries describe shared vs isolated stores and cross-service data access patterns
 - Data Classification & Sensitivity table identifies PII/PHI/PCI fields and documents presence or absence of controls
+- The ```mermaid block is preceded by the `<!-- mermaid-checked: ... -->` attestation comment
 - File saved to `.github/modernize/assessment/engines/facts/data-architecture.md`

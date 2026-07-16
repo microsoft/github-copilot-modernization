@@ -11,6 +11,44 @@ Analyze the project to document all services, API endpoints, communication patte
 
 - `workspace-path` (optional): Path to the project to analyze (defaults to current directory)
 
+## ⚠ Mermaid Safety Constraints — read BEFORE you write the ```mermaid block
+
+Mermaid sequenceDiagram is unforgiving in a few specific ways: one bad alias or one missing `end` crashes the **whole** diagram with `Syntax error in text`, not just the offending line. Stay strictly inside this subset for the sequence diagram in Step 7:
+
+1. **Chart kind.** `sequenceDiagram` only. Never `sequence-diagram`, never `sequence`.
+2. **Participants.** Always declare with the alias form `participant <AlphaNumId> as "Display Label"`. The id must match `[A-Za-z][A-Za-z0-9_]*`. Never omit the id — even a one-word participant should be `participant Client as "Client"`. This is the single biggest cause of past failures.
+3. **Arrows.**
+   - `->>` synchronous request
+   - `-->>` synchronous response (or async return)
+   - `-)` async fire-and-forget
+   - Message text goes after `:` and is plain text — keep it short and on one line.
+4. **Blocks.** `alt` / `else` / `opt` / `loop` / `par` / `critical` MUST be closed by `end` on its own line. Every open block must have a matching `end`. Missing `end` is the #2 cause of past failures.
+5. **No line breaks anywhere.** The escape `\n` was removed in modern Mermaid. Aliases, message text, and `Note over` content must all be single-line. Split a long note into multiple consecutive `Note over` lines; split a long message into multiple arrows. This is the #1 cause of past failures.
+6. **Banned characters inside participant aliases specifically** (message text is more permissive — only `\n` is banned there):
+
+   | Banned in alias | Why it breaks | Replacement |
+   |---|---|---|
+   | `\n` (literal two chars) | escape removed | drop |
+   | `"` (a second double-quote) | closes the alias early | `'` (single quote) |
+   | `` ` `` (backtick) | breaks alias quoting | drop |
+   | smart quotes `"` `"` `'` `'` | not ASCII | regular `"` and `'` |
+   | `:` | confuses with message delimiter | rephrase, e.g. `"REST API (port 8080)"` not `"REST API: port 8080"` |
+   | `<br/>` | not interpreted inside aliases | rephrase as shorter alias |
+
+7. **Quote the alias.** `participant Svc as "Order Service"` — never `participant Svc as Order Service` (unquoted multi-word aliases break).
+
+### Mandatory self-attestation
+
+Immediately before writing the ` ```mermaid ` opening fence in Step 7, emit this exact one-line HTML comment in the markdown (it does not render — it is for your own visible attestation):
+
+```
+<!-- mermaid-checked: every participant uses `participant Id as "Label"`, no \n in aliases/messages/notes, every alt/opt/loop closed by end, no `:` inside any alias -->
+```
+
+If you cannot truthfully emit that comment, fix the diagram first.
+
+---
+
 ## Scope Boundaries — Avoid Redundancy with Other Skills
 
 This skill is part of a set of four complementary assessment skills. To avoid content duplication across their output documents, observe these scope rules:
@@ -103,18 +141,19 @@ For each service, identify which cross-cutting capabilities it uses and produce 
 
 ### Step 7: Generate Service Communication Sequence Section
 
-Create a **Mermaid `sequenceDiagram`** and produce the complete `## Service Communication Sequence` section:
+Create a **Mermaid `sequenceDiagram`** and produce the complete `## Service Communication Sequence` section (re-read the Safety Constraints above before writing):
 - Show key actors: Client, API Gateway (if present), Controllers, Services, External Services, Message Brokers
 - Annotate synchronous calls with solid arrows and asynchronous calls with dashed arrows
 - Include request/response types where relevant
 - Show error handling paths for critical flows (circuit breaker, retry)
 - For gateway aggregation flows, show how multiple downstream calls are composed
 
-Example:
+Reference example (this block satisfies every Safety Constraint — match its shape):
 
+<!-- mermaid-checked: every participant uses `participant Id as "Label"`, no \n in aliases/messages/notes, every alt/opt/loop closed by end, no `:` inside any alias -->
 ~~~mermaid
 sequenceDiagram
-    participant Client
+    participant Client as "Client"
     participant Gateway as "API Gateway"
     participant CustSvc as "Customers Service"
     participant VisitSvc as "Visits Service"
@@ -183,36 +222,23 @@ A brief introduction (1-2 sentences) summarizing the API surface and communicati
 - Aggregate similar endpoints (e.g., CRUD operations on the same resource) into one table row if needed for brevity
 - For the service technology matrix, use checkmarks or short labels; omit columns where no service uses the capability
 
-## Mermaid Syntax Rules
+## Common failure patterns observed in past runs
 
-The diagram must parse cleanly under **Mermaid >= 9.x**. Anything outside the legal subset crashes the entire diagram with `Syntax error in text`.
+Each row below is something the model actually produced that crashed the diagram. Use the ✅ form.
 
-- Use `sequenceDiagram`
-- Avoid special characters (`@`, `#`, `$`, `%`, `&`) in participant labels — use plain text or quoted labels
-- Use `->>` for synchronous calls and `-->>` for responses/async messages
-- Use `participant` with alias syntax for readable labels: `participant Svc as "OrderService"`
-- Use `alt`/`else`/`end` blocks to show circuit breaker fallback paths
-- Do not use backticks inside node labels
-
-### Line breaks — HARD RULE
-
-- **NEVER use `\n` for line breaks inside participant aliases, messages, or notes.** The literal `\n` escape was removed in modern Mermaid and triggers "Syntax error in text".
-- In participant aliases: keep them on a single line, e.g. `participant Svc as "Order Service"` — not `"Order\nService"`.
-- In `Note over` / `Note right of`: keep the note on one line, or split into multiple `Note` statements.
-- In message arrow labels: keep concise; if you need multiple facts, split into multiple arrows.
-- ❌ `participant API as "REST API\n(SubsonicController)"`
-- ✅ `participant API as "REST API (SubsonicController)"`
-
-### Self-check before emitting each ```mermaid block
-
-1. Search the block for the two characters `\n` — remove or split the line. Zero `\n` must remain.
-2. Confirm every `alt`/`opt`/`loop`/`par` block is closed by `end`.
-3. Confirm every quoted alias is on a single line.
+| ❌ Past mistake | ✅ Safe form | Why the ❌ crashed |
+|---|---|---|
+| `participant API` (no alias) | `participant API as "API"` | Bare participants with later spaces in usage break |
+| `participant API as "REST API\n(SubsonicController)"` | `participant API as "REST API (SubsonicController)"` | Literal `\n` in alias |
+| `participant API as "REST API: port 8080"` | `participant API as "REST API (port 8080)"` | `:` in alias collides with message delimiter |
+| `Note over Client,API: First fact\nSecond fact` | Two consecutive `Note over Client,API: ...` lines | `\n` in note text |
+| `alt happy path` ... missing `end` | `alt happy path` ... `end` | Unclosed block |
+| `participant Svc as Order Service` (no quotes) | `participant Svc as "Order Service"` | Multi-word alias must be quoted |
 
 ## Error Handling
 
 - **Unsupported project type**: Output a single line: `> ERROR: Unsupported project type. This skill supports Java, .NET, JavaScript, and TypeScript projects only.`
-- **No API endpoints found**: Output: `> ERROR: No recognized API endpoints found at {workspace-path}. Verify the path is correct.`
+- **No API endpoints found**: Output: `> ERROR: No recognized API endpoints found at workspace-path. Verify the path is correct.`
 - **Insufficient info**: Generate a best-effort document from available data. Add a note: `> Note: Some endpoints or communication patterns could not be fully identified.`
 
 ## Success Criteria
@@ -224,4 +250,5 @@ The diagram must parse cleanly under **Mermaid >= 9.x**. Anything outside the le
 - Service technology matrix shows per-service capabilities
 - Communication patterns section describes sync/async patterns, resilience policies, and security posture (authentication, authorization, TLS — explicitly stating if none is configured)
 - Mermaid sequence diagram renders correctly showing primary request flow with aggregation and fallback
+- The ```mermaid block is preceded by the `<!-- mermaid-checked: ... -->` attestation comment
 - File saved to `.github/modernize/assessment/engines/facts/api-service-contracts.md`

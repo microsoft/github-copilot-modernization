@@ -29,7 +29,6 @@ tools:
   - appmod-consistency-validation
   - appmod-create-migration-summary
   - appmod-fetch-knowledgebase
-  - appmod-get-vscode-config
   - appmod-preview-markdown
   - appmod-run-task
   - appmod-search-file
@@ -142,24 +141,12 @@ Use #appmod-version-control with action 'commitChanges' and commitMessage "Code 
 ⚠️ **CRITICAL INSTRUCTIONS FOR VERSION CONTROL SETUP**:
 * You MUST execute these steps BEFORE starting any code migration tasks
 * **Branch handling (delegation-aware)**:
-  - **IF a `BRANCH` value was provided in the delegation prompt** (e.g., when invoked by execution-coordinator): the execution-coordinator has already created the branch, checked it out, and handled uncommitted changes. You are already on `<BRANCH>`. Do NOT run `git checkout`, `git switch`, or any direct git command. Do NOT call `#appmod-version-control` with action `stashChanges`, `createBranch`, or `checkForUncommittedChanges`. You MAY call `#appmod-version-control` with action `checkStatus` only to record the current branch into the progress file — do not switch branches based on the result.
+  - **IF a `BRANCH` value was provided in the delegation prompt** (e.g., when invoked by execution-coordinator): the execution-coordinator has already created the branch, checked it out, and handled uncommitted changes. You are already on `<BRANCH>` — use `<BRANCH>` directly when recording the current branch in the progress file. Do not create, switch, or query branches yourself, and do not run direct `git` commands. Only call `#appmod-version-control` later for the final-commit step (`checkForUncommittedChanges` + `commitChanges`). Skip the rest of this section.
   - **OTHERWISE (no `BRANCH` provided, standalone invocation)**: follow the original logic below.
-* Use #appmod-version-control to check if version control system is available:
-  - Check status with action 'checkStatus' in workspace directory: {{workspacePath}}
-  - ⚠️ **MANDATORY**: Check for existing uncommitted changes before creating any new branch:
-    * Use #appmod-version-control with action 'checkForUncommittedChanges' in workspace directory: {{workspacePath}}
-    * ⚠️ **CRITICAL**: IF uncommitted changes exist, you MUST handle them according to the 'uncommittedChangesAction' retrieved during plan generation BEFORE proceeding to branch creation:
-      - If the policy is 'Always Stash': You MUST use #appmod-version-control with action 'stashChanges' and stashMessage "Auto-stash: Save uncommitted changes before migration" in workspace directory: {{workspacePath}}
-      - If the policy is 'Always Commit': You MUST use #appmod-version-control with action 'commitChanges' and commitMessage "Auto-commit: Save uncommitted changes before migration" in workspace directory: {{workspacePath}}
-      - If the policy is 'Always Discard': You MUST use #appmod-version-control with action 'discardChanges' in workspace directory: {{workspacePath}}
-      - If the policy is 'Always Ask': You MUST inform the user about the uncommitted changes and ask how they would like to proceed, providing these options: stash, commit, or discard. Wait for the user's response before taking any action.
-    * ⚠️ **VERIFICATION REQUIRED**: After handling uncommitted changes, you MUST use #appmod-version-control with action 'checkForUncommittedChanges' to verify that the working directory is clean in workspace directory: {{workspacePath}} before proceeding to branch creation
-    * IF no uncommitted changes exist: proceed directly to branch creation
-  - ⚠️ **ONLY AFTER handling uncommitted changes**: Use #appmod-version-control with action 'createBranch' and branchName "{{targetBranch}}" in workspace directory: {{workspacePath}}
-  - Verify branch creation was successful before proceeding
-  - You MUST check the previous branch and the new branch in the general section of progress file.
-* If NO version control system detected (as indicated by the response from #appmod-version-control):
-  - Note "No version control detected" and proceed with direct migration on workspace directory: {{workspacePath}}
+* Call #appmod-version-control with action 'prepareBranch', branchName '{{targetBranch}}' in workspace directory: {{workspacePath}}. This single call handles any uncommitted changes and creates the branch.
+* Handle the tool response:
+  * If `success=false` and `details.versionControlAvailable=false`: note "No version control detected" in the progress file and proceed with direct migration on workspace directory: {{workspacePath}}.
+  * Otherwise verify branch creation was successful and record the previous and new branch in the general section of the progress file.
 
 ## Core Principles
 

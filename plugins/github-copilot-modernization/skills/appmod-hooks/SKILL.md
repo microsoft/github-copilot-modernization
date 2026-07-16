@@ -23,6 +23,7 @@ See `references/actions.yml` for the action registry. Actions use dotted namespa
 ## Execution Rules
 
 1. Actions within a hook point execute **in order** (top to bottom in the registry)
-2. An action that fails does NOT block subsequent actions — log the error and continue
+2. An action that fails does NOT block subsequent actions — log the error and continue, unless the action explicitly declares itself a quality gate
 3. `optional: false` actions MUST execute; `optional: true` actions execute only if their `condition` is met
 4. The coordinator executes hook actions **itself** (shell commands for git, file writes for profile) — hooks are NOT delegated to workers
+5. A quality-gate action failure blocks dependent dispatch: keep the task pending or create a remediation task, then re-run the hook after the artifact is updated

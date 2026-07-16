@@ -13,6 +13,44 @@ This skill focuses exclusively on **declared external dependencies** (libraries,
 
 - `workspace-path` (optional): Path to the project to analyze (defaults to current directory)
 
+## ⚠ Mermaid Safety Constraints — read BEFORE you write the ```mermaid block
+
+Mermaid is unforgiving: one illegal character anywhere in the block crashes the **whole** diagram with `Syntax error in text`, not just the offending line. Stay strictly inside this subset:
+
+1. **Chart kind.** `flowchart LR` only.
+2. **Subgraph form.** Always `subgraph <AlphaNumId>["display label"]` (id matches `[A-Za-z][A-Za-z0-9_]*`, no spaces, no punctuation). NEVER use the anonymous form `subgraph "label"` — it crashes whenever the label contains `(`, `)`, `/`, `-`, etc.
+3. **Node form.** Use `Id["label"]` for libraries; pick one shape per node — do not stack brackets.
+4. **Arrow form.** Solid `-->`, dotted `-.->` for transitive/indirect. Arrow labels MUST be double-quoted: `-->|"persistence"|`. Never bare `-->|persistence|`.
+5. **No line breaks in labels.** The escape `\n` was removed in modern Mermaid and is the #1 cause of failures. Keep labels on one line (e.g., `"Spring Boot 2.7.18"` not `"Spring Boot\n2.7.18"`).
+6. **Banned characters inside any label or subgraph title.** Use the ASCII replacement:
+
+   | Banned | Why it breaks | Replacement |
+   |---|---|---|
+   | `\n` (literal two chars) | escape removed | drop, or `<br/>` |
+   | `—` (em-dash, U+2014) | parser treats as edge | `-` (ASCII hyphen) |
+   | `–` (en-dash, U+2013) | parser treats as edge | `-` |
+   | `{` `}` | opens an entity block | drop braces |
+   | `"` inside a label | closes the label early | `'` (single quote) |
+   | `\|` inside a label | breaks edge-label parser | rephrase |
+   | `@` `#` `$` `%` `&` | unsafe | rephrase or drop |
+   | `(` `)` outside `["..."]` | unbalanced parens crash | only inside the quoted label |
+   | smart quotes `"` `"` `'` `'` | not ASCII | regular `"` and `'` |
+
+7. **Unique node IDs across the whole diagram.** No two nodes/subgraphs may share an id.
+8. **`subgraph` must be closed by a matching `end` on its own line.**
+
+### Mandatory self-attestation
+
+Immediately before writing the ` ```mermaid ` opening fence, emit this exact one-line HTML comment in the markdown (it does not render — it is for your own visible attestation):
+
+```
+<!-- mermaid-checked: no \n, no em-dash/en-dash, no {} in labels, subgraphs are id["label"], arrows are -->|"label"|, all subgraphs closed by end, ids unique -->
+```
+
+If you cannot truthfully emit that comment, fix the diagram first.
+
+---
+
 ## Execution Steps
 
 ### Step 1: Generate Dependencies Section
@@ -53,15 +91,16 @@ Rules:
 - If a dependency doesn't fit any category, put it under "Utilities"
 - Collect test-scoped dependencies separately for the Test Dependencies section (Step 2)
 
-**Diagram — Mermaid `flowchart LR`:**
+**Diagram — Mermaid `flowchart LR`** (re-read the Safety Constraints above before writing):
 - Application as the central left-side node
-- One `subgraph` per functional category
-- Each dependency as a node showing name and version: `Lib["Library Name v1.2.3"]`
+- One `subgraph` per functional category, using the `subgraph Id["display label"]` form
+- Each dependency as a node showing name and version: `Lib["Library Name 1.2.3"]` (single line, no `\n`)
 - Arrows from Application to each category subgraph
 - If a BOM/parent POM manages versions, show it as a separate node linked to the dependencies it governs
 
-Example:
+Reference example (this block satisfies every Safety Constraint — match its shape):
 
+<!-- mermaid-checked: no \n, no em-dash/en-dash, no {} in labels, subgraphs are id["label"], arrows are -->|"label"|, all subgraphs closed by end, ids unique -->
 ~~~mermaid
 flowchart LR
     App["MyApplication"]
@@ -74,7 +113,7 @@ flowchart LR
         Hibernate["Hibernate 5.6"]
         PgDriver["PostgreSQL Driver 42.6"]
     end
-    subgraph Messaging
+    subgraph Messaging["Messaging"]
         Kafka["Kafka Client 3.4"]
     end
     subgraph Cache["Caching"]
@@ -154,35 +193,22 @@ Total test-scope dependencies: N
 - Keep the diagram under **40 nodes** to ensure readability and GitHub rendering compatibility
 - For multi-module projects (e.g., multi-module Maven/Gradle, multi-project .sln), show shared dependencies once and module-specific dependencies grouped by module
 
-## Mermaid Syntax Rules
+## Common failure patterns observed in past runs
 
-The diagram must parse cleanly under **Mermaid >= 9.x**. Anything outside the legal subset crashes the entire diagram with `Syntax error in text`.
+Each row below is something the model actually produced that crashed the diagram. Use the ✅ form.
 
-- Use `flowchart LR`
-- Avoid special characters (`@`, `#`, `$`, `%`, `&`) in node labels — use plain text
-- Always quote arrow labels with double quotes: `-->|"label"|`
-- Use `subgraph` for grouping, with a display name in quotes if it contains spaces
-- Use `-.->` (dotted arrow) for transitive/indirect relationships
-- Verify all node IDs are unique across the entire diagram
-
-### Line breaks in node labels — HARD RULE
-
-- **NEVER use `\n` for line breaks inside node labels.** The literal `\n` escape was removed in modern Mermaid and is the #1 cause of "Syntax error in text".
-- **Use `<br/>` instead**: `Node["First line<br/>Second line"]`.
-- Prefer single-line labels; move detail into the inventory table.
-- ❌ `Spring["Spring Boot\n2.5.12"]`
-- ✅ `Spring["Spring Boot<br/>2.5.12"]` or `Spring["Spring Boot 2.5.12"]`
-
-### Self-check before emitting each ```mermaid block
-
-1. Search the block for the two characters `\n` — replace each with `<br/>`. Zero `\n` must remain.
-2. Confirm every node ID is unique and every `subgraph` is closed by `end`.
-3. Confirm every arrow label is double-quoted.
+| ❌ Past mistake | ✅ Safe form | Why the ❌ crashed |
+|---|---|---|
+| `subgraph "Database / ORM"` | `subgraph DB["Database / ORM"]` | Anonymous subgraph + `/` in title |
+| `Spring["Spring Boot\n2.5.12"]` | `Spring["Spring Boot 2.5.12"]` | Literal `\n` |
+| `App -->\|persistence\| DB` | `App -->\|"persistence"\| DB` | Bare arrow label |
+| `Lib["Spring Boot — 2.5"]` | `Lib["Spring Boot - 2.5"]` | em-dash inside label |
+| `Lib["foo {bar}"]` | `Lib["foo bar"]` | `{}` inside label |
 
 ## Error Handling
 
 - **Unsupported project type**: Output a single line: `> ERROR: Unsupported project type. This skill supports Java, .NET, JavaScript, and TypeScript projects only.`
-- **No build files found**: Output: `> ERROR: No recognized build files found at {workspace-path}. Verify the path is correct.`
+- **No build files found**: Output: `> ERROR: No recognized build files found at workspace-path. Verify the path is correct.`
 - **Incomplete dependency info**: Generate a best-effort diagram from available data. Add a note inside the diagram: `Note["Some dependencies could not be fully resolved"]`
 
 ## Success Criteria
@@ -193,4 +219,5 @@ The diagram must parse cleanly under **Mermaid >= 9.x**. Anything outside the le
 - Version & Compatibility Risks paragraph highlights outdated or end-of-life dependencies
 - Notable Observations lists 2-4 noteworthy findings
 - Test Dependencies section lists detected test frameworks with versions and total count
+- The ```mermaid block is preceded by the `<!-- mermaid-checked: ... -->` attestation comment
 - File saved to `.github/modernize/assessment/engines/facts/dependency-map.md`

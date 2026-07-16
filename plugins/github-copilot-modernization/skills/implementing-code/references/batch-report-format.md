@@ -18,6 +18,21 @@ files_changed:
     - file: "path/to/another-file"
       change_type: "modified"
       description: "Brief description of change"
+# Role-neutral upstream artifact consumption (required when dependency artifacts exist)
+upstream_artifacts_consumed:
+  T001:
+    - artifact: "artifacts/t1-architect-wire-contracts.md"
+      used_for: "HTTP endpoint contracts and JSON response keys"
+    - artifact: "artifacts/units/request_action/behavior.yaml"
+      used_for: "request form branches and save side effects"
+evidence_mapping:
+  T001:
+    - upstream: "artifacts/t1-architect-wire-contracts.md#POST /saverequest"
+      output: "src/main/java/.../RequestController.java#saveRequest"
+      evidence: "RequestControllerTest#saveRequest_*"
+    - upstream: "artifacts/units/request_action/behavior.yaml#branches"
+      output: "src/main/java/.../RequestController.java"
+      evidence: "branch tests pass"
 # Source-anchored traceability (rewrite mode only)
 source_references:
   T001:
@@ -62,6 +77,8 @@ test_results:
 | `completed_tasks` | Yes | List of task IDs successfully completed |
 | `blocked_tasks` | Yes | Tasks that couldn't run due to unmet dependencies |
 | `files_changed` | Yes | Per-task list of files created/modified/deleted |
+| `upstream_artifacts_consumed` | When dependency artifacts exist | Upstream artifacts read by each task and what each was used for |
+| `evidence_mapping` | When dependency artifacts exist | Upstream artifact contract/row/section → this task's output and verification evidence |
 | `source_references` | Rewrite mode | Source-anchored traceability: files read, branches/validations/errors/side-effects preserved |
 | `traceability` | Yes | REQ → Plan → Task → Files mapping |
 | `protocol_violation` | Yes | Whether any constitution principle was violated |

@@ -67,9 +67,17 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 
 > **Implementation tasks are NOT selected from this catalog.** When `implementation-plan` is selected in the plan phase, the worker producing that plan decomposes the implementation into concrete tasks — the coordinator dispatches from that breakdown. When `implementation-plan` is skipped (small projects), the coordinator decomposes implementation tasks itself based on plan-phase outputs. The fragments below are **auxiliary** execute-phase tasks that may be selected alongside implementation tasks.
 
+### target-env-prep
+- **desc**: Prepare the target toolchain/environment before implementation, not merely check readiness. Install, provision, or activate the requested runtime/framework/language/build/test prerequisites when the current environment permits it (examples: JDK for Java/Spring Boot upgrades, Node.js/npm for Angular/React/WinForms-to-web migrations, .NET SDK for .NET target versions, Python/Go/Ruby toolchains, browser/E2E prerequisites when required). Distinguish **installed** toolchains from the **active** default toolchain and from the toolchain that planned build/test commands will actually use. Produce exact preparation actions taken, installed versions, active versions, command-resolution evidence, activation commands/env vars for downstream tasks, missing tools, and blockers if the requested target cannot be prepared in the current environment.
+- **scope**: global
+- **when**: Always selected for any migration/upgrade/rewrite that names or implies a target runtime, SDK, language, framework, package manager, build tool, browser tool, database/container dependency, or target version. Examples: Java/JDK upgrades (including Spring Boot targets), WinForms-to-Angular/React migrations (Node.js/npm), .NET target framework changes (.NET SDK), Python/Go/Ruby runtime changes, browser/E2E validation targets, and any user-specified version such as JDK 25 or Spring Boot 4.0. Select even for small projects and even when `deep_planning: false`.
+- **skip when**: Metadata/documentation-only changes; pure code refactor that does not change runtime/build/test toolchain.
+- **hard rules**: Preserve user-specified target versions verbatim. Do not downgrade or substitute target stack versions based on familiarity or LTS defaults. This must be a standalone execute-phase task before scaffold/implementation/build/test work; do not merge it into analysis or architecture tasks. Do not make target-env-prep depend on architecture/source-analysis tasks unless it explicitly needs an upstream artifact; it normally runs in parallel with them. Downstream scaffold/implementation/build/test tasks must depend on the target-env-prep artifact and may proceed only when it reports `READY` with concrete command evidence. If the requested target cannot be installed, provisioned, or activated in the current environment, mark `BLOCKED`, keep the requested target in downstream plans, and stop before implementation instead of silently substituting a different target. A target is not prepared merely because it is installed somewhere; it is prepared only when the active shell and planned build/test commands resolve to the requested version, or when the artifact gives exact activation commands/env vars that downstream tasks must use.
+
 ### scaffold
 - **desc**: Set up target project structure + infrastructure (build files, CI skeleton, base config). For cross-stack migrations that produce a new codebase; not needed for in-place modifications.
 - **scope**: global
+- **after**: target-env-prep
 - **when**: Cross-stack rewrite producing new project structure
 - **skip when**: In-place modification; same-stack upgrade
 
@@ -86,6 +94,13 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 - **when**: User requests CI/CD or deployment; new infrastructure needed
 - **skip when**: No deployment/infra requirements specified; user only asks for code migration
 
+### cve-remediation
+- **desc**: Scan dependency manifests against known CVEs (GitHub Security Advisories for Maven/Gradle, NuGet Vulnerability API for .NET) and remediate by upgrading vulnerable dependencies to patched versions; rebuild and re-scan to confirm the remediation took. Self-contained scan→fix→verify loop owned by the implementer — the scan also serves as detection, so a clean project exits cheaply. Reports findings to `cve-fix-summary` + a scan-report history. The internal rebuild/re-scan is the implementer's own self-check, NOT a separate quality gate, and stays within the Implementation phase label.
+- **scope**: per-group
+- **after**: [implementation]
+- **when**: The migrated/generated code emits or modifies a dependency manifest (pom.xml/build.gradle/*.csproj/packages.config). This INCLUDES cross-stack rewrites that adopt a brand-new framework — do NOT assume a fresh stack is CVE-free: agents routinely pin stale or even EOL framework versions (e.g. a Struts→Spring rewrite landing on Spring Boot 2.7, or a Java EE→Spring rewrite landing on Spring Boot 3.2), whose transitive trees carry known advisories. The scan is the only objective check that catches this, and it exits cheaply when the tree is clean. Also always selected when the user mentions security/CVE/vulnerability, or assessment/arch-analysis flagged vulnerable or EOL dependencies.
+- **skip when**: No dependency manifest is produced or changed (e.g. pure config/docs/asset change, or a single-file dependency-free edit); OR the user explicitly opted out of security/CVE work. Do NOT skip merely because the target framework is "new" or "latest" — that assumption is unreliable and is exactly what this scan exists to verify. Do NOT skip merely because the project is lite scope — a lite-scope change that still touches a dependency manifest must be scanned.
+
 ---
 
 ## Validate Phase
@@ -99,6 +114,7 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 ### security-review
 - **desc**: Security audit — auth flows, input validation, secrets handling, dependency vulnerabilities, OWASP concerns.
 - **scope**: global
+- **after**: cve-remediation
 - **when**: App has auth/security flows; user requests security audit; public-facing API
 - **skip when**: No auth/security in source app; user didn't request security review
 
@@ -129,6 +145,7 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 - **after**: feature-inventory, runtime-validation
 - **when**: feature-inventory was selected
 - **skip when**: feature-inventory was skipped
+- **override**: force-included if `user_ask` explicitly requests a completeness/consistency/feature-parity check (see dag-generation SKILL "Explicit-request override"), regardless of skip-when.
 
 ### conformance-review
 - **desc**: Validate that tests executed according to strategy, all quality gates passed, and no regressions remain.
@@ -136,6 +153,7 @@ LLM uses this to select task fragments for DAG generation. Each fragment is `{de
 - **after**: runtime-validation, test-strategy
 - **when**: Multiple validation steps exist; need final rollup
 - **skip when**: Only runtime-validation in validate phase (conformance adds no value as separate step)
+- **override**: force-included if `user_ask` explicitly requests a completeness/consistency check (see dag-generation SKILL "Explicit-request override"), regardless of skip-when.
 
 ---
 
@@ -154,12 +172,12 @@ Select tasks based on `change_type` (upgrade | extract | rewrite), `user_ask`, a
 
 These illustrate the expected scale of fragment selection across different project profiles. They are NOT templates to copy — derive your selection from the project's actual characteristics. The point is calibrating your judgment: a 1K LOC upgrade should not produce the same ceremony as a 200K LOC rewrite.
 
-- **1.4K LOC, 1 module, rewrite (cross-stack migration)**: ~4 fragments. Most ceremony is overhead — single worker holds full context, features are obvious from code, target architecture is straightforward. deep_planning MUST be false. Skip coordination fragments (constitution, implementation-plan, quality-gate-plan, test-strategy), inventory fragments (feature-inventory, feature-parity-signoff), and detailed review fragments (arch-design, arch-review, security-review) unless the project has specific complexity signals (auth flows, data model changes, etc.).
+- **1.4K LOC, 1 module, rewrite (cross-stack migration)**: ~5 fragments. Most ceremony is overhead — single worker holds full context, features are obvious from code, target architecture is straightforward. deep_planning MUST be false. Skip coordination fragments (constitution, implementation-plan, quality-gate-plan, test-strategy), inventory fragments (feature-inventory, feature-parity-signoff), and detailed review fragments (arch-design, arch-review, security-review) unless the project has specific complexity signals (auth flows, data model changes, etc.). Include cve-remediation — even a small cross-stack rewrite adopts a new dependency manifest that must be scanned.
 
-- **12K LOC, single module, upgrade (version bump)**: ~3 fragments. Same-stack upgrade needs analysis, an implementation plan to sequence changes, and runtime validation. No new architecture, no feature changes, no DB changes.
+- **12K LOC, single module, upgrade (version bump)**: ~4 fragments. Same-stack upgrade needs analysis, an implementation plan to sequence changes, cve-remediation (the version bump alters the dependency set, so re-scan and patch), and runtime validation. No new architecture, no feature changes, no DB changes.
 
-- **50K LOC, 3 modules, rewrite (cross-stack)**: ~13 fragments. Multiple modules and cross-stack migration justify full ceremony — coordination, inventory, architecture, implementation planning, reviews, and validation.
+- **50K LOC, 3 modules, rewrite (cross-stack)**: ~14 fragments. Multiple modules and cross-stack migration justify full ceremony — coordination, inventory, architecture, implementation planning, cve-remediation (the new stack adopts dependencies that must be CVE-scanned), reviews, and validation.
 
-- **200K LOC, 8 modules, extract (module separation)**: ~14 fragments. Large-scale extraction with new service boundaries needs nearly all fragments except feature inventory (scope is one module with known API).
+- **200K LOC, 8 modules, extract (module separation)**: ~15 fragments. Large-scale extraction with new service boundaries needs nearly all fragments except feature inventory (scope is one module with known API); cve-remediation applies because the extracted modules carry their dependency sets forward.
 
-- **80K LOC, upgrade (dependency bump only)**: ~1 fragment. Pure dependency update — only runtime-validation needed to gate the build.
+- **80K LOC, upgrade (dependency bump only)**: ~2 fragments. Pure dependency update — cve-remediation (the bump is exactly the dependency-set change that warrants a CVE scan; a clean scan is a cheap no-op) plus runtime-validation to gate the build.
