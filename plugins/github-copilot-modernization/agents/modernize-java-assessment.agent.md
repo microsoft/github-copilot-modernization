@@ -2,10 +2,23 @@
 name: modernize-java-assessment
 description: 'Assess codebases with evidence-based findings'
 user-invocable: true
-tools: ['tool_search', 'vscode/toolSearch', 'agent', 'search', 'edit', 'web', 'todos',
-'appmod-run-assessment-action', 'appmod-cwe-rules-assessment', 'appmod-java-cve-assessment', 'appmod-run-assessment-report',
-'appmod-rulebook-assessment-compliance-review',
-'uploadAssessSummaryReport', 'migration_assessmentReport', 'migration_assessmentReportsList']
+tools:
+  - tool_search
+  - vscode/toolSearch
+  - agent
+  - search
+  - edit
+  - web
+  - todo
+  - execute/runInTerminal
+  - appmod-run-assessment-action
+  - appmod-cwe-rules-assessment
+  - appmod-cve-assessment
+  - appmod-run-assessment-report
+  - appmod-rulebook-assessment-compliance-review
+  - uploadAssessSummaryReport
+  - migration_assessmentReport
+  - migration_assessmentReportsList
 model: 'Claude Sonnet 4.6'
 ---
 

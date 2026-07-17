@@ -2,6 +2,8 @@
 
 **Load**: constitution, feature spec, plan.md, implementation files, all 3 checkpoints (spec-to-plan.yaml, plan-to-tasks.yaml, tasks-to-impl.yaml)
 
+> **Lite-path note (`deep_planning: false`):** small projects run without a planning phase, so `plan.md`, the feature spec, and the `spec-to-plan` / `plan-to-tasks` checkpoints are legitimately never produced. When they are absent because the lite path skipped `implementation-plan`, treat them as **N/A — not missing/CRITICAL**, and validate against the task list and implementation evidence instead. This note applies throughout the Checklist and Process below.
+
 ## Build Verdict (blocking — evaluate FIRST)
 
 Judge build status ONLY from the `## Smoke Test Verdict` block in the smoke-test artifact.
@@ -14,13 +16,13 @@ A worker's prose ("build passed") or self-applied label is NOT evidence. Read `b
 
 ## Checklist
 
-- [ ] All plan items have corresponding implementation files → *CRITICAL if missing*
+- [ ] All plan items have corresponding implementation files → *CRITICAL if missing (lite path with no plan.md: verify implementation evidence against the task list / `tasks-to-impl.yaml` instead)*
 - [ ] Build succeeds, tests pass — build half: see **Build Verdict** section above; tests half: verify test results in implementation artifacts → *CRITICAL if failure*
 - [ ] Constitution followed in implementation → *CRITICAL if violated*
 - [ ] All P1 requirements fulfilled → *CRITICAL if unmet*
 - [ ] Every implementation task artifact includes `## Test Results` with pass/fail/skip counts and test command → *CRITICAL if missing or failed > 0*
 - [ ] Testing strategy executed as planned: primary validation stack used; fallback only with documented blocker evidence → *CRITICAL if primary stack skipped without documented failure evidence (exact command + exact error output + explanation why it cannot be resolved). "H2 already worked" or "setup was complex" are not valid blockers. Partial strategy execution (e.g., integration but no E2E when E2E was planned) is also CRITICAL unless a documented, reproducible technical blocker prevented execution.*
-- [ ] Functional equivalence verified *(brownfield only: migration and rewrite)* → *CRITICAL if unverified*
+- [ ] Consistency verified *(brownfield; change-type-aware)* → *CRITICAL if unverified*: migration / rewrite → functional equivalence (`references/functional-equivalence.md`); upgrade → upgrade-consistency, i.e. no residual old version/API, no mixed old/new across modules (`references/upgrade-consistency.md`)
 
 ## Constitution Hardstop Rule
 
@@ -32,12 +34,16 @@ A worker's prose ("build passed") or self-applied label is NOT evidence. Read `b
    - `checkpoints/spec-to-plan.yaml`
    - `checkpoints/plan-to-tasks.yaml`
    - `checkpoints/tasks-to-impl.yaml`
+
+   **Lite-path tolerance (`deep_planning: false`):** when `implementation-plan` was not selected, `spec-to-plan.yaml` and `plan-to-tasks.yaml` are never written — treat them as **N/A, not CRITICAL**, and verify only `tasks-to-impl.yaml` (or equivalent implementation evidence). Do NOT fail the gate for plan-phase checkpoints that the lite path legitimately never creates.
 2. Check plan.md Requirement Mapping table Implementation Evidence column
 3. Verify all referenced implementation files exist
 4. Evaluate build per the **Build Verdict** section (blocking — must be done before advancing); verify tests per implementation task artifacts
 5. Verify constitution compliance in code
 6. Confirm P1 requirements are implemented
-7. For brownfield (migration and rewrite): verify functional equivalence per `references/functional-equivalence.md`
+7. Verify the change-type-appropriate consistency check (brownfield):
+   - migration / rewrite → functional equivalence per `references/functional-equivalence.md`
+   - upgrade → upgrade-consistency per `references/upgrade-consistency.md` (target version reached everywhere, no residual old API, no mixed old/new versions, deprecated symbols replaced)
 8. Verify testing strategy conformance:
    - Compare planned validation stack (from plan.md testing strategy) against actual test evidence
    - If primary stack was specified (e.g. Playwright, Testcontainers), confirm it was **actually attempted** (look for dependency in pom.xml/package.json, test files using those tools, or documented installation attempt with error)

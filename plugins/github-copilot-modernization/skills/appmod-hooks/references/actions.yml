@@ -2,7 +2,11 @@
 # Each action points to a command file via `file:`.
 # Namespace: appmod.<domain>.<verb>
 
-before_all: []
+before_all:
+  - id: appmod.board.floor-check
+    file: commands/appmod.board.floor-check.md
+    description: "Quality gate: ensure board.md schedules the warranted governance fragments — cve-remediation (when a dependency manifest changes) and conformance-review/feature-parity-signoff (when the user explicitly requests a completeness/consistency check); blocks first dispatch and appends the missing task(s) on failure"
+    optional: false
 
 before_task:
   - id: appmod.profile.read
@@ -11,6 +15,11 @@ before_task:
     optional: false
 
 after_task:
+  - id: appmod.dependency.consumption-check
+    file: commands/appmod.dependency.consumption-check.md
+    description: "Gate completed tasks with dependency artifacts: worker output must state upstream artifacts consumed, constraints applied, or explicit not-used rationale"
+    optional: false
+
   - id: appmod.profile.sync
     file: commands/appmod.profile.sync.md
     description: "Update progress_sync: increment completed_tasks, check phase completion, set timestamps, commit if phase done"

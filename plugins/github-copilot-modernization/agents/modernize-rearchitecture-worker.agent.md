@@ -72,7 +72,7 @@ If charter cannot be found → `[notify:coordinator] Charter not found for <role
 
 Run at minimum these two searches using the `skill` tool:
 1. Search using **your role name** (e.g., `tester`, `backend`, `architect`)
-2. Search using **the key activity in the task title** (e.g., `e2e testing`, `playwright`, `implementation`, `architecture review`)
+2. Search using **the key activity in the task title** (e.g., `e2e testing`, `playwright`, `implementation`, `architecture review`, `CVE remediation`, `dependency vulnerability scan`)
 
 Additional searches for implementation tasks: ≥1 per major workstream.
 
@@ -157,6 +157,18 @@ Output before proceeding:
 - **Detail files**: `<taskId>-<role>-<name>.md` alongside index — actual content (plans, specs, analysis, etc.)
 - **Work products**: Use `checkpoints/` subdirectory within artifacts for structured data (YAML, JSON)
 
+**Required consumption sections for every task artifact/index with upstream dependencies:**
+
+```markdown
+## Upstream Artifacts Consumed
+- `<path>` — what you used it for
+
+## Evidence Mapping
+- `<upstream artifact>#<contract/row/section>` → `<this task output/evidence>`
+```
+
+These sections are role-neutral and apply to implementation, testing, review, planning, smoke-test, and validation tasks. Use `none — no dependency artifacts provided` only when the task truly has no upstream artifacts.
+
 When in doubt, prefer multi-file split for tasks with distinct deliverables (plan + tasks + risks). Use single-file for atomic outputs (one report, one analysis, one summary).
 
 For multi-file output, do NOT cram everything into one file. Split into focused detail files and link them from the index. Example:
@@ -228,6 +240,16 @@ Index file example:
 
 Don't rely on training data for version-specific details.
 
+### Target version and environment rules
+
+User-specified target stack versions are immutable requirements. Do not substitute a familiar/LTS/stable version unless the coordinator or user explicitly changes the requirement.
+
+- If the task references a requested target version (for example Java 25, Spring Boot 4.0, Angular 20, Node 22, .NET 10), use that exact version in design, build files, docs, tests, and validation.
+- If the version is unfamiliar or may be prerelease, verify using official docs, package metadata, or local tool commands before deciding feasibility.
+- If the current environment lacks the requested runtime/toolchain, record a blocker with exact evidence (`java -version`, `javac -version`, `node --version`, `dotnet --list-sdks`, package metadata, etc.). Do not downgrade silently.
+- If you are assigned `target-env-prep`, your job is to prepare the target environment, not merely inspect it. Install, provision, or activate the requested toolchain when permitted by the current environment; otherwise report why preparation is blocked. Produce an artifact section `## Target Environment Preparation` with: `Status: READY|BLOCKED`; preparation actions taken; requested target versions; installed versions; active default versions; command-resolution evidence (`which`, `--version`, `JAVA_HOME`, SDK manager/current symlink, package-manager path where relevant); the version planned build/test commands will actually use; exact activation commands/env vars downstream tasks must use; missing tools; blockers; and downstream implications.
+- Do not mark a target toolchain `READY` just because it is installed somewhere. Mark it `READY` only if the active shell and planned build/test commands resolve to the requested version, or if the artifact gives exact activation instructions that downstream tasks can copy verbatim. If preparation is `BLOCKED`, downstream implementation/build/test must not proceed.
+
 ### Session Memory
 
 **Before task completion**, append to `{{BASE_PATH}}/team/<your-role>/log.md`:
@@ -267,6 +289,12 @@ If you are executing the **smoke-test** task, the following rules override any c
 
 Do NOT substitute a narrowed/downgraded command to force rc=0. If the full build fails, record its real returncode. A narrowed command (e.g. `--filter ghost`, `nx run pkg:target`, `build:types` only, `cd subdir && build`) does NOT count as a passing build.
 
+The same applies to tests: run the project's primary test command (the comprehensive `test` script from `package.json`, `pom.xml`, etc.), not a scoped subset or secondary script.
+
+#### JS/TS Pre-Flight: `build` and `test` Scripts Must Exist
+
+**For JS/TS projects only** — before the frozen install and build, ensure `package.json` declares both a `build` and a `test` script; if either is missing, inject the framework-appropriate default and re-verify before building. Follow the **`implementing-code` skill → Step 6.5 (JS/TS Scaffolding Validation Gate)** for the exact verification command and the framework injection table — do not re-implement the check here.
+
 After running build (and optionally starting the app), emit exactly this block into the smoke-test artifact:
 
 ```
@@ -277,7 +305,17 @@ After running build (and optionally starting the app), emit exactly this block i
 - returncode: <integer>
 - covers_all_modules: <yes|no>
 - startup_http_status: <integer|n/a>
+- test_script_present: <yes|no|injected>
+- test_returncode: <integer|n/a>
 ```
+
+The `test_script_present` field records whether the script was already present (`yes`), had to be injected (`injected`), or is not applicable (`n/a` for non-JS/TS). The `test_returncode` records the exit code from running `npm test` after the build.
+
+### API Endpoint Verification Gate
+
+**For any task that produces or modifies a web application backend** (including Spring Boot, Express, NestJS, FastAPI, Django, ASP.NET Core, Go HTTP servers, and similar), the implemented endpoints MUST respond correctly at runtime — a passing build does NOT satisfy this gate. Before writing `[DONE]` you MUST verify endpoints respond (run the discovered `api-test.sh`-style contract, or `curl`-probe each endpoint for a 2xx), and fix any failures.
+
+Follow the **`implementing-code` skill → Step 6.6 (API Endpoint Verification)** for the discovery → run → fix-loop → probe procedure — do not re-implement it here. If endpoints still fail after the skill's fix loop, record the failure in `## Test Results` and escalate via `[notify:coordinator]` instead of writing `[DONE]`.
 
 ### Task Completion Format
 
@@ -290,11 +328,15 @@ If you ran tests and `failed > 0`: do **NOT** write `[DONE]`. Instead:
 **Required final message (only when all gates pass):**
 ```
 [DONE] <taskId>: <one-sentence result>
+- Upstream artifacts consumed: <artifact paths read before/during task, or "none — no dependency artifacts provided">
+- Evidence mapping: <upstream artifact + contract/row/section -> this task output/evidence, or "none — no dependency artifacts provided">
 - Key deliverables: <what you produced>
 - Tests: <pass/fail status, or "no tests available">
 - Findings: <N HIGH, N CRITICAL — or "none">
 - Issues found: <any blockers/risks for downstream tasks>
 - Timing: <start_time>→<end_time> UTC (~<N>s)
 ```
+
+For tasks with dependency artifacts, `Upstream artifacts consumed` and `Evidence mapping` are mandatory in both the task artifact/index and the final `[DONE]` message. Do not mark `[DONE]` until you can name the upstream artifact paths and map their contracts/sections to this task's output or verification evidence.
 
 **Never complete silently** - coordinator needs verification summary.

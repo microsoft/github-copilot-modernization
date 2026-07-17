@@ -5,7 +5,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@microsoft/github-copilot-app-modernization-mcp-server@1.21.0",
+        "@microsoft/github-copilot-app-modernization-mcp-server@1.22.0",
         "--callerType",
         "github-copilot-modernization-plugin"
       ],

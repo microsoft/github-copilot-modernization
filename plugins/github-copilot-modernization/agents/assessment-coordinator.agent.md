@@ -37,6 +37,7 @@ You coordinate the assessment phase by detecting the project language, invoking 
   - `enableContainerization`: boolean
   - `targetOS`: Array of `windows` | `linux`
   - `minimumCveSeverity`: `low` | `medium` | `high` | `critical`
+  - `cveScanScope`: `direct` | `all`
 
 ## Language Detection
 

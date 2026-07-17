@@ -63,6 +63,40 @@ From the task breakdown artifact, find tasks that match your current assignment:
 
 Unmet dependency not in current batch → report as blocked.
 
+### Step 5.5: Discover Required API Endpoints (web applications only)
+
+**Before writing any implementation code**, check whether an endpoint contract test script exists in the project root:
+
+```bash
+for script in api-test.sh api-check.sh smoke.sh health-check.sh test-api.sh; do
+  test -f "./$script" && echo "found: $script" && break
+done
+```
+
+**If a script is found:**
+1. Read its full contents to extract every endpoint it exercises: URL paths, HTTP methods, expected status codes, and expected response shape.
+2. Treat every such endpoint as a **mandatory acceptance criterion** for this batch — equivalent to an explicit REQ in the feature spec. Missing even one will cause the post-build evaluation to fail.
+3. Cross-check each endpoint against the matched task list. If any script endpoint is absent from the task breakdown, add it as an implicit sub-task in your execution plan (e.g., `T_API_dashboard: Implement GET /api/dashboard`).
+4. Record the discovered endpoint list at the top of `batch-report.yaml` under `required_endpoints`:
+   ```yaml
+   required_endpoints:
+     - method: GET
+       path: /api/dashboard
+       source: api-test.sh
+       status: pending   # updated to "implemented" when the endpoint is wired up and verified
+     - method: GET
+       path: /api/items
+       source: api-test.sh
+       status: pending
+   ```
+
+**If no script is found:**
+- Check `clarification.md` (if present) for any explicitly listed required API endpoints.
+- Check the feature spec for API contract sections.
+- If neither source provides an endpoint list, proceed without this step.
+
+This discovery step ensures that evaluation scripts are treated as first-class requirements from the start of implementation — not discovered only at post-build verification when fixes are costly.
+
 ### Step 6: Execute
 
 **Ordering:**
@@ -98,6 +132,99 @@ For tasks marked `[GUIDELINE:skill-name]`:
 - Halt on non-parallel task failure
 - For `[P]` tasks: continue successful ones, report failures
 
+### Step 6.5: JS/TS Scaffolding Validation Gate (JS/TS projects only)
+
+**After any scaffolding step that generates or modifies a `package.json`**, execute this gate before proceeding to the next task. This gate is MANDATORY for all JavaScript and TypeScript projects.
+
+#### 6.5.1 — Verify required npm scripts
+
+Check that `package.json` contains BOTH a `build` script AND a `test` script:
+
+```bash
+node -e "
+  const pkg = require('./package.json');
+  const missing = ['build','test'].filter(s => !pkg.scripts || !pkg.scripts[s]);
+  if (missing.length) { console.error('MISSING scripts:', missing.join(', ')); process.exit(1); }
+  console.log('scripts OK: build=' + pkg.scripts.build + ', test=' + pkg.scripts.test);
+"
+```
+
+**If either script is missing**, inject it immediately — do NOT defer:
+
+| Framework | Missing `test` script | Missing `build` script |
+|-----------|----------------------|----------------------|
+| Angular (`@angular/core` in deps) | `"test": "ng test --watch=false --browsers=ChromeHeadless"` | `"build": "ng build"` |
+| React / Vite | `"test": "vitest run"` or `"test": "react-scripts test --watchAll=false"` | `"build": "vite build"` |
+| React / CRA | `"test": "react-scripts test --watchAll=false --ci"` | `"build": "react-scripts build"` |
+| Vue / Vite | `"test": "vitest run"` | `"build": "vite build"` |
+| Next.js | `"test": "jest --ci"` | `"build": "next build"` |
+| NestJS / Node | `"test": "jest --ci"` | `"build": "nest build"` |
+| Generic TS | `"test": "jest --ci"` | `"build": "tsc"` |
+
+After injecting, confirm the script was written and re-verify with the check above.
+
+#### 6.5.2 — Run the test script
+
+After confirming both scripts exist, execute:
+
+```bash
+npm test
+```
+
+(or `yarn test` / `pnpm test` if the project uses those package managers)
+
+- **Exit code 0**: gate passes — proceed.
+- **Exit code != 0**: enter a remediation loop (max 3 iterations):
+  1. Read the failure output to identify the root cause (missing browser binary, missing test files, misconfigured jest config, etc.)
+  2. Fix the cause (install missing dev dependency, create a minimal placeholder test, fix config)
+  3. Re-run `npm test`
+  4. If still failing after 3 iterations, record the failure in `batch-report.yaml` under `warnings` with severity HIGH and continue — do NOT block the entire batch:
+     ```yaml
+     warnings:
+       - severity: HIGH
+         message: "npm test failed after 3 remediation attempts — <last error summary>"
+     ```
+
+> **Why this gate exists**: Eval harnesses run `npm test` unconditionally. A scaffolded project without a `test` script causes an immediate fatal error (`npm error Missing script: "test"`) that masks all other results. Catching this at scaffolding time costs ~5 seconds; missing it causes total batch failure.
+
+### Step 6.6: API Endpoint Verification (web-application backends only)
+
+For any batch that produces or modifies a web-application backend (Spring Boot, Express, NestJS, FastAPI, Django, ASP.NET Core, Go HTTP servers, and similar), verify endpoints **respond correctly at runtime** before the batch is considered complete. A passing build proves only compilation, not that routes are wired up.
+
+#### 6.6.1 — Run the discovered endpoint contract (if any)
+
+If Step 5.5 found an endpoint contract script (`api-test.sh`, `api-check.sh`, …), start the application if not already running, then execute it:
+
+```bash
+bash ./api-test.sh   # or whichever script Step 5.5 recorded
+echo "api-test exit code: $?"
+```
+
+- **Exit code 0** → all endpoint assertions pass → proceed.
+- **Exit code != 0** → enter the fix loop (max 3 iterations):
+  1. Read the output to identify which endpoints returned errors (missing route, wrong status code, unexpected body).
+  2. Implement or correct the backend endpoint(s): add the missing controller/handler, fix route mapping, return the expected response shape.
+  3. Re-run the script. Repeat until exit code is 0 or 3 iterations are exhausted.
+  4. If still failing after 3 iterations, record the failure in `batch-report.yaml` under `warnings` with severity HIGH and escalate via `[notify:coordinator]` — do NOT mark the affected endpoints `implemented`.
+
+#### 6.6.2 — Manual probe (no script found)
+
+If no endpoint contract script exists, probe every REST endpoint the batch implemented after starting the application:
+
+```bash
+curl -sf -o /dev/null -w "%{http_code}" http://localhost:<PORT><endpoint>
+```
+
+Every implemented endpoint MUST return a 2xx status code. A 404 or 500 means the route is not wired correctly — fix before completing the batch. Record probe results in the batch report under `endpoint_probes`:
+
+```yaml
+endpoint_probes:
+  - method: GET
+    path: /api/dashboard
+    status: 200
+    result: PASS
+```
+
 ### Step 7: Write Checkpoint
 
 After ALL tasks in this batch complete, write `checkpoints/tasks-to-impl.yaml` using `templates/tasks-to-impl-checkpoint-template.yaml`. This is REQUIRED — completeness gate reads it to verify traceability.
@@ -105,6 +232,13 @@ After ALL tasks in this batch complete, write `checkpoints/tasks-to-impl.yaml` u
 ### Step 8: Report
 
 Generate batch result report per `references/batch-report-format.md` (YAML format).
+
+**If `required_endpoints` was populated in Step 5.5**, update each entry's `status` to `"implemented"` once the corresponding endpoint is wired up and verified to respond correctly. Any entry still `"pending"` at report time is a gap — record it under `warnings` with severity HIGH:
+```yaml
+warnings:
+  - severity: HIGH
+    message: "Endpoint GET /api/dashboard was required by api-test.sh but not implemented in this batch"
+```
 
 ## Resources
 

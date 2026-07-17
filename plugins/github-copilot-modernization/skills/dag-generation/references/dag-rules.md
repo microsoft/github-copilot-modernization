@@ -37,8 +37,9 @@ Each task-catalog fragment has a `scope` field (`per-group` or `global`).
 2. If no implementation plan, derive execute tasks from architecture analysis + pipeline fragments.
 3. **Minimum dependency principle**: before adding edge D→T, verify T needs an artifact D produces. No deps based on phase grouping or role association. Do NOT make a task depend on ALL tasks in a prior group when it only needs output from ONE of them.
 4. **Correct dependencies**: if a task consumes another's output, it MUST depend on it. UI pages calling APIs MUST depend on the API tasks, not just the scaffold. A task reading database tables MUST depend on the migration task.
-5. **Scaffold gate (rewrite only)**: when the change_type is rewrite and a scaffold task creates the new project structure, any task that writes source code files MUST depend on the scaffold task. Does not apply to upgrade or extract.
-6. **Output-to-consumer mapping**: for each role, identify what it produces and who needs that output. Only create a task if its output is consumed by another role, or if it's the final deliverable.
+5. **Target environment preparation gate**: when `target-env-prep` is selected, emit it as a standalone execute-phase task before scaffold/implementation/build/test tasks. It is a preparation task, not analysis. By default it has no dependency on analysis/design tasks: it needs the user-specified target stack and local environment only, so it should run in parallel with architecture/source analysis unless the task explicitly needs an upstream artifact. Every scaffold, implementation, build, test, runtime-validation, or other target-stack task MUST depend on it. If its artifact reports `BLOCKED`, no dependent implementation/build/test task is ready.
+6. **Scaffold gate (rewrite only)**: when the change_type is rewrite and a scaffold task creates the new project structure, any task that writes source code files MUST depend on the scaffold task. Does not apply to upgrade or extract.
+7. **Output-to-consumer mapping**: for each role, identify what it produces and who needs that output. Only create a task if its output is consumed by another role, or if it's the final deliverable.
 
 ## Parallelism
 

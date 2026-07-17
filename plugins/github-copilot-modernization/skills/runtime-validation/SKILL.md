@@ -146,7 +146,9 @@ Beyond Docker and Node.js, verify these additional prerequisites when they apply
 
 ### 1.3.2 Legacy Test Asset Inventory
 
-Before finalising the testing strategy, check whether legacy E2E or integration tests are available. They may come from two sources — check both:
+Before finalising the testing strategy, identify the project's **canonical test command** — the top-level command used in CI (e.g., `yarn test:unit`, `mvn test`, `pnpm test`, `npm test`). Find it in the root `package.json` scripts, `pom.xml`, or `build.gradle`. Run it first and record the baseline passing count. All new tests written during migration must be reachable by this same command — do not introduce a separate test tool that bypasses it. If a new framework is added (e.g., vitest alongside Jest), it must be wired into the canonical command so both run together.
+
+Then check whether legacy E2E or integration tests are available. They may come from two sources — check both:
 
 **Source 1 — User-provided tests**
 The user may directly supply test files or paste test code in their request. These take priority over anything discovered on disk. Accept them as-is and skip the file-scan for the journeys they already cover.
@@ -407,10 +409,30 @@ Proceed directly to writing new tests from the testing strategy's critical journ
 When tests fail:
 
 1. Capture test output + application logs
-2. Correlate errors to identify root cause
-3. **If source code bug** → escalate to responsible role via `[notify:role]`. Do NOT modify production code.
-4. **If test code issue** → fix and retry
-5. Max 3 fix iterations → escalate remaining via `[notify:coordinator]`
+2. **Capture the test command's exit code** (`$?` on Unix/macOS/Linux, `$LASTEXITCODE` on PowerShell). Record it in the evidence block. A non-zero exit code means the tier is FAIL even if some tests passed.
+3. Correlate errors to identify root cause
+4. **If source code bug** → escalate to responsible role via `[notify:role]`. Do NOT modify production code.
+5. **If test code issue** → fix and retry
+6. Max 3 fix iterations → escalate remaining via `[notify:coordinator]`
+
+**Exit-code gate (MANDATORY):** After every test command completes, evaluate:
+- `rc == 0` → tier may be PASS (verify pass/fail counts are consistent)
+- `rc != 0` → tier is **FAIL**, regardless of reported pass count. Enter fix loop. If after 3 iterations the exit code is still non-zero, write `overall: FAIL` and escalate immediately:
+  ```
+  [notify:coordinator] CRITICAL: Test command exited rc=<N> after 3 fix iterations — task cannot complete.
+  Command: <exact command>
+  Exit code: <N>
+  Failing tests: <list test names from output>
+  Counts: <X passed, Y failed>
+  ```
+  Do NOT write `[DONE]` while any tier has `rc != 0` without a matching waiver.
+
+**Waiver exception:** The ONLY condition under which `rc != 0` does not block the DONE signal is when ALL of the following hold:
+1. A named waiver artifact (e.g., `known-defects.md`) was produced by a prior task and is listed in this task's `## Dependency Artifacts`.
+2. Every failing test is listed by name in that artifact with a note that the defect predates this migration.
+3. No new failures are present beyond those listed in the waiver.
+
+If all three conditions hold, record the waiver artifact name in the verdict block and proceed. Otherwise, FAIL.
 
 ### 2.4 Step 4: Evidence & Verdict
 
@@ -424,10 +446,14 @@ environment:
   infra-tier: PRIMARY(Docker-based)|FALLBACK(embedded/in-memory) — <reason if fallback>
   browser-tier: PRIMARY(Playwright)|FALLBACK(MockMvc)|SKIPPED — <reason if not primary>
 startup: PASS|FAIL — <start command>, <readiness signal>, <startup time>
-integration: PASS|FAIL|UNVERIFIED — <scope>, <gaps>
-e2e: PASS|FAIL|PARTIAL|UNVERIFIED — <flows tested>, <boundaries exercised>, <gaps>
+integration: PASS|FAIL|UNVERIFIED — <exit_code: N>, <passed: N, failed: N, skipped: N>, <scope>, <gaps>
+e2e: PASS|FAIL|PARTIAL|UNVERIFIED — <exit_code: N>, <passed: N, failed: N>, <flows tested>, <boundaries exercised>, <gaps>
 overall: PASS|FAIL|NEEDS_SIGNOFF — <reason>
 ```
+
+> **`exit_code` is REQUIRED in every tier line.** A tier is FAIL if `exit_code != 0`, regardless of the pass/fail counts. Do not omit `exit_code`.
+>
+> **PASS verdict requires `exit_code: 0`.** If any tier has `exit_code != 0` and no named waiver artifact covers all failing tests by name, `overall` MUST be `FAIL`. A partial-pass count (e.g., "59/61 passed") with `exit_code: 2` is still `FAIL`.
 
 Also produce `runtime-validation-report.md`:
 
@@ -438,11 +464,11 @@ Also produce `runtime-validation-report.md`:
 **Target**: [project path]
 
 ## Summary
-| Step | Status | Details |
-|------|--------|---------|
-| Startup | ✓ PASS | Started in 8.3s, /actuator/health → 200 |
-| Integration Tests | ✓ PASS | 3 test files, 12 tests, all green |
-| E2E Tests | N/A | No browser UI — skipped per testing strategy |
+| Step | Status | Exit Code | Details |
+|------|--------|-----------|---------|
+| Startup | ✓ PASS | n/a | Started in 8.3s, /actuator/health → 200 |
+| Integration Tests | ✓ PASS | 0 | 3 test files, 12 tests, all green |
+| E2E Tests | N/A | n/a | No browser UI — skipped per testing strategy |
 
 **Overall**: PASS
 

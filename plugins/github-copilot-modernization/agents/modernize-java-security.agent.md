@@ -87,7 +87,7 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
 
 ### Session ID & Artifacts Directory
 
-- Call `#appmod-report-event(event: "securityTaskStarted", phase: "precheck", status: "succeeded", details: {scope: "<SCOPE>"})` at the start — this generates and returns a `SESSION_ID`. `<SCOPE>` is `"cve"` or `"deprecated-api"`.
+- Call `#appmod-report-event(event: "securityTaskStarted", phase: "precheck", status: "succeeded", details: {scope: "<SCOPE>"})` at the start — this generates and returns a `SESSION_ID` plus configuration (including `cveScanScope`). `<SCOPE>` is `"cve"` or `"deprecated-api"`.
 - Use the returned `SESSION_ID` for ALL subsequent tool calls.
 - Artifacts are stored in `.github/modernize/java-upgrade/<SESSION_ID>/` (created automatically).
 
@@ -105,34 +105,40 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
 2. **Early exit for deprecated API without context**: If the user asks to fix deprecated APIs but the prompt does NOT contain specific deprecated API details (no file names, no API names, no assessment issue descriptions):
    - Tell the user: *"To fix deprecated API usages, please run an Assessment first from the App Modernization panel. The assessment uses AppCAT rules covering 96+ deprecated/removed APIs across Java 8–21. After the assessment completes, click 'Fix' on the Deprecated APIs findings in the assessment report — the specific issues, affected files, and line numbers will be passed to me automatically."*
    - STOP immediately. Do not generate a SESSION_ID or proceed further.
-3. **Generate SESSION_ID**: Call `#appmod-report-event(event: "securityTaskStarted", phase: "precheck", status: "succeeded", details: {scope: "<SCOPE>"})` — this returns a `SESSION_ID`. Use it for all subsequent calls.
+3. **Generate SESSION_ID**: Call `#appmod-report-event(event: "securityTaskStarted", phase: "precheck", status: "succeeded", details: {scope: "<SCOPE>"})` — this returns a `SESSION_ID` and configuration values. Use the returned `SESSION_ID` for all subsequent calls.
+   - The response includes `cveScanScope` (`"direct"` or `"all"`). Use this value to determine dependency collection behavior in Step 5.
 4. **Detect project type**: Verify this is a Maven/Gradle project. If not, report error and STOP.
 5. **Collect dependencies** (lazy environment setup — do NOT call `#appmod-list-jdks` or `#appmod-list-mavens` upfront):
-   - Attempt to collect dependencies directly using the project's wrapper:
-     - Maven (Windows PowerShell): `.\mvnw.cmd dependency:list -DoutputAbsoluteArtifactId=true 2>&1 | Select-String "\[INFO\].*:.*:.*:.*:" | Out-File ".github/modernize/java-upgrade/<SESSION_ID>/deps.txt"; Get-Content ".github/modernize/java-upgrade/<SESSION_ID>/deps.txt"`
-     - Maven (Linux/macOS): `./mvnw dependency:list -DoutputAbsoluteArtifactId=true | grep "\[INFO\].*:.*:.*:.*:" > .github/modernize/java-upgrade/<SESSION_ID>/deps.txt && cat .github/modernize/java-upgrade/<SESSION_ID>/deps.txt`
-     - Gradle: `gradle dependencies --configuration compileClasspath`
+   - **Check scan scope**: Use the `cveScanScope` value returned from Step 3's `securityTaskStarted` response.
+     - `direct`: Collect only direct dependencies using `-DexcludeTransitive=true`:
+       - Maven (Windows PowerShell): `.\mvnw.cmd dependency:list -DexcludeTransitive=true -DoutputAbsoluteArtifactId=true 2>&1 | Select-String "\[INFO\].*:.*:.*:.*:" | Out-File ".github/modernize/java-upgrade/<SESSION_ID>/deps.txt"; Get-Content ".github/modernize/java-upgrade/<SESSION_ID>/deps.txt"`
+       - Maven (Linux/macOS): `./mvnw dependency:list -DexcludeTransitive=true -DoutputAbsoluteArtifactId=true | grep "\[INFO\].*:.*:.*:.*:" > .github/modernize/java-upgrade/<SESSION_ID>/deps.txt && cat .github/modernize/java-upgrade/<SESSION_ID>/deps.txt`
+       - Gradle: `gradle dependencies --configuration compileClasspath` (top-level only)
+     - `all`: Collect all dependencies including transitive:
+       - Maven (Windows PowerShell): `.\mvnw.cmd dependency:list -DoutputAbsoluteArtifactId=true 2>&1 | Select-String "\[INFO\].*:.*:.*:.*:" | Out-File ".github/modernize/java-upgrade/<SESSION_ID>/deps.txt"; Get-Content ".github/modernize/java-upgrade/<SESSION_ID>/deps.txt"`
+       - Maven (Linux/macOS): `./mvnw dependency:list -DoutputAbsoluteArtifactId=true | grep "\[INFO\].*:.*:.*:.*:" > .github/modernize/java-upgrade/<SESSION_ID>/deps.txt && cat .github/modernize/java-upgrade/<SESSION_ID>/deps.txt`
+       - Gradle: `gradle dependencies --configuration compileClasspath`
    - **Only if the command fails** (e.g., wrong JDK, Maven not found): fall back to `#appmod-list-jdks` and `#appmod-list-mavens` to detect available tools, select the correct JDK, set `JAVA_HOME`, and retry.
    - After running the command, read the saved `.github/modernize/java-upgrade/<SESSION_ID>/deps.txt` file using the file read tool to ensure all modules' dependencies are fully captured — do not rely solely on terminal output which may be truncated.
    - **Note**: Pay special attention to dependencies that **explicitly declare a `<version>` tag overriding the Spring Boot BOM** — these version overrides bypass BOM management and are the most common source of missed CVE vulnerabilities. Cross-check `<version>` tags in each sub-module's `pom.xml` against the dependency list.
 6. **Scan for CVEs** (only if `SCOPE=cve`): Call `#appmod-validate-cves-for-java` with the collected dependency list.
-   - **If no CVEs found**: Write a brief `summary.md` noting "No CVE vulnerabilities detected", report `#appmod-report-event(sessionId, event: "securityFixCompleted", phase: "summarize", status: "succeeded", details: {reason: "no-cves-found"})`, preview the summary, and STOP.
-   - **If all CVEs have no patched version available**: Write `summary.md` noting which CVEs have no upstream fix, report `#appmod-report-event(sessionId, event: "securityFixCompleted", phase: "summarize", status: "succeeded", details: {reason: "no-patch-available"})`, preview the summary, and STOP. This is a valid success — no action can be taken.
+   - **If no CVEs found**: Report `#appmod-report-event(sessionId, event: "securityFixCompleted", phase: "summarize", status: "succeeded", details: {reason: "no-cves-found"})` first, then write a brief `summary.md` noting "No CVE vulnerabilities detected", preview the summary, and STOP.
+   - **If all CVEs have no patched version available**: Report `#appmod-report-event(sessionId, event: "securityFixCompleted", phase: "summarize", status: "succeeded", details: {reason: "no-patch-available"})` first, then write `summary.md` noting which CVEs have no upstream fix, preview the summary, and STOP. This is a valid success — no action can be taken.
 7. **Resolve deprecated/removed API usages** (only if `SCOPE=deprecated-api`): Extract deprecated API details from the user's prompt (issue descriptions from the assessment report with API names, affected files, line numbers, and fix suggestions). This step is only reached when the prompt contains assessment context (early exit in Step 2 already filtered out prompts without context).
    
    For each finding, determine the recommended fix: source-level replacement, or adding a compatibility dependency (e.g., `jakarta.annotation-api`).
    - For findings that require a full `javax.*` → `jakarta.*` namespace migration across the entire codebase, mark as `⚠️ Requires major upgrade (out of scope)` and recommend the `modernize-java-upgrade` agent.
-   - If ALL findings are out of scope (no actionable fixes): Write `summary.md` noting the situation, report `#appmod-report-event(sessionId, event: "securityFixCompleted", phase: "summarize", status: "succeeded", details: {reason: "all-out-of-scope"})`, preview summary, and STOP.
+   - If ALL findings are out of scope (no actionable fixes): Report `#appmod-report-event(sessionId, event: "securityFixCompleted", phase: "summarize", status: "failed", details: {reason: "all-out-of-scope"})` first, then write `summary.md` noting the situation, preview summary, and STOP.
 
 ### Phase 2: Apply Fixes & Validate
 
 1. **Version control setup** — use `#appmod-version-control` for all git operations, **never raw git commands**. **ALWAYS pass `sessionId: <SESSION_ID>`** to every call:
    - **Branch handling (delegation-aware)**:
-     - **IF a `BRANCH` value was provided in the delegation prompt** (e.g., when invoked by execution-coordinator): you are already on `<BRANCH>` (the coordinator created and checked it out). Call `#appmod-version-control(sessionId: <SESSION_ID>, action: "checkStatus")` only to verify VCS availability — if unavailable set `GIT_AVAILABLE=false`. Use `<BRANCH>` as the working branch. Do NOT run `git checkout`, `git switch`, stash, or createBranch.
+     - **IF a `BRANCH` value was provided in the delegation prompt** (e.g., when invoked by execution-coordinator): you are already on `<BRANCH>` (the coordinator created and checked it out). Use `<BRANCH>` as the working branch. Do not create, switch, or query branches yourself, and do not run direct `git` commands. Skip to step 2.
      - **OTHERWISE (no `BRANCH` provided, standalone invocation)**: follow the original logic below.
-   - Call `#appmod-version-control(sessionId: <SESSION_ID>, action: "checkStatus")`. If no VCS detected, set `GIT_AVAILABLE=false`. **Do not ask the user. Do not report failure.**
-   - Call `#appmod-version-control(sessionId: <SESSION_ID>, action: "checkForUncommittedChanges")`. If uncommitted changes exist, call `#appmod-version-control(sessionId: <SESSION_ID>, action: "stashChanges", stashMessage: "Auto-stash before security fix <SESSION_ID>")`.
-   - Call `#appmod-version-control(sessionId: <SESSION_ID>, action: "createBranch", branchName: "appmod/security-fix-<SESSION_ID>")`.
+   - Call `#appmod-version-control(sessionId: <SESSION_ID>, action: "prepareBranch", branchName: "appmod/security-fix-<SESSION_ID>")` — this single call handles any uncommitted changes and creates the branch.
+   - Handle the tool response:
+     - If `success=false` and `details.versionControlAvailable=false`: set `GIT_AVAILABLE=false` and skip to Phase 3. **Do not ask the user. Do not report failure.**
 2. **Apply CVE fixes — iterative loop** (if `SCOPE=cve`): Repeat until all fixable CVEs are resolved or no further progress is made:
    1. **Apply fixes**: Update `pom.xml` or `build.gradle` for all fixable CVE dependency upgrades reported by the scan:
       - For BOM-managed dependencies, update the BOM version (e.g., `spring-boot-dependencies`)
@@ -167,7 +173,9 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
 
 ### Phase 4: Summary & Report
 
-1. **Write `summary.md`**: Write results to `.github/modernize/java-upgrade/<SESSION_ID>/summary.md` using the format below:
+1. **Final commit** (if `GIT_AVAILABLE`): Call `#appmod-version-control(sessionId: <SESSION_ID>, action: "checkForUncommittedChanges")`. If any remain, call `#appmod-version-control(sessionId: <SESSION_ID>, action: "commitChanges", commitMessage: "Security fix summary: <SESSION_ID>")`.
+2. → `#appmod-report-event(sessionId, event: "securityFixCompleted", phase: "summarize", status: "succeeded"|"failed")` — **report event BEFORE writing summary** to ensure telemetry is captured even if the process is terminated. `succeeded` if all fixable CVEs are resolved (including cases where some CVEs have no upstream patch — those are marked in summary but do not count as failures); `failed` only if a fixable CVE remains unresolved.
+3. **Write `summary.md`**: Write results to `.github/modernize/java-upgrade/<SESSION_ID>/summary.md` using the format below:
 
    ```markdown
    # Security Fix Results (<SESSION_ID>)
@@ -175,6 +183,7 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
    - **Project**: <PROJECT_NAME>
    - **Completed**: <datetime>
    - **Duration**: <total minutes>m
+   - **Scan scope**: <"Direct dependencies only" | "All dependencies (including transitive)">
    - **Build status**: ✅ Passing | ❌ Failing
    - **Build attempts**: <N> (<M> failed, <K> succeeded)
 
@@ -209,6 +218,5 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
    - `pom.xml`: added `javax.annotation:javax.annotation-api:1.3.2` dependency
    ```
 
-2. **Final commit** (if `GIT_AVAILABLE`): Call `#appmod-version-control(sessionId: <SESSION_ID>, action: "checkForUncommittedChanges")`. If any remain, call `#appmod-version-control(sessionId: <SESSION_ID>, action: "commitChanges", commitMessage: "Security fix summary: <SESSION_ID>")`.
-3. → `#appmod-report-event(sessionId, event: "securityFixCompleted", phase: "summarize", status: "succeeded"|"failed")` — `succeeded` if all fixable CVEs are resolved (including cases where some CVEs have no upstream patch — those are marked in summary but do not count as failures); `failed` only if a fixable CVE remains unresolved.
 4. **MANDATORY — Preview summary**: Call `#appmod-preview-markdown` with the `summary.md` file path to open it for the user. Do NOT skip this step — the user must see the results.
+

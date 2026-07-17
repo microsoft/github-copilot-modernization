@@ -33,6 +33,8 @@ Select fragments from the task catalog and produce a DAG.
 1. **Project profile** — read from `{{BASE_PATH}}/artifacts/project-profile.yaml` (project.loc, project.languages, project.modules, assessment.change_type, assessment.grouping_needed)
 2. **user_ask** — natural-language migration target (passed by coordinator)
 
+If `user_ask` names an explicit target stack or version, preserve it verbatim in every selected task. Do not replace, downgrade, or reinterpret the requested version based on model familiarity or LTS defaults.
+
 ### Decision Procedure
 
 #### Step 1: Determine deep_planning
@@ -57,6 +59,8 @@ Read `references/task-catalog.md`. For each fragment, decide include/exclude bas
 - Project profile (LOC, modules)
 - `deep_planning` decision from Step 1 (drives `implementation-plan` selection)
 
+Always include `target-env-prep` when the target runtime/framework/language/tooling differs from source or when the user specifies an explicit target version. This is an environment preparation task: it must install/provision/activate the requested target when possible, produce a preparation artifact, and run before scaffold/implementation/build/test tasks. It normally has no dependency on architecture/source analysis and should run in parallel with those tasks. This is true even for small projects and even when `deep_planning: false`.
+
 Respect `when` / `skip-when` conditions and `after` ordering from the catalog.
 
 **⛔ Skip-when enforcement (mandatory post-selection gate):**
@@ -64,6 +68,9 @@ After initial selection, sweep every selected fragment and check its `skip-when`
 - `implementation-plan`: remove if `deep_planning: false`
 
 This gate catches cases where the initial selection included fragments that looked relevant but conflict with the deep_planning decision or project scale.
+
+**✅ Explicit-request override (runs AFTER skip-when enforcement — highest precedence):**
+If `user_ask` explicitly requests a completeness, consistency, or feature-parity check (e.g. "run a completeness check", "verify nothing was missed", "enforce consistency", "feature parity sign-off"), force-include the completeness/conformance validation fragment (`conformance-review`, and `feature-parity-signoff` when applicable) **even if its `skip-when` condition matched and removed it above**. User intent overrides the size/type heuristic. This override is **one-directional** — it can only ADD a gate the heuristics dropped, never remove one they selected. It must run after the skip-when sweep, otherwise the sweep would strip the fragment back out (e.g. `skip-when: same-stack upgrade`).
 
 Fragment selection is an internal decision — do NOT output the selection rationale to the user. The DAG itself is the user-facing result.
 

@@ -1,5 +1,7 @@
 # GitHub Copilot modernization - Copilot CLI Plugin
 
+[![Listed in Awesome Copilot](https://img.shields.io/badge/Listed_in-Awesome_Copilot-blue?logo=github)](https://awesome-copilot.github.com/plugins/#file=plugins%2Fgithub-copilot-modernization)
+
 Autonomous application modernization using multi-agent orchestration for [GitHub Copilot CLI](https://github.com/github/copilot-cli).
 
 ## Overview

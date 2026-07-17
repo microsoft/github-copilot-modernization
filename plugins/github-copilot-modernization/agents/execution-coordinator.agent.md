@@ -60,6 +60,7 @@ When a worker agent returns (success OR failure):
 - `modernize-azure-java` - For Azure Service Bus, SQL, Redis, Key Vault, and other Azure migrations
 - `modernize-java-security` - For CVE fixes and vulnerability scanning in Java/Maven (in-place fixes only, NOT Azure service integrations)
 - `modernize-azure-dotnet` - For .NET Azure migrations and CVE fixes in NuGet
+- `modernize-deployment` - For infrastructure and deployment tasks: Dockerfiles, Kubernetes/AKS/ACA, Bicep/IaC, CI/CD pipelines
 - `modernize-rearchitecture` - For structural rewrites and rearchitecture (only when task does not match any known scenario)
 
 ## Delegation Workflow
@@ -82,16 +83,16 @@ When a worker agent returns (success OR failure):
 │ • Deprecated API migration   │ │ • Application Insights       │ │ • Maven security plugin      │
 │ • Maven / Gradle config      │ │ • Managed Identity           │ │ • Jackson / Log4j CVE fix    │
 └──────────────────────────────┘ └──────────────────────────────┘ └──────────────────────────────┘
-┌──────────────────────────────┐ ┌──────────────────────────────┐
-│  modernize-azure-dotnet      │ │  modernize-rearchitecture    │
-│                              │ │                              │
-│ • .NET Azure migration       │ │ • Structural rewrites when   │
-│ • NuGet CVE vulnerability    │ │   no known scenario matches  │
-│ • ASP.NET to Azure           │ │ • WinForms → React/Angular   │
-│ • dotnet build / test        │ │ • Monolith → Microservices   │
-│ • .NET CVE advisory check    │ │ • JSP → Modern SPA           │
-│ • NuGet security audit       │ │ • Module extraction (new dir)│
-└──────────────────────────────┘ └──────────────────────────────┘
+┌──────────────────────────────┐ ┌──────────────────────────────┐ ┌──────────────────────────────┐
+│  modernize-azure-dotnet      │ │  modernize-deployment        │ │  modernize-rearchitecture    │
+│                              │ │                              │ │                              │
+│ • .NET Azure migration       │ │ • Dockerfile generation      │ │ • Structural rewrites when   │
+│ • NuGet CVE vulnerability    │ │ • AKS/ACA deployment         │ │   no known scenario matches  │
+│ • ASP.NET to Azure           │ │ • Bicep/ARM IaC generation   │ │ • WinForms → React/Angular   │
+│ • dotnet build / test        │ │ • CI/CD pipeline generation  │ │ • Monolith → Microservices   │
+│ • .NET CVE advisory check    │ │ • Docker Image Scanning      │ │ • JSP → Modern SPA           │
+│ • NuGet security audit       │ │ • Region/SKU/Pricing checks  │ │ • Module extraction (new dir)│
+└──────────────────────────────┘ └──────────────────────────────┘ └──────────────────────────────┘
 ```
 
 **How to delegate:**
@@ -139,6 +140,7 @@ You have access to specialized migration agents for application modernization:
 - **modernize-azure-java**: Azure Service Bus, Azure SQL, Azure Redis, Azure Key Vault, and other Azure service migrations
 - **modernize-java-security**: CVE vulnerability scanning and fixes in Java/Maven dependencies (in-place fixes only)
 - **modernize-azure-dotnet**: .NET Azure migrations and CVE fixes in NuGet dependencies
+- **modernize-deployment**: Infrastructure and deployment tasks (Dockerfiles, Kubernetes/AKS/ACA, Bicep/IaC, CI/CD pipelines)
 - **modernize-rearchitecture**: Structural rewrites only when the task does not match any known scenario
 
 These agents query the MCP knowledge base directly for migration patterns and best practices.
@@ -295,25 +297,12 @@ Before delegating tasks, check if a rulebook exists and pass its context to all 
 
 **You create ONE branch before delegating, and pass it to ALL workers. You do NOT generate or pass session IDs — workers handle their own session IDs.**
 
-1. Generate timestamp with **second-level precision**: `YYYYMMDDHHMMSS` (e.g., `20260424153045`). This MUST include hours, minutes, AND seconds — never truncate to just the date or hour.
-   - **DO NOT guess the time.** Run a terminal command to get the real current time:
-     - PowerShell: `Get-Date -Format "yyyyMMddHHmmss"`
-     - Bash/Linux: `date +"%Y%m%d%H%M%S"`
-   - Use the exact output as the timestamp. Never fabricate a round number like `120000`.
-2. Branch name depends on detected language:
-   - Java projects: `modernize/java-<timestamp>`
-   - .NET projects: `modernize/dotnet-<timestamp>`
-3. **Handle uncommitted changes BEFORE creating the branch:**
-   - First, retrieve the policy: Try calling `appmod-get-vscode-config(configName: "uncommittedChangesAction")` to get the user's configured policy. If the tool is not available (e.g., in CLI mode), default to **"Always Stash"**.
-   - Use `appmod-version-control(action: "checkForUncommittedChanges", workspacePath: <path>)` to check
-   - If uncommitted changes exist, handle them according to the retrieved policy:
-     - **Always Stash** (default): Use `appmod-version-control(action: "stashChanges", stashMessage: "Auto-stash: Save uncommitted changes before migration", workspacePath: <path>)`
-     - **Always Commit**: Use `appmod-version-control(action: "commitChanges", commitMessage: "Auto-commit: Save uncommitted changes before migration", workspacePath: <path>)`
-     - **Always Discard**: Use `appmod-version-control(action: "discardChanges", workspacePath: <path>)`
-     - **Always Ask**: Inform the user about the uncommitted changes and ask how they would like to proceed (stash, commit, or discard). Wait for the user's response before taking action.
-   - Verify clean: Use `appmod-version-control(action: "checkForUncommittedChanges", workspacePath: <path>)` to confirm working directory is clean
-4. Create the branch via `appmod-version-control(action: "createBranch", branchName: "modernize/<lang>-<timestamp>", workspacePath: <path>)`
-5. Pass `BRANCH: modernize/<lang>-<timestamp>` in every delegation prompt
+1. Detect project language (from `tasks.json` metadata or project indicators): `java` or `dotnet`.
+2. **Handle uncommitted changes and create branch with a single call**:
+   `appmod-version-control(action: "prepareBranch", language: "java"|"dotnet", workspacePath: <path>)`
+   The tool handles any uncommitted changes, auto-generates the branch name (`modernize/<language>-<timestamp>`), and returns it in `details.branchName`.
+   - **Handle the response**: the call handles any uncommitted changes automatically per the host-configured policy and creates the branch. Use `details.branchName` as `BRANCH` for all delegation prompts.
+3. Pass the resulting `BRANCH` value in every delegation prompt.
 
 **Workers MUST NOT handle uncommitted changes** — this is already done here before branch creation.
 
@@ -324,12 +313,8 @@ Workers use the provided branch (skipping their own branch creation) but generat
 ### Mode 1: Planned Execution (planning-path provided)
 
 1. **Create Branch**
-   - Generate timestamp by running a terminal command (do NOT guess):
-     - PowerShell: `Get-Date -Format "yyyyMMddHHmmss"`
-     - Bash/Linux: `date +"%Y%m%d%H%M%S"`
    - Detect language from `tasks.json` metadata or project indicators
-   - **Handle uncommitted changes** (per Branching Strategy step 3): try `appmod-get-vscode-config` for policy (default: Always Stash) → check → handle per policy → verify clean
-   - Create branch: `modernize/java-<timestamp>` (Java) or `modernize/dotnet-<timestamp>` (.NET)
+   - **Handle uncommitted changes and create branch** (per Branching Strategy step 2): call `appmod-version-control(action: "prepareBranch", language: ..., workspacePath: ...)` once. The tool resolves the host's uncommitted-changes policy automatically, handles any uncommitted changes, and returns the auto-generated branch name in `details.branchName`.
    - **Do NOT generate or pass a session ID.** Each worker generates its own.
 
 2. **Load Plan**
@@ -376,7 +361,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
 
    BRANCH: modernize/java-<timestamp>
    Workspace: /path/to/app
-   The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
+   The coordinator has already created and checked out this branch — you are already on it. Do not create or switch branches yourself; commit directly on the current HEAD.
    ```
 
    **Example - CWE (one delegation per CWE id):**
@@ -387,7 +372,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
 
    BRANCH: modernize/java-<timestamp>
    Workspace: /path/to/app
-   The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
+   The coordinator has already created and checked out this branch — you are already on it. Do not create or switch branches yourself; commit directly on the current HEAD.
    ```
 
    > Do NOT include `kbId:` / `taskId:` / `by kbId:` for CWE tasks. The worker will pass the goal sentence as `scenario` to `#appmod-run-task`. Never pass a `taskId` derived from `tasks.json`.
@@ -400,7 +385,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
 
    BRANCH: modernize/java-<timestamp>
    Workspace: /path/to/app
-   The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
+   The coordinator has already created and checked out this branch — you are already on it. Do not create or switch branches yourself; commit directly on the current HEAD.
 
    Rulebook: .github/modernize/rulebook/ (if exists)
    ```
@@ -431,7 +416,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
 
    BRANCH: modernize/java-<timestamp>
    Workspace: /path/to/app
-   The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
+   The coordinator has already created and checked out this branch — you are already on it. Do not create or switch branches yourself; commit directly on the current HEAD.
 
    Rulebook: .github/modernize/rulebook/ (if exists)
    ```
@@ -444,7 +429,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
 
    BRANCH: modernize/dotnet-<timestamp>
    Workspace: /path/to/dotnet-app
-   The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
+   The coordinator has already created and checked out this branch — you are already on it. Do not create or switch branches yourself; commit directly on the current HEAD.
    ```
 
 5. **Task Dependency Management**
@@ -463,12 +448,8 @@ Workers use the provided branch (skipping their own branch creation) but generat
 ### Mode 2: Specific Task Intent (task-details provided)
 
 1. **Create Branch**
-   - Generate timestamp by running a terminal command (do NOT guess):
-     - PowerShell: `Get-Date -Format "yyyyMMddHHmmss"`
-     - Bash/Linux: `date +"%Y%m%d%H%M%S"`
    - Detect language from task-details or project indicators
-   - **Handle uncommitted changes** (per Branching Strategy step 3): try `appmod-get-vscode-config` for policy (default: Always Stash) → check → handle per policy → verify clean
-   - Create branch: `modernize/java-<timestamp>` (Java) or `modernize/dotnet-<timestamp>` (.NET)
+   - **Handle uncommitted changes and create branch** (per Branching Strategy step 2): call `appmod-version-control(action: "prepareBranch", language: ..., workspacePath: ...)` once. The tool resolves the host's uncommitted-changes policy automatically and returns the auto-generated branch name in `details.branchName`.
    - **Do NOT generate or pass a session ID.** The worker generates its own.
 
 2. **Check for Rulebook** (see [Rulebook-Aware Execution](#rulebook-aware-execution))
@@ -492,7 +473,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
 
    BRANCH: modernize/java-<timestamp>
    Workspace: /testbed/java-migration-examples/containerproxy
-   The coordinator has already created and checked out this branch — you are already on it. Do NOT run `git checkout`, `git switch`, or `#appmod-version-control` with action `createBranch`. Commit directly on the current HEAD.
+   The coordinator has already created and checked out this branch — you are already on it. Do not create or switch branches yourself; commit directly on the current HEAD.
 
    Rulebook: .github/modernize/rulebook/ (if exists)
    ```
@@ -514,8 +495,9 @@ Route by **task type**, using this priority order:
 4. **Credential migration to Azure Key Vault** (adds Azure SDK) → `modernize-azure-java`
 5. **.NET tasks** → `modernize-azure-dotnet`
 6. **Technology migration matching a known scenario** (see list below) → `modernize-azure-java`
-7. **No matching scenario + requires structural rewrite** → `modernize-rearchitecture`
-8. **No matching scenario + NOT structural rewrite** → `modernize-azure-java` (fallback, let worker search KB at runtime)
+7. **Infrastructure/deployment task** (Dockerfile, K8s, AKS/ACA, Bicep, CI/CD) → `modernize-deployment`
+8. **No matching scenario + requires structural rewrite** → `modernize-rearchitecture`
+9. **No matching scenario + NOT structural rewrite** → `modernize-azure-java` (fallback, let worker search KB at runtime)
 
 ### Known Scenarios — KB-backed (→ `modernize-azure-java`)
 
@@ -533,6 +515,28 @@ These scenarios have knowledge bases. Any task matching one of these goes to `mo
 - **Build Tools**: Ant → Maven, Eclipse → Maven
 - **Kafka (Confluent Cloud)**: Confluent Cloud Kafka authentication
 
+### Known Scenarios — Deployment-backed (→ `modernize-deployment`)
+
+These scenarios involve infrastructure and deployment artifacts. Any task matching one of these goes to `modernize-deployment`:
+
+- **End to End Containerization**: Analyze application, generate optimized Dockerfile, build and verify image, scan for vulnerabilities
+- **End to End Deployment**: Analyze application, containerize if needed, generate Bicep/Terraform, deploy to Azure, validate deployment
+- **Dockerfile Generation**: Generate optimized Dockerfile for the application based on its structure and dependencies
+- **Docker Image Build**: Build Docker images from Dockerfile and verify the build
+- **Docker Image Scan**: Scan Docker images for vulnerabilities
+- **Kubernetes/AKS Manifests**: Kubernetes deployment manifests, Helm charts, Azure Kubernetes Service configuration
+- **Azure Container Apps**: ACA configuration, Dapr integration, scaling rules
+- **Infrastructure as Code**: Bicep/ARM/Terraform templates for Azure resources (ACR, AKS, ACA, Log Analytics, Key Vault references, etc.)
+- **IaC Rules**: Get best practices and rules for writing Bicep/Terraform for Azure deployments
+- **CI/CD Pipelines**: GitHub Actions, Azure DevOps, GitLab CI/CD pipelines for build and deployment
+- **CI/CD Pipeline Guidance**: Get best practices and guidance for setting up CI/CD pipelines
+- **Architecture Diagram**: Generate application architecture diagrams
+- **Repository Analysis**: Analyze repository structure for containerization
+- **Pricing Estimation**: Estimate Azure costs for the deployment
+- **SKU Availability**: Check availability of Azure SKUs in different regions
+- **Quota Checks**: Check Azure subscription quotas for relevant resources
+- **App Logs**: Get Azure app deployment logs
+
 ### Known Scenarios — RAG-backed (→ `modernize-java-upgrade`)
 
 These scenarios have RAG prompts. Any task matching one of these goes to `modernize-java-upgrade`:
@@ -543,7 +547,6 @@ These scenarios have RAG prompts. Any task matching one of these goes to `modern
 - Jakarta EE upgrade (javax→jakarta)
 - Deprecated API upgrade
 - Azure legacy Java SDK upgrade
-- Containerization (→ handled by `modernize-azure-java` as infra task)
 
 ### Migration vs Rearchitecture
 
@@ -573,6 +576,8 @@ If a task does NOT match any known scenario but is a simple technology swap → 
 | cwe-fix (per CWE id) | `modernize-azure-java` | CWE rule-based code remediation |
 | credential-to-azure-keyvault | `modernize-azure-java` | Azure Key Vault integration (adds Azure SDK + Managed Identity) |
 | dotnet-azure-migration / dotnet-cve-fix | `modernize-azure-dotnet` | .NET Azure migration or CVE fixes |
+| deployment | `modernize-deployment` | Deployment to Azure to Container Apps, AKS, App Service |
+| containerization | `modernize-deployment` | Containerization (Dockerfile generation, Docker image validation, Kubernetes preparation) |
 | rearchitecture / structural-rewrite | `modernize-rearchitecture` | ONLY for fundamental architecture changes (not technology swaps) |
 | database-migration (H2, PostgreSQL, MySQL, etc.) | `modernize-azure-java` | Any database migration uses the same workflow |
 | build-verification / compile-check | Same worker as preceding migration tasks | Verification is part of the migration, not a separate routing |
@@ -611,7 +616,7 @@ Orchestrator → You:
 }
 
 You:
-1. Create branch → modernize/java-20260413120000
+1. Call prepareBranch(language: "java") → branch name returned: modernize/java-20260413120000
 2. Load tasks.json → 8 tasks (3 Java upgrade, 5 Azure migration)
 3. Check for rulebook → Found .github/modernize/rulebook/
 4. Read rulebook → all .md files in rulebook folder
@@ -642,7 +647,7 @@ Orchestrator → You:
 }
 
 You:
-1. Create branch → modernize/java-20260413150000
+1. Call prepareBranch(language: "java") → branch name returned: modernize/java-20260413150000
 2. Check for rulebook → No rulebook found, skip
 3. Determine agent → modernize-azure-java (Azure migration)
 4. Delegate to `modernize-azure-java` subagent with prompt:
@@ -666,7 +671,7 @@ Orchestrator → You:
 
 You:
 1. Load plan → tasks.json has metadata.language = "dotnet", 3 tasks found
-2. Create branch → modernize/dotnet-20260413120000
+2. Call prepareBranch(language: "dotnet") → branch name returned: modernize/dotnet-20260413120000
 3. Check for rulebook → No rulebook found, skip
 4. Route ALL tasks to modernize-azure-dotnet (all with BRANCH only — no session ID):
    - Task 1: modernize-azure-dotnet (SQL Server → Azure SQL)

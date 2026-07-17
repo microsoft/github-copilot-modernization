@@ -11,11 +11,49 @@ This skill generates a two-layer architecture visualization: a high-level applic
 
 - `workspace-path` (optional): Path to the project to analyze (defaults to current directory)
 
+## ⚠ Mermaid Safety Constraints — read BEFORE you write any ```mermaid block
+
+Mermaid is unforgiving: one illegal character anywhere in a block crashes the **whole** diagram with `Syntax error in text`, not just the offending line. There is no partial rendering. Stay strictly inside this subset:
+
+1. **Chart kind.** Only `flowchart TD` (Step 1) or `flowchart LR` (Step 2). Never `graph TD`, never mixed.
+2. **Subgraph form.** Always `subgraph <AlphaNumId>["display label"]`. The id must match `[A-Za-z][A-Za-z0-9_]*` (no spaces, no punctuation). NEVER use the anonymous form `subgraph "label"` — it crashes whenever the label contains `(`, `)`, `:`, `/`, `-`, etc., and the parser error appears on an unrelated line.
+3. **Node form.** Only one of: `Id["label"]` (rectangle), `Id(("label"))` (circle), `Id[("label")]` (cylinder for data stores). Pick one shape per node — do not stack brackets.
+4. **Arrow form.** Solid `-->`, dotted `-.->`. If you put a label on an arrow it MUST be double-quoted: `-->|"label"|`. Never bare `-->|label|`.
+5. **No line breaks in labels.** The escape `\n` was removed in modern Mermaid and is the #1 cause of failures. Use `<br/>` in flowcharts when you really must break a line. Strongly prefer single-line ≤ 60-char labels — put detail in the Inventory / Stack tables instead.
+6. **Banned characters inside any label or subgraph title.** Use the ASCII replacement:
+
+   | Banned | Why it breaks | Replacement |
+   |---|---|---|
+   | `\n` (literal two chars) | escape removed | `<br/>` or drop |
+   | `—` (em-dash, U+2014) | parser treats as edge | `-` (ASCII hyphen) |
+   | `–` (en-dash, U+2013) | parser treats as edge | `-` |
+   | `{` `}` (e.g. `{id}`) | opens an entity block | drop braces — write `id` or `:id` |
+   | `"` inside a label | closes the label early | `'` (single quote) |
+   | `\|` inside a label | breaks edge-label parser | rephrase |
+   | `@` `#` `$` `%` `&` | unsafe in many positions | rephrase or drop |
+   | `(` `)` outside a `["..."]` quoted label | unbalanced parens crash | only inside the quoted label |
+   | smart quotes `"` `"` `'` `'` | not ASCII | regular `"` and `'` |
+
+7. **Unique node IDs across the whole file.** If Layer 1 has `DB`, Layer 2 cannot also have `DB`. Use `DB1` and `DB2` (or `AppDb`, `ComponentDb`).
+8. **`subgraph` must be closed by a matching `end` on its own line.** No `end`, no diagram.
+
+### Mandatory self-attestation
+
+Immediately before writing each ` ```mermaid ` opening fence, emit this exact one-line HTML comment in the markdown (the comment will not render — it is for your own visible attestation that you have re-checked the block):
+
+```
+<!-- mermaid-checked: no \n, no em-dash/en-dash, no {} in labels, subgraphs are id["label"], arrows are -->|"label"|, all subgraphs closed by end, ids unique -->
+```
+
+If you cannot truthfully emit that comment, fix the diagram first.
+
+---
+
 ## Execution Steps
 
 ### Step 1: Generate Application Architecture Section
 
-Analyze the project and produce the complete `## Application Architecture` section in one pass:
+Analyze the project and produce the complete `## Application Architecture` section in one pass.
 
 **Analysis:**
 - Examine build files (Java: pom.xml, build.gradle; .NET: *.csproj, *.sln; JS/TS: package.json, tsconfig.json)
@@ -23,7 +61,7 @@ Analyze the project and produce the complete `## Application Architecture` secti
 - Scan key source files to extract: framework, major dependencies, data access patterns, external integrations, technology stack
 - Identify application layers (UI, Business Logic, Data Access), data storage technologies, and external service dependencies
 
-**Diagram — Mermaid `flowchart TD`:**
+**Diagram — Mermaid `flowchart TD`** (re-read the Safety Constraints above before writing):
 - Application layers with technology info (use `subgraph` for grouping)
 - Data storage components (specific names like "PostgreSQL", "Redis")
 - External service integrations
@@ -31,8 +69,9 @@ Analyze the project and produce the complete `## Application Architecture` secti
 
 **Do NOT include**: individual classes/methods or migration directions.
 
-Example:
+Reference example (this block satisfies every Safety Constraint — match its shape):
 
+<!-- mermaid-checked: no \n, no em-dash/en-dash, no {} in labels, subgraphs are id["label"], arrows are -->|"label"|, all subgraphs closed by end, ids unique -->
 ~~~mermaid
 flowchart TD
     subgraph Client["Client Layer"]
@@ -63,13 +102,15 @@ flowchart TD
 ~~~
 
 **Textual explanations (write immediately after the diagram):**
-- **Technology Stack Summary table**: Layer | Technology | Version | Purpose (e.g., Presentation | ASP.NET MVC 5 | 5.2.7 | Server-side web framework)
+- **Technology Stack Summary table**: Layer | Technology | Version | Purpose
 - **Data Storage & External Services**: A short paragraph describing what databases, caches, message brokers, or external APIs are used and how they fit into the architecture
-- **Key Architectural Decisions**: 1-3 bullet points on notable patterns (e.g., "Uses repository pattern with EF6 for data access", "Autofac provides DI with module-based registration")
+- **Key Architectural Decisions**: 1-3 bullet points on notable patterns (e.g., "Uses repository pattern with EF6", "Autofac DI with module-based registration")
+
+> ⚠ Move detail OUT of node labels and INTO this table. A diagram with short labels and a rich table renders; a diagram with long labels does not.
 
 ### Step 2: Generate Component Relationships Section
 
-Analyze component interactions and produce the complete `## Component Relationships` section in one pass:
+Analyze component interactions and produce the complete `## Component Relationships` section in one pass.
 
 **Analysis:**
 - Identify key component types by framework conventions:
@@ -84,31 +125,33 @@ Analyze component interactions and produce the complete `## Component Relationsh
 - Map data access patterns (service-to-repository, DbContext usage)
 - Detect cross-cutting concerns (middleware, interceptors, filters)
 
-**Diagram — Mermaid `flowchart LR`:**
+**Diagram — Mermaid `flowchart LR`** (re-read the Safety Constraints above before writing):
 - Components grouped by architectural layer using `subgraph` (Presentation, Business Logic, Data Access, Infrastructure)
 - Interaction arrows with brief labels
 - Cross-cutting concerns
+- **Use IDs that do NOT collide with Step 1's diagram** (e.g., prefix with `c` for Component: `cWeb`, `cService`).
 
 **Do NOT include**: method signatures, private helpers, or external dependencies (covered by dependency-map skill).
 
-Example:
+Reference example (satisfies every Safety Constraint):
 
+<!-- mermaid-checked: no \n, no em-dash/en-dash, no {} in labels, subgraphs are id["label"], arrows are -->|"label"|, all subgraphs closed by end, ids unique -->
 ~~~mermaid
 flowchart LR
-    subgraph Presentation
+    subgraph PresentationLayer["Presentation"]
         UserCtrl["UserController"]
         OrderCtrl["OrderController"]
     end
-    subgraph Business["Business Logic"]
+    subgraph BusinessLayer["Business Logic"]
         UserSvc["UserService"]
         OrderSvc["OrderService"]
         NotifSvc["NotificationService"]
     end
-    subgraph DataAccess["Data Access"]
+    subgraph DataAccessLayer["Data Access"]
         UserRepo["UserRepository"]
         OrderRepo["OrderRepository"]
     end
-    subgraph Infra["Infrastructure"]
+    subgraph InfraLayer["Infrastructure"]
         AuthFilter["AuthenticationFilter"]
         LogMiddleware["LoggingMiddleware"]
     end
@@ -121,11 +164,11 @@ flowchart LR
     OrderSvc -->|"queries"| OrderRepo
     AuthFilter -.->|"intercepts"| UserCtrl
     AuthFilter -.->|"intercepts"| OrderCtrl
-    LogMiddleware -.->|"wraps"| Presentation
+    LogMiddleware -.->|"wraps"| PresentationLayer
 ~~~
 
 **Textual explanation (write immediately after the diagram):**
-- **Component Inventory table**: Component | Layer | Type | Responsibility (e.g., CatalogController | Presentation | MVC Controller | Handles catalog browsing and CRUD)
+- **Component Inventory table**: Component | Layer | Type | Responsibility
 
 ### Step 3: Save Output
 
@@ -163,39 +206,27 @@ A brief introduction (1-2 sentences).
 
 ## Scaling Rules
 
-- If the project has **more than 30 components**, aggregate by package/namespace (e.g., show `com.example.orders` as one node instead of listing every class)
-- Keep each diagram under **40 nodes** to ensure readability and GitHub rendering compatibility
-- For multi-module projects, focus on inter-module boundaries in Layer 1 and key components within the most important modules in Layer 2
+- If the project has **more than 30 components**, aggregate by package/namespace (e.g., show `com.example.orders` as one node instead of listing every class) — this also keeps labels short and safe.
+- Keep each diagram under **40 nodes** to ensure readability and GitHub rendering compatibility.
+- For multi-module projects, focus on inter-module boundaries in Layer 1 and key components within the most important modules in Layer 2.
 
-## Mermaid Syntax Rules
+## Common failure patterns observed in past runs
 
-The diagram must parse cleanly under **Mermaid >= 9.x** (the version used by GitHub, VS Code, Obsidian, and every modern renderer). Anything outside the legal subset crashes the entire diagram with `Syntax error in text`, not just the offending line.
+Each row below is something the model actually produced and crashed the diagram. Use the ✅ form.
 
-- Use `flowchart TD` for Layer 1 and `flowchart LR` for Layer 2
-- Avoid special characters (`@`, `#`, `$`, `%`, `&`) in node labels — use plain text
-- Always quote arrow labels with double quotes: `-->|"label"|`
-- Use `subgraph` for grouping, with a display name in quotes if it contains spaces
-- Verify all node IDs are unique across the entire diagram
-
-### Line breaks in node labels — HARD RULE
-
-- **NEVER use `\n` for line breaks inside node labels.** The literal `\n` escape was removed in modern Mermaid and is the #1 cause of "Syntax error in text" — every node containing `\n` will fail to render.
-- **Use `<br/>` instead** for an explicit line break: `Node["First line<br/>Second line"]`.
-- If a label is long, prefer a single concise phrase over multi-line. Move details into the Component Inventory / Technology Stack tables that follow the diagram.
-- ❌ `MediaLib["Media Library\n(MediaScannerService\nMediaFileService)"]`
-- ✅ `MediaLib["Media Library<br/>MediaScannerService<br/>MediaFileService"]`
-- ✅ `MediaLib["Media Library"]`  (and list the sub-components in the inventory table)
-
-### Self-check before emitting each ```mermaid block
-
-1. Search the block for the two characters `\n` — if found, replace each with `<br/>` (or remove). Zero `\n` must remain.
-2. Confirm every node ID is unique and every `subgraph` is closed by `end`.
-3. Confirm every arrow label is double-quoted.
+| ❌ Past mistake | ✅ Safe form | Why the ❌ crashed |
+|---|---|---|
+| `subgraph "Spring Boot Application (port 8080)"` | `subgraph SpringApp["Spring Boot Application (port 8080)"]` | Anonymous subgraph + parentheses in title |
+| `HC["HomeController\n GET / — gallery page"]` | `HC["HomeController GET /"]` (move detail to table) | Literal `\n` + em-dash |
+| `PHOTOS_TABLE["PHOTOS table\n id (UUID PK)\n photo_data (BLOB)"]` | `PHOTOS_TABLE["PHOTOS"]` (columns belong in a table) | `\n` and overlong label |
+| `PFC["PhotoFileController\n GET /photo/{id}"]` | `PFC["PhotoFileController GET /photo/:id"]` | `\n` + `{id}` |
+| `Spring["Spring Boot\n2.7.18"]` | `Spring["Spring Boot 2.7.18"]` | `\n` |
+| `A -->|fetches users| B` | `A -->|"fetches users"| B` | Bare (unquoted) arrow label |
 
 ## Error Handling
 
 - **Unsupported project type**: Output a single line: `> ERROR: Unsupported project type. This skill supports Java, .NET, JavaScript, and TypeScript projects only.`
-- **No source code found**: Output: `> ERROR: No recognized source files found at {workspace-path}. Verify the path is correct.`
+- **No source code found**: Output: `> ERROR: No recognized source files found at workspace-path. Verify the path is correct.`
 - **Insufficient info**: Generate a best-effort diagram from available data. Add a note inside the diagram: `Note["Some components could not be identified"]`
 
 ## Success Criteria
@@ -204,4 +235,5 @@ The diagram must parse cleanly under **Mermaid >= 9.x** (the version used by Git
 - Layer 1 is accompanied by Technology Stack Summary table, Data Storage & External Services paragraph, and Key Architectural Decisions
 - Layer 2 Mermaid diagram renders correctly showing component interactions grouped by architectural layer
 - Layer 2 is accompanied by Component Inventory table
+- Every ```mermaid block is preceded by the `<!-- mermaid-checked: ... -->` attestation comment
 - File saved to `.github/modernize/assessment/engines/facts/architecture-diagram.md`

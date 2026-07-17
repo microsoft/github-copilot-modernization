@@ -165,6 +165,7 @@ When user specifies EXACTLY what to do:
 | Java Azure service migration | `execution-coordinator` directly → hint: `modernize-azure-java` | `planning-coordinator` → `execution-coordinator` → hint: `modernize-azure-java` |
 | CVE / vulnerability fix (Java) | `execution-coordinator` directly → hint: `modernize-java-security` | `planning-coordinator` → `execution-coordinator` → hint: `modernize-java-security` |
 | .NET Azure migration or CVE fix | `execution-coordinator` directly → hint: `modernize-azure-dotnet` | `planning-coordinator` → `execution-coordinator` → hint: `modernize-azure-dotnet` |
+| Infrastructure / deployment (Dockerfile, K8s, IaC) | `execution-coordinator` directly → hint: `modernize-deployment` | `planning-coordinator` → `execution-coordinator` → hint: `modernize-deployment` |
 | Structural rewrite / rearchitecture | `execution-coordinator` directly → hint: `modernize-rearchitecture` | `planning-coordinator` → `execution-coordinator` → hint: `modernize-rearchitecture` |
 
 **Example delegation — single task, version specified (e.g., "upgrade Java to 21"):**
@@ -402,6 +403,7 @@ EXECUTE: Delegate to execution-coordinator subagent with task details directly
     - Azure migrations → modernize-azure-java
     - CVE/security fixes → modernize-java-security
     - .NET migrations → modernize-azure-dotnet
+    - Infrastructure/deployment → modernize-deployment
     - Structural rewrites → modernize-rearchitecture
   ↓
   Present final results to user → STOP (wait for user input)
@@ -498,6 +500,7 @@ The execution-coordinator will automatically route tasks to specialized migratio
 - Azure migration tasks → `modernize-azure-java` (Service Bus, Azure SQL, Redis, etc.)
 - CVE/security fix tasks → `modernize-java-security` (Java/Maven vulnerability scanning and fixes)
 - .NET tasks → `modernize-azure-dotnet` (.NET Azure migrations and NuGet CVE fixes)
+- Infrastructure/deployment tasks → `modernize-deployment` (Dockerfiles, K8s/AKS/ACA, Bicep, CI/CD)
 - Structural rewrite tasks → `modernize-rearchitecture` (new stack, new directory, rearchitecture)
 
 You do NOT invoke these migration agents directly - always delegate to execution-coordinator.
@@ -609,7 +612,7 @@ After each phase, results are saved to `.github/modernize/<plan-name>/` director
 
 **Why this matters:**
 - The execution-coordinator knows how to route tasks to specialized agents
-- Custom agents (modernize-java-upgrade, modernize-azure-java, modernize-java-security, modernize-azure-dotnet, modernize-rearchitecture) have built-in retry logic
+- Custom agents (modernize-java-upgrade, modernize-azure-java, modernize-java-security, modernize-azure-dotnet, modernize-deployment, modernize-rearchitecture) have built-in retry logic
 - Custom agents self-verify and save results properly
 - Delegation enables sequential/parallel execution for multiple tasks
 
@@ -640,7 +643,7 @@ Before starting execution phase, CHECK:
 - Run assessment when user provides specific task intent ❌
 - Run assessment tools directly (delegate to assessment-coordinator)
 - **Call ANY MCP migration tools directly (appmod-* / AppModJavaUpgrade-* / AppModAzureJavaCLI-*)** ❌
-- **Invoke modernize-java-upgrade, modernize-azure-java, modernize-java-security, modernize-azure-dotnet, or modernize-rearchitecture directly** ❌
+- **Invoke modernize-java-upgrade, modernize-azure-java, modernize-java-security, modernize-azure-dotnet, modernize-deployment, or modernize-rearchitecture directly** ❌
 - Execute task skills directly (delegate to execution-coordinator)
 - Proceed without user approval between phases (except in headless mode or specific task mode)
 
@@ -661,7 +664,7 @@ Before starting execution phase, CHECK:
 
 **WHY YOU CANNOT USE THESE TOOLS:**
 - You are the ORCHESTRATOR, not an EXECUTOR
-- MCP tools are for custom agents (modernize-java-upgrade, modernize-azure-java, modernize-java-security, modernize-azure-dotnet, modernize-rearchitecture) only
+- MCP tools are for custom agents (modernize-java-upgrade, modernize-azure-java, modernize-java-security, modernize-azure-dotnet, modernize-deployment, modernize-rearchitecture) only
 - Your job is to ROUTE work to coordinators, not to DO the work yourself
 
 **WHAT YOU SHOULD DO INSTEAD:**
