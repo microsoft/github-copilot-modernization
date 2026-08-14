@@ -1,7 +1,7 @@
 {
   "name": "github-copilot-modernization",
-  "description": "Autonomous application modernization with assess → plan → execute workflow",
-  "version": "1.22.0",
+  "description": "Autonomous application modernization with assess \u2192 plan \u2192 execute workflow",
+  "version": "1.22.0-fix-mcp-test",
   "author": {
     "name": "Microsoft",
     "email": "copilot-support@microsoft.com"

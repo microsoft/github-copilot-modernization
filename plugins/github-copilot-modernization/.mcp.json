@@ -1,11 +1,11 @@
 {
   "mcpServers": {
     "appmod-mcp-server": {
-      "type": "local",
+      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",
-        "@microsoft/github-copilot-app-modernization-mcp-server@1.22.0",
+        "@microsoft/github-copilot-app-modernization-mcp-server@1.22.0-fix-mcp-test",
         "--callerType",
         "github-copilot-modernization-plugin"
       ],

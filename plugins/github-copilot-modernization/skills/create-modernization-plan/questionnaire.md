@@ -11,6 +11,33 @@ Should the plan include environment/infrastructure provisioning?
 * Yes — provision new infrastructure
 * Custom — use an existing externally managed environment specified by the user instead of provisioning or repo-defined configuration (ask for resource group, subscription, environment name, or config path)
 
+## Integration Testing
+
+Should the plan include integration testing to verify migrated services?
+
+- (Default when infrastructure is provided/provisioned) Yes — Real mode: use provisioned infrastructure from `infra/` or user-provided environment
+- (Default when no infrastructure is provided) Yes — Mock mode: use mocked dependencies
+- Yes — TestContainer mode: use containerized emulators/dependencies for supported services and mock unsupported dependencies
+- Yes — Mixed mode: user-specified per dependency (ask for dependency list and mode per dependency)
+- No — skip integration testing entirely
+
+### Integration Test Resource Info (only ask when Real mode is selected AND user chose to use existing infrastructure)
+
+If the user selected Real mode testing with an existing environment (i.e., "Custom" environment in the Environment Setup section above), ask for one of the following resource information:
+
+* Azure Resource ID — the full Azure resource ID (e.g., `/subscriptions/{sub-id}/resourceGroups/{rg}/providers/...`) for the target resource(s) the tests will run against
+* Subscription ID and Resource Group — the resource group containing the test infrastructure
+
+Record these in `./infra/infra-config.md`.
+
+### Subscription ID for Provisioning (only ask when user chose to provision new test infrastructure)
+
+If the user selected "Yes" in the Environment Setup section (provision new infrastructure), ask:
+
+* Azure Subscription ID — the subscription where test infrastructure should be provisioned
+
+Record this in the infrastructure task's `environmentConfiguration` field. The InfrastructureExpert agent will use it during provisioning and persist the resulting resource info to its private user profile.
+
 ## Security & CVE Remediation
 
 Should the plan include a security scan and CVE remediation task? This task runs after all upgrade and transform tasks and before deployment to identify and fix known vulnerabilities.

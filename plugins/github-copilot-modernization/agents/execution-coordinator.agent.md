@@ -61,6 +61,7 @@ When a worker agent returns (success OR failure):
 - `modernize-java-security` - For CVE fixes and vulnerability scanning in Java/Maven (in-place fixes only, NOT Azure service integrations)
 - `modernize-azure-dotnet` - For .NET Azure migrations and CVE fixes in NuGet
 - `modernize-deployment` - For infrastructure and deployment tasks: Dockerfiles, Kubernetes/AKS/ACA, Bicep/IaC, CI/CD pipelines
+- `modernize-azure-integration-tester` - For setupBaseline and integrationTest plan tasks
 - `modernize-rearchitecture` - For structural rewrites and rearchitecture (only when task does not match any known scenario)
 
 ## Delegation Workflow
@@ -141,6 +142,7 @@ You have access to specialized migration agents for application modernization:
 - **modernize-java-security**: CVE vulnerability scanning and fixes in Java/Maven dependencies (in-place fixes only)
 - **modernize-azure-dotnet**: .NET Azure migrations and CVE fixes in NuGet dependencies
 - **modernize-deployment**: Infrastructure and deployment tasks (Dockerfiles, Kubernetes/AKS/ACA, Bicep/IaC, CI/CD pipelines)
+- **modernize-azure-integration-tester**: Java setupBaseline and integrationTest plan tasks
 - **modernize-rearchitecture**: Structural rewrites only when the task does not match any known scenario
 
 These agents query the MCP knowledge base directly for migration patterns and best practices.
@@ -326,7 +328,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
 4. **Delegate Task Execution (LANGUAGE & DOMAIN-BASED)**
 
    **Language Detection Rule:** Check `tasks.json` → `metadata.language` field:
-   - `"java"` → Route to Java agents (modernize-java-upgrade, modernize-azure-java, or modernize-java-security)
+   - `"java"` → Route Java upgrade, migration, security, and integration test plan tasks to the appropriate Java agents.
    - `"dotnet"` → Route ALL tasks to `modernize-azure-dotnet`
 
    **ALL tasks must be delegated. Group related tasks to minimize delegations:**
@@ -352,6 +354,56 @@ Workers use the provided branch (skipping their own branch creation) but generat
 
    **Remaining Tasks** (config fixes, Dockerfile, passwordless auth, etc.):
    - Bundle small remaining tasks into ONE delegation to `modernize-azure-java` as the fallback agent
+
+   **Integration Testing Plan Tasks**:
+   - Applies to Java plans that contain `setupBaseline` or `integrationTest` tasks.
+   - `setupBaseline` → ONE delegation to `modernize-azure-integration-tester` as an independent baseline task.
+   - `integrationTest` → ONE delegation to `modernize-azure-integration-tester` after all declared dependencies complete.
+   - These task types are owned by `modernize-azure-integration-tester`.
+   - The tester agent delegates setup baseline work to `create-test-baseline` and verification work to `verify-test-baseline`.
+   - For `setupBaseline`, include the snapshot contract in the delegation prompt: snapshot source to a temp location before analysis, build the baseline from the snapshot, then copy only frozen baseline artifacts back to the live project's `<test-source-root>/test-cases/` folder.
+   - For both IT task types, require `.metadata/summary.json` updates using `skills/create-modernization-plan/summary-schema.json` and keep `goalStatus` out of `tasks.json`.
+
+   **Example - Setup Baseline:**
+
+   Delegate to `modernize-azure-integration-tester` subagent with prompt:
+   ```
+   Execute setupBaseline task.
+   Call skill create-test-baseline to set up the frozen behavior baseline before any modernization changes.
+   This task may run in parallel with transform/upgrade tasks. Before analyzing the application, snapshot the project source folder to a temporary location. Build the baseline from that snapshot, not from the live workspace. Copy only the frozen baseline artifacts back to the live project's <test-source-root>/test-cases/ folder. If snapshot creation fails, stop and mark/report this task as failed; do not build a baseline from the live workspace.
+
+   TaskId: 000-setupBaseline
+   TaskType: setupBaseline
+   Description: Capture the pre-modernization behavior baseline.
+   Requirements: Create a test-cases.md baseline for the requested integration tests.
+   BRANCH: modernize/java-<timestamp>
+   Workspace: /path/to/app
+   Plan path: .github/modernize/<plan-name>/plan.md
+   modernization-work-folder: .github/modernize/<plan-name>
+   Summary contract: update .github/modernize/<plan-name>/.metadata/tasks.json with task status and taskSummary. Append/update .github/modernize/<plan-name>/.metadata/summary.json using skills/create-modernization-plan/summary-schema.json with id, type "setupBaseline", goalStatus.totalTestCases, passed, failed, allCasesPassed when known, testCasesFile, plus risks and followUps arrays. Do not put goalStatus in tasks.json.
+   The coordinator has already created and checked out this branch — you are already on it. Do not create or switch branches yourself; commit directly on the current HEAD.
+   ```
+
+   **Example - Integration Test:**
+
+   Delegate to `modernize-azure-integration-tester` subagent with prompt:
+   ```
+   Execute integrationTest task.
+   Call skill verify-test-baseline to rerun the frozen baseline against the new implementation and generate integration tests from that baseline.
+   Verify all declared dependencies have completed before generating integration tests. Use the frozen <test-source-root>/test-cases/ artifacts as the source of truth. Do not regenerate or amend the baseline unless the verify-test-baseline re-freeze cycle explicitly requires it. Mark success only after the generated *PostMigrationIT tests actually run with non-zero execution evidence and pass.
+
+   TaskId: 005-integrationTest
+   TaskType: integrationTest
+   Description: Verify the completed migration with integration tests.
+   Requirements: Reuse the frozen baseline and generate integration tests for the migrated implementation.
+   BRANCH: modernize/java-<timestamp>
+   Workspace: /path/to/app
+   Plan path: .github/modernize/<plan-name>/plan.md
+   modernization-work-folder: .github/modernize/<plan-name>
+   Summary contract: update .github/modernize/<plan-name>/.metadata/tasks.json with task status and taskSummary. Append/update .github/modernize/<plan-name>/.metadata/summary.json using skills/create-modernization-plan/summary-schema.json with id, type "integrationTest", goalStatus.totalTestCases, passed, failed, testCasesFile, plus risks and followUps arrays. Do not put goalStatus in tasks.json.
+   Infra blocker handling: use .github/modernize/env.md or ./infra/infra-config.md first. If real-resource connection info or infra/auth repair is still needed and no InfrastructureExpert/request tool is available, ask the user via available ask tools and keep the task pending until resolved or exhausted.
+   The coordinator has already created and checked out this branch — you are already on it. Do not create or switch branches yourself; commit directly on the current HEAD.
+   ```
 
    **Example - Log migration (log-to-console KB):**
 
@@ -435,15 +487,19 @@ Workers use the provided branch (skipping their own branch creation) but generat
 5. **Task Dependency Management**
    - Execute independent tasks in parallel
    - Wait for dependencies before starting dependent tasks
+   - `setupBaseline` tasks are first-class tasks. They normally have no dependencies and code-changing tasks should not be blocked by them unless `tasks.json` explicitly declares that dependency.
+   - `integrationTest` tasks are first-class tasks and must run only after all declared dependencies complete, including `setupBaseline` and the modernization tasks being verified.
    - Track task completion status
    - **Propagate context between tasks**: If `modernize-java-upgrade` upgrades the Java version (e.g., 17 → 21), note the new target JDK version and pass it to subsequent delegations so workers use the correct JDK for builds (e.g., include `Target JDK: 21` or `jdkPath: C:\JDK\jdk-21...` in the delegation prompt)
 
 6. **Collect Results (DO NOT RE-DELEGATE)**
    - Take each worker's return text as the final result for that task
    - Do NOT read changed files, do NOT run builds, do NOT delegate again
+   - For `setupBaseline` and `integrationTest`, the worker must update `.metadata/summary.json` with the observed goalStatus fields. If the worker reports an infra/auth/user-input blocker, keep the task `pending` rather than converting it to `success`.
 
 7. **Return to Orchestrator**
    - Summary: Completed tasks, failed tasks, execution time
+   - Include IT goal-status highlights when present: setup baseline test-case count and `testCasesFile`, integration test executed/passed/failed counts, and any IT risks/followUps.
 
 ### Mode 2: Specific Task Intent (task-details provided)
 
@@ -461,6 +517,7 @@ Workers use the provided branch (skipping their own branch creation) but generat
      - Azure migration tasks or any known migration scenario → `modernize-azure-java`
      - CVE / vulnerability fix (Java/Maven) → `modernize-java-security`
      - .NET Azure migration or .NET CVE fix → `modernize-azure-dotnet`
+     - Java setupBaseline or integrationTest plan tasks → `modernize-azure-integration-tester`
      - Structural rewrite / rearchitecture (ONLY when no known scenario matches) → `modernize-rearchitecture`
    - **Routing rule**: Route by task type — upgrades to `modernize-java-upgrade`, technology migrations to `modernize-azure-java`, security fixes to `modernize-java-security`. Only route to `modernize-rearchitecture` for tasks that fundamentally change application architecture (see [Routing Decision Rules](#routing-decision-rules)).
    - Include rulebook context in delegation prompt
@@ -494,10 +551,11 @@ Route by **task type**, using this priority order:
 3. **CWE fix** (rule-based code remediation per CWE id) → `modernize-azure-java`
 4. **Credential migration to Azure Key Vault** (adds Azure SDK) → `modernize-azure-java`
 5. **.NET tasks** → `modernize-azure-dotnet`
-6. **Technology migration matching a known scenario** (see list below) → `modernize-azure-java`
-7. **Infrastructure/deployment task** (Dockerfile, K8s, AKS/ACA, Bicep, CI/CD) → `modernize-deployment`
-8. **No matching scenario + requires structural rewrite** → `modernize-rearchitecture`
-9. **No matching scenario + NOT structural rewrite** → `modernize-azure-java` (fallback, let worker search KB at runtime)
+6. **Java integration testing task** (`setupBaseline`, `integrationTest`) → `modernize-azure-integration-tester`
+7. **Technology migration matching a known scenario** (see list below) → `modernize-azure-java`
+8. **Infrastructure/deployment task** (Dockerfile, K8s, AKS/ACA, Bicep, CI/CD) → `modernize-deployment`
+9. **No matching scenario + requires structural rewrite** → `modernize-rearchitecture`
+10. **No matching scenario + NOT structural rewrite** → `modernize-azure-java` (fallback, let worker search KB at runtime)
 
 ### Known Scenarios — KB-backed (→ `modernize-azure-java`)
 
@@ -578,6 +636,8 @@ If a task does NOT match any known scenario but is a simple technology swap → 
 | dotnet-azure-migration / dotnet-cve-fix | `modernize-azure-dotnet` | .NET Azure migration or CVE fixes |
 | deployment | `modernize-deployment` | Deployment to Azure to Container Apps, AKS, App Service |
 | containerization | `modernize-deployment` | Containerization (Dockerfile generation, Docker image validation, Kubernetes preparation) |
+| setupBaseline | `modernize-azure-integration-tester` | Capture pre-modernization behavior baseline for requested integration tests |
+| integrationTest | `modernize-azure-integration-tester` | Verify migrated implementation with requested integration tests |
 | rearchitecture / structural-rewrite | `modernize-rearchitecture` | ONLY for fundamental architecture changes (not technology swaps) |
 | database-migration (H2, PostgreSQL, MySQL, etc.) | `modernize-azure-java` | Any database migration uses the same workflow |
 | build-verification / compile-check | Same worker as preceding migration tasks | Verification is part of the migration, not a separate routing |
