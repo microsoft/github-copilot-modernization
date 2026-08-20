@@ -1,0 +1,362 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "solutions",
+    "rules"
+  ],
+  "definitions": {
+    "solutionId": {
+      "type": "string",
+      "enum": [
+        "scan-and-resolve-cwe-vulnerabilities",
+        "scan-and-resolve-cve-vulnerabilities",
+        "activemq-servicebus",
+        "amqp-rabbitmq-servicebus",
+        "java-ee-amqp-rabbitmq-servicebus",
+        "ibm-mq-jms-to-azure-service-bus",
+        "javax.email-send-to-azure-communication-service-email",
+        "jax-rpc-to-jax-ws",
+        "java-version-upgrade",
+        "deprecated-api-upgrade",
+        "spring-framework-upgrade",
+        "spring-boot-upgrade",
+        "jakarta-ee-upgrade",
+        "confluent-cloud-kafka",
+        "kafka-to-eventhubs",
+        "other-cache-solutions-to-azure-managed-cache",
+        "log-to-console",
+        "mi-azure-sql",
+        "mi-cassandra",
+        "mi-mariadb",
+        "mi-mongodb",
+        "mi-mysql",
+        "mi-postgresql",
+        "AWS-secrets-manager-to-azure-key-vault",
+        "certificate-management-to-azure-key-vault",
+        "local-files-to-mounted-azure-storage",
+        "on-premises-user-authentication-to-microsoft-entra-id",
+        "plaintext-credential-to-azure-keyvault",
+        "s3-to-azure-blob-storage",
+        "spring-jms-rabbitmq-servicebus",
+        "sqs-to-servicebus",
+        "bare/redesign-java-gui-app",
+        "bare/apm-to-application-insights",
+        "bare/encoding-standards",
+        "bare/local-resource-access",
+        "bare/remote-communication",
+        "bare/remote-communication/java-socket",
+        "bare/remote-communication/corba",
+        "bare/remote-communication/hardcode-ip",
+        "bare/remote-communication/secure-protocols",
+        "bare/remote-communication/hardcoded-urls",
+        "bare/appserver-api-migration-to-standard-java",
+        "bare/os-compatibility",
+        "bare/java-native-code",
+        "bare/jakataee-to-azure",
+        "bare/jakataee-to-azure/rmi",
+        "bare/jakataee-to-azure/jca",
+        "bare/configuration-management/environment-variables",
+        "bare/configuration-management/external-configuration",
+        "bare/configuration-management/windows-registry",
+        "bare/spring-migration",
+        "bare/eap-migration/jboss-eap",
+        "bare/azure-service-connector",
+        "bare/aws-region-configuration-to-azure",
+        "bare/spring-cloud-vault-migration",
+        "bare/aws-credentials-to-azure",
+        "bare/openliberty-migration/openliberty-database",
+        "bare/openliberty-migration/openliberty-filesystem",
+        "bare/openliberty-migration/openliberty-jms",
+        "bare/openliberty-migration/openliberty-logging",
+        "bare/database-migration/database-reliability",
+        "bare/oraclejdk-to-openjdk/resource-management-apis",
+        "bare/oraclejdk-to-openjdk/imageio",
+        "bare/jakarta-auth-migration",
+        "bare/jakarta-websocket-migration",
+        "bare/jakarta-jaxrs-migration",
+        "bare/jakarta-nosql-migration",
+        "bare/jakarta-persistence-migration",
+        "bare/jakarta-data-migration",
+        "bare/jboss-eap-to-azure-app-service",
+        "bare/jboss-eap-to-aks",
+        "bare/jboss-eap-to-azure-container-apps",
+        "bare/weblogic-to-azure-app-service",
+        "bare/weblogic-to-aks",
+        "bare/weblogic-to-azure-container-apps",
+        "bare/websphere-to-azure-app-service",
+        "bare/websphere-to-aks",
+        "bare/websphere-to-azure-container-apps",
+        "azure-legacy-java-sdk-upgrade",
+        "oracle-to-postgresql",
+        "eclipse-project-to-maven-project",
+        "ant-project-to-maven-project",
+        "containerization-copilot-agent",
+        "google-gcr-to-azure-acr",
+        "spring-cloud-config-to-azure-app-configuration",
+        "sybase-ase-to-azure-postgresql",
+        "sybase-ase-to-azure-sql-database",
+        "google-firestore-to-azure-cosmos-db",
+        "google-cloud-bigtable-to-azure-cosmos-db",
+        "google-cloud-spanner-to-azure-postgresql",
+        "apache-pulsar-to-azure-event-hubs",
+        "ibm-db2-to-azure-postgresql",
+        "firebird-to-azure-postgresql",
+        "sqlite-to-azure-postgresql",
+        "google-cloud-functions-to-azure-functions",
+        "aws-lambda-to-azure-functions",
+        "quartz-scheduler-to-azure-functions",
+        "spring-batch-to-azure-durable-functions",
+        "google-cloud-storage-to-azure-blob-storage",
+        "amazon-sns-to-azure-service-bus",
+        "tibco-ems-jms-to-azure-service-bus",
+        "solace-pubsub-to-azure-service-bus",
+        "amazon-kinesis-to-azure-event-hubs",
+        "google-cloud-pub-sub-to-azure-service-bus",
+        "bare/aws-bedrock-to-azure-ai",
+        "bare/weak-cryptography",
+        "bare/insecure-tls",
+        "bare/hardcoded-credentials",
+        "bare/insecure-random",
+        "bare/thirdparty-generic"
+      ],
+      "description": "Canonical solution identifier used by this schema for both Formula and Chat solutions. Many IDs map to existing formula/kb folder names for compatibility, but this field should be treated as an opaque stable ID. Add new solution IDs to this enum before referencing them in rules or solution entries."
+    },
+    "solutionEntry": {
+      "type": "object",
+      "required": [
+        "solutionId",
+        "name",
+        "type",
+        "tooltip"
+      ],
+      "properties": {
+        "solutionId": {
+          "$ref": "#/definitions/solutionId"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "Formula",
+            "Chat"
+          ],
+          "description": "The type of the solution. Formula: formulas were built for this solution or a prompt is sent to the Agent mode for code migration. Chat: a prompt is sent to the Chat mode for more guidance."
+        },
+        "description": {
+          "type": [
+            "string"
+          ]
+        },
+        "effort": {
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ],
+          "description": "The estimated effort to do the migration."
+        },
+        "prompt": {
+          "type": [
+            "string"
+          ],
+          "description": "The prompt that is sent to Copilot Chat or Agent mode for assistance."
+        },
+        "variants": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/solutionId"
+          }
+        },
+        "tooltip": {
+          "type": "string",
+          "description": "A tooltip is shown in the UI to provide more information about the solution."
+        },
+        "experimental": {
+          "type": "boolean",
+          "description": "Whether the solution is experimental and to use the scenario name instead of kbId format when invoking this solution. When true, the solution will be invoked using the scenario name instead of 'by kbId: <id>' format."
+        }
+      },
+      "if": {
+        "properties": {
+          "type": {
+            "const": "Chat"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "prompt"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "prompt"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URI reference to the schema"
+    },
+    "solutions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/solutionEntry"
+      },
+      "description": "List of solutions that are available for the rules. The solutionId is used to reference the solution in the rules."
+    },
+    "rules": {
+      "type": "array",
+      "description": "List of rules that are used to assess the application.",
+      "items": {
+        "type": "object",
+        "required": [
+          "ruleId"
+        ],
+        "properties": {
+          "ruleId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The rule ID in AppCat. Should be unique across all rules."
+          },
+          "sourceCategory": {
+            "enum": [
+              "activemq",
+              "activemq-artemis",
+              "ant",
+              "apm-dynatrace",
+              "apm-elastic",
+              "apm-newrelic",
+              "aws-credentials",
+              "aws-region-configuration",
+              "aws-s3",
+              "aws-secrets-manager",
+              "aws-sqs",
+              "cassandra",
+              "corba",
+              "rmi",
+              "jca",
+              "environment-variables",
+              "hardcode-ip",
+              "secure-protocols",
+              "hardcoded-urls",
+              "eclipse",
+              "external-configuration",
+              "windows-registry",
+              "http-session",
+              "jms-ibm-mq",
+              "java-mail",
+              "java-socket",
+              "javafx",
+              "javax-swing",
+              "jboss-eap",
+              "jni-native-code",
+              "kafka",
+              "local-file-system",
+              "localhost",
+              "logstash",
+              "mariadb",
+              "microsoft-sql",
+              "mongodb",
+              "mysql",
+              "oauth2",
+              "openid",
+              "opensaml",
+              "postgresql",
+              "quartz-scheduler",
+              "redis",
+              "saml",
+              "webform-auth",
+              "splunk",
+              "spring-amqp-rabbitmq",
+              "java-ee-amqp-rabbitmq",
+              "spring-cloud",
+              "spring-boot",
+              "spring-framework",
+              "java-ee/jakarta-ee",
+              "spring-cloud-vault",
+              "spring-jms-rabbitmq",
+              "spring-security",
+              "tanzu-application-service",
+              "zipkin",
+              "openliberty-database",
+              "openliberty-filesystem",
+              "openliberty-jms",
+              "openliberty-logging",
+              "oracle",
+              "google-pubsub",
+              "google-gcr",
+              "sybase-ase",
+              "google-firestore",
+              "google-cloud-bigtable",
+              "google-cloud-spanner",
+              "apache-pulsar",
+              "ibm-db2",
+              "firebird",
+              "sqlite",
+              "google-cloud-functions",
+              "aws-lambda",
+              "spring-batch",
+              "google-cloud-storage",
+              "amazon-sns",
+              "tibco-ems-jms",
+              "solace-pubsubplus",
+              "amazon-kinesis",
+              "aws-bedrock",
+              "jakarta-auth",
+              "jakarta-websocket",
+              "jakarta-jaxrs",
+              "jakarta-nosql",
+              "jakarta-persistence",
+              "jakarta-data",
+              "weblogic-to-azure-app-service",
+              "weblogic-to-aks",
+              "weblogic-to-azure-container-apps",
+              "jboss-eap-to-azure-app-service",
+              "jboss-eap-to-aks",
+              "jboss-eap-to-azure-container-apps",
+              "websphere-to-azure-app-service",
+              "websphere-to-aks",
+              "websphere-to-azure-container-apps"
+            ],
+            "description": "The source category of the rule. This is mainly used to determine the solution when category is not enough."
+          },
+          "solution": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/solutionId"
+              }
+            ],
+            "description": "The solution that is used to handle this rule."
+          },
+          "prompt": {
+            "type": [
+              "string"
+            ],
+            "description": "The prompt that is sent to Copilot for assistance, before we have a solution."
+          },
+          "notes": {
+            "type": [
+              "string"
+            ],
+            "description": "Implementation notes for the rule. Provides future direction for the rule."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -11,40 +11,38 @@ user-invocable: true
 disable-model-invocation: false
 ---
 
-# Integration Tests for Modernized Java Applications
-
 ## Language Support
 
 **This skill supports Java projects only.** If the source code is not Java (e.g., .NET, Python, Node.js), skip test generation and report that integration tests are not supported for this language.
 
 ## User Input
 - **layer** (Optional): Which layer to test (1, 2, 3, or 4). Default: 1
-- **azure-config** (Optional, Layer 3 only): Azure environment configuration
-- **modernization-work-folder** (Optional): Directory path for generating plan and summary files. Default: `.github/integration-tests`
+- **azure-config** (Optional, Layer 3 only): Azure environment configuration. If not provided, read from `./infra/infra-config.md` or use request tool to obtain configuration.
+- **modernization-work-folder** (Optional): Directory path for generating plan and summary files. Default: `.github`
 - **test-root** (Optional): The root directory for integration tests. Default: current working directory. All application modules found in the directory are included in integration tests.
 
 ## Available references
 
 ### Layer 1: Local Integration Tests
-**Read references/layer1-local-integration.md first**, then create TestContainers-based integration test classes.
+**Read [references/layer1-local-integration.md](references/layer1-local-integration.md) first**, then create TestContainers-based integration test classes.
 
 ### Layer 2: Smoke Tests
-**Read references/layer2-smoke-tests.md first.** Layer 2 uses shell-based smoke tests with docker-compose, NOT JUnit test classes. Follow the exact multi-commit workflow (artifacts → auth → restore) documented in the reference file.
+**Read [references/layer2-smoke-tests.md](references/layer2-smoke-tests.md) first.** Layer 2 uses shell-based smoke tests with docker-compose, NOT JUnit test classes. Follow the exact multi-commit workflow (artifacts → auth → restore) documented in the reference file.
 
 ### Layer 3: Azure Integration Tests
-**Read references/layer3-azure-integration.md first**, then create integration test classes that connect to real Azure services.
+**Read [references/layer3-azure-integration.md](references/layer3-azure-integration.md) first**, then create integration test classes that connect to real Azure services.
 
 ### Layer 4: Behavioral Comparison
-**Read references/layer4-behavioral-comparison.md first**, then create comparison tests that validate behavior matches between old and new implementations.
+**Read [references/layer4-behavioral-comparison.md](references/layer4-behavioral-comparison.md) first**, then create comparison tests that validate behavior matches between old and new implementations.
 
 ### TestContainers Coding References
-- **Azure Service Bus with TestContainers Coding Reference**, see references/azure-servicebus-testcontainers.md
-- **Azure Storage with TestContainers Coding Reference**, see references/azure-storage-testcontainers.md
+- **Azure Service Bus with TestContainers Coding Reference**, see [references/azure-servicebus-testcontainers.md](references/azure-servicebus-testcontainers.md)
+- **Azure Storage with TestContainers Coding Reference**, see [references/azure-storage-testcontainers.md](references/azure-storage-testcontainers.md)
 
 ## Workflow
 
 1. Analyze the project to identify modules that need to be tested and any existing integration tests. If git history is available, analyze past commits to understand which components were modified during modernization and prioritize testing those areas.
-2. Create an integration test plan file at `{modernization-work-folder}/integration-test-plan.md` that outlines:
+2. Create an integration test plan file at `{modernization-work-folder}/integration-tests/integration-test-plan.md` that outlines:
   - Testing strategy and approach for the detected app modules
   - Testing strategy and approach for each layer
   - Identified components requiring integration testing
@@ -58,7 +56,7 @@ disable-model-invocation: false
   - Fix test code if the failure is due to unrealistic test scenarios, incorrect test setup.
   - Execute tests again after fixes
 6. **Only proceed when all tests run and pass**, or exit after 20 attempts
-7. Create an integration test summary file at `{modernization-work-folder}/integration-test-summary.md` that documents:
+7. Create an integration test summary file at `{modernization-work-folder}/integration-tests/integration-test-summary.md` that documents:
   - All integration tests added (with file paths and descriptions)
   - Test coverage improvements achieved
   - Final test execution results
@@ -67,7 +65,7 @@ disable-model-invocation: false
 ## Integration Tests Writing Principles
 
 **CRITICAL - Read Reference Docs First:**
-- **Before starting ANY layer**, read the corresponding reference file in references/ directory
+- **Before starting ANY layer**, read the corresponding reference file in [references/](./references/) directory
 
 Analyze the project if integration tests have covered all components, if not **DO ADD** new integration tests by the following principles:
 
@@ -85,7 +83,7 @@ Analyze the project if integration tests have covered all components, if not **D
 - **DO NOT** add extra modules for integration tests, write integration tests in the existing modules.
 - **DO commit** changes separately for each layer with meaningful commit messages. Do not combine changes from different layers into a single commit.
     - **Layer 1, 3, 4**: Single commit per layer (e.g., `Add Layer 1 local integration tests`). Generate runner scripts and include them in the same commit.
-    - **Layer 2**: Multi-commit sequence as defined in references/layer2-smoke-tests.md (artifacts → auth → restore). **CRITICAL: Layer 2 does NOT create test classes - it uses shell-based smoke tests with docker-compose.** Runner scripts are part of the artifacts commit.
+    - **Layer 2**: Multi-commit sequence as defined in [layer2-smoke-tests.md](./references/layer2-smoke-tests.md) (artifacts → auth → restore). **CRITICAL: Layer 2 does NOT create test classes - it uses shell-based smoke tests with docker-compose.** Runner scripts are part of the artifacts commit.
 
 
 ### Test Isolation Convention
@@ -97,13 +95,13 @@ When multiple layers coexist in the same project, tests must be distinguishable.
 | Layer | Class Name Suffix | Example Class Name |
 |-------|-------------------|--------------------|
 | 1 | `L1Test` | `BlobStorageL1Test`, `OrderServiceL1Test` |
-| 2 | N/A - No test classes | Layer 2 uses shell-based smoke tests, not test classes. See references/layer2-smoke-tests.md |
+| 2 | N/A - No test classes | Layer 2 uses shell-based smoke tests, not test classes. See [layer2-smoke-tests.md](./references/layer2-smoke-tests.md) |
 | 3 | `L3Test` | `AzureSqlL3Test`, `BlobStorageL3Test` |
 | 4 | `L4Test` | `OrderApiL4Test`, `UserServiceL4Test` |
 
 #### Tagging / Category Convention
 
-Test classes for Layers 1, 3, 4 **MUST** be annotated with a layer-specific tag so the runner script can filter precisely. **Layer 2 does not use test classes** (see references/layer2-smoke-tests.md).
+Test classes for Layers 1, 3, 4 **MUST** be annotated with a layer-specific tag so the runner script can filter precisely. **Layer 2 does not use test classes** (see [layer2-smoke-tests.md](./references/layer2-smoke-tests.md)).
 
 | Layer | JUnit 5 | JUnit 4 |
 |-------|---------|---------|
@@ -169,7 +167,7 @@ When integration tests fail during execution, use this framework to determine wh
 **Business Logic Violations**
 - Error indicates source code violates business rules (e.g., negative inventory allowed)
 - Multiple similar tests fail with same pattern
-**Specification Compliance**
+**Specification Compliance**  
 - Source code doesn't implement required functionality properly
 - Error messages show missing or incorrect behavior
 **Cross-Component Integration Issues**
@@ -185,7 +183,7 @@ When integration tests fail during execution, use this framework to determine wh
 
 **Test Implementation Issues**
 - Unrealistic test data or scenarios
-- Incorrect test setup (wrong mocks, invalid configurations)
+- Incorrect test setup (wrong mocks, invalid configurations) 
 - Testing implementation details rather than behavior
 - Race conditions or timing issues in test logic
 **Environmental Problems**
@@ -212,12 +210,12 @@ When integration tests fail during execution, use this framework to determine wh
 ```
 Test Failure
     │
-    ├─ Does test model realistic business scenario?
+    ├─ Does test model realistic business scenario? 
     │   ├─ No → Fix Test Code
     │   └─ Yes ↓
     │
     ├─ Does source code violate business rules?
-    │   ├─ Yes → Fix Source Code
+    │   ├─ Yes → Fix Source Code  
     │   └─ No ↓
     │
     ├─ Is test setup and environment correct?
@@ -257,7 +255,7 @@ After all tests are written, executed, and fixed to pass, generate a fixed runne
 
 ### Runner Script Filtering
 
-**Layers 1, 3, 4** use tag/category filters to execute test classes. **Layer 2 uses shell commands** (see references/layer2-runner-script-templates.md).
+**Layers 1, 3, 4** use tag/category filters to execute test classes. **Layer 2 uses shell commands** (see [layer2-runner-script-templates.md](./references/layer2-runner-script-templates.md)).
 
 | Layer | Maven | Gradle |
 |-------|-------|--------|
@@ -308,7 +306,7 @@ exit $TEST_EXIT
 
 ## Completion Criteria
 
-1. **Integration Test Plan**: Create and output a plan file at `{modernization-work-folder}/integration-test-plan.md` that includes:
+1. **Integration Test Plan**: Create and output a plan file at `{modernization-work-folder}/integration-tests/integration-test-plan.md` that includes:
    - Analysis of existing test coverage gaps
    - Identified components requiring integration testing
    - Testing strategy and approach for each component
@@ -321,10 +319,10 @@ exit $TEST_EXIT
 
 6. **Version Control**: Commit changes separately for each layer with meaningful commit messages. Do not combine changes from different layers into a single commit.
     - **Layer 1, 3, 4**: Single commit per layer including test classes and runner scripts (e.g., `Add Layer 1 local integration tests`)
-    - **Layer 2**: Multi-commit sequence as defined in references/layer2-smoke-tests.md (minimum 3 commits: artifacts → auth → restore). Runner scripts are part of the artifacts commit.
+    - **Layer 2**: Multi-commit sequence as defined in [layer2-smoke-tests.md](./references/layer2-smoke-tests.md) (minimum 3 commits: artifacts → auth → restore). Runner scripts are part of the artifacts commit.
     - **Git ignore respect**: Use standard `git add` commands. Do not force-add files. If files in `{modernization-work-folder}` are ignored by the project's `.gitignore`, respect that.
 
-7. **Integration Test Summary**: Create and output a summary file at `{modernization-work-folder}/integration-test-summary.md` that documents:
+7. **Integration Test Summary**: Create and output a summary file at `{modernization-work-folder}/integration-tests/integration-test-summary.md` that documents:
    - All integration tests added (with file paths and descriptions)
    - Test coverage improvements achieved
    - Issues identified and resolved (both in source code and test code)
@@ -332,13 +330,3 @@ exit $TEST_EXIT
    - Paths to generated runner scripts and the fixed commands to execute them
    - Source code changes made during testing and their purpose
 8. **Runner Scripts**: Generate standardized runner scripts at `{modernization-work-folder}/integration-tests/run-layer{N}-tests.sh` and `.ps1` (see Standardized Runner Scripts section). The scripts must embed all project-specific commands so users always run the same fixed command. Include runner scripts in the layer's commit (for Layer 2, in the artifacts commit).
-
-**Resources:**
-- references/layer1-local-integration.md
-- references/layer2-smoke-tests.md
-- references/layer3-azure-integration.md
-- references/layer4-behavioral-comparison.md
-- references/azure-auth-strategies.md
-- references/azure-servicebus-testcontainers.md
-- references/azure-storage-testcontainers.md
-- references/layer2-runner-script-templates.md

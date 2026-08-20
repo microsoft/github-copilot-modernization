@@ -52,7 +52,7 @@ Given the user input, do this:
     1) Follow the structure of the selected template to generate the plan
     2) Follow the rules defined in the template to fill in the sections with relevant information based on the analysis of user input and content of mentioned files
     3) Save the plan in folder ${modernization-work-folder} with the filename plan.md. If a plan already exists, overwrite it.
-    4) Generate a separate tasks.json file following the tasks-schema.json schema with setupBaseline, infrastructure, upgrade, transform, containerization, and deployment tasks
+    4) Generate a separate tasks.json file following the tasks-schema.json schema with setupBaseline, infrastructure, upgrade, transform, integration test, containerization, and deployment tasks
     5) Save the tasks in folder ${modernization-work-folder}/.metadata/ with the filename tasks.json. If tasks.json already exists, overwrite it.
 
     **Clarification Outcomes in Plan**: Incorporate all clarification answers from steps 3–4 into `plan.md` and `tasks.json`:
@@ -77,9 +77,27 @@ Given the user input, do this:
       - You MUST NOT use the pattern name as the skill name in the generated plan and tasks.json.
       - If there are similar skills defined in project skill `.github/skills/` versus other skills, MUST use the one defined in project.
       - Skills must be fully matched. For migration scenarios, both the source product and target product must match the task intent.
-    - Each task should be independently testable
+    - Each task should be independently testable with integration tests
     - Do not add tests for unimpacted code or existing functionality unless user requested
     - **IMPORTANT**: Do NOT read individual skill files at this stage; Do Not include the skill detail in the tasks.
+
+    **Integration Test Task Rules**: Add an integration test task when EITHER of these conditions is met:
+    1. The user explicitly requests integration testing (e.g., "add integration tests", "generate integration tests", "test the migration")
+    2. The user answers the Integration Testing questionnaire question with any option OTHER than "No — skip integration testing entirely" (including when a default option is inferred because an environment is provided/provisioned)
+
+    When an integration test task is included:
+    - Add an integration test task with type "integrationTest" after all transform/upgrade tasks but before containerization tasks
+    - This integration test task should:
+      - Have id format: "{sequence}-integrationTest" where sequence is the next number after the last migration task (e.g., if last migration is 001, use "002-integrationTest")
+      - Have description: "Build integration tests for migrated Azure services and run post-migration verification"
+      - Have dependencies on ALL of: setupBaseline task ID, infrastructure task ID (if present), and ALL transform/upgrade task IDs. The integrationTest task is the convergence point that waits for all parallel work to complete.
+      - Do NOT store resource IDs, subscription IDs, or connection strings in the task plan. If user provides infra info (resource ID, subscription ID, connection strings), record it in `./infra/infra-config.md`.
+
+     **Baseline Task Rules**: A setupBaseline task is **mandatory whenever an integrationTest task is included** in the plan.
+     - **Parallel execution**: The setupBaseline task and infrastructure task run in **parallel** with no dependencies between them. The setupBaseline task snapshots the source folder and operates on the snapshot, so it is not affected by concurrent code changes or infra provisioning. Set `snapshotFolder` to the project's main source directory (relative to project root).
+     - **Transform/upgrade tasks run sequentially**: Upgrade and transform tasks MUST be chained with dependencies (each depends on the previous one) to avoid file conflicts from concurrent code modifications. However, they run in parallel with setupBaseline and infrastructure since they modify different concerns.
+     - **Dependencies**: The setupBaseline task should have NO dependencies (empty `dependencies` array or omit it). Upgrade/transform tasks depend on the previous upgrade/transform task in sequence. Only the `integrationTest` verification task depends on ALL of: setupBaseline, infrastructure (if present), and all transform/upgrade tasks completing.
+     - **Purpose**: setupBaseline produces the frozen test specification (test-cases, testdata) and the **infra-decision-table** — the real/mock strategy for every external dependency used by integration tests. This decision is frozen into the baseline bundle and reused as-is by the verification phase.
 
     **Java Upgrade Task Guidelines**: Only add an upgrade task if the user explicitly requests it. You must refer to the ./java-upgrade-guideline.md for specific rules and guidelines when creating Java upgrade tasks.
 
