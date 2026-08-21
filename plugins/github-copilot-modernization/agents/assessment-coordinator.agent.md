@@ -1,7 +1,6 @@
 ---
 name: assessment-coordinator
 description: Coordinates assessment phase using MCP tools
-model: 'Claude Opus 4.8'
 user-invocable: false
 hooks:
   UserPromptSubmit:

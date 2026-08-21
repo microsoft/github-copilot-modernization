@@ -46,7 +46,6 @@ tools:
   - appmod-mcp-server/appmod-consistency-validation
   - appmod-mcp-server/appmod-create-migration-summary
   - appmod-mcp-server/appmod-fetch-knowledgebase
-  - appmod-mcp-server/appmod-preview-markdown
   - appmod-mcp-server/appmod-run-task
   - appmod-mcp-server/appmod-search-file
   - appmod-mcp-server/appmod-search-knowledgebase
@@ -59,7 +58,6 @@ tools:
   - appmod-mcp-server/appmod-install-jdk
   - appmod-mcp-server/appmod-install-maven
 
-model: 'Claude Sonnet 4.6'
 
 hooks:
   UserPromptSubmit:

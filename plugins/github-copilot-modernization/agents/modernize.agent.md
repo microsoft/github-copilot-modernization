@@ -1,7 +1,6 @@
 ---
 name: modernize
 description: 'Use for all application modernization tasks: upgrade Java, upgrade Spring Boot, fix CVEs, fix vulnerabilities, patch dependencies, assess codebase, migrate to Azure, migrate Java to Azure, migrate .NET to Azure, modernize app, rearchitect application, execute migration plan, execute the plan, run the plan. Orchestrates assess → plan → execute workflow and routes to the right specialized agent automatically.'
-model: 'Claude Opus 4.8'
 user-invocable: true
 hooks:
   SessionStart:

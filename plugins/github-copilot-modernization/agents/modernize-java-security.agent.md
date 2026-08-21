@@ -1,7 +1,6 @@
 ---
 name: 'modernize-java-security'
 description: 'Scan and fix CVE vulnerabilities in Java project dependencies.'
-model: 'Claude Sonnet 4.6'
 argument-hint: 'Fix CVE vulnerabilities'
 user-invocable: true
 tools:
@@ -218,5 +217,4 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
    - `pom.xml`: added `javax.annotation:javax.annotation-api:1.3.2` dependency
    ```
 
-4. **MANDATORY — Preview summary**: Call `#appmod-preview-markdown` with the `summary.md` file path to open it for the user. Do NOT skip this step — the user must see the results.
-
+4. **Preview summary (VS Code only)**: If `#appmod-preview-markdown` is available, call it with the `summary.md` file path. If unavailable or preview fails, continue successfully and return the saved summary path; preview failure does not block completion.

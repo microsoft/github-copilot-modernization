@@ -1,7 +1,6 @@
 ---
 name: 'modernize-azure-integration-tester'
 description: orchestrated by coordinator agent to test the application, including capturing the frozen behavior spec before change, and generating + running post-migration tests against the new implementation after code change
-model: 'Claude Sonnet 4.6'
 argument-hint: 'Execute setupBaseline or integrationTest task'
 user-invocable: false
 tools:
@@ -34,7 +33,6 @@ tools:
   - appmod-mcp-server/appmod-dotnet-build-project
   - appmod-mcp-server/appmod-dotnet-run-test
   - appmod-mcp-server/appmod-search-file
-  - appmod-mcp-server/appmod-preview-markdown
   - appmod-mcp-server/appmod-version-control
   - appmod-mcp-server/appmod-create-migration-summary
   - appmod-build-java-project
