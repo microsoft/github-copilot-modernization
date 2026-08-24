@@ -1,6 +1,7 @@
 ---
 name: building-java-knowledge-graph
 description: Analyzes JVM projects (Java/Kotlin/Scala/Groovy) and generates knowledge graphs with tree-sitter parsing. Requires Python 3 on the host and a JVM project with Maven/Gradle/Ant/Ivy build files. Skips gracefully if either prerequisite is missing. Triggers when asked to "build knowledge graph", "analyze project structure", "parse Java codebase", or "generate dependency graph".
+user-invocable: false
 ---
 
 

@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "attempt-request.schema.json",
+  "title": "Batch phase attempt request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "batchId",
+    "invocationId",
+    "repoId",
+    "executionUnitId",
+    "workspacePath",
+    "scopeRoots",
+    "assessmentCliPath",
+    "runId",
+    "language",
+    "phase",
+    "attempt",
+    "mode",
+    "userRequest",
+    "phaseApproved",
+    "resultPath",
+    "inputArtifacts",
+    "decisions"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "batchId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "invocationId": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9-]{36}$"
+    },
+    "repoId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "executionUnitId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]{0,255}$"
+    },
+    "workspacePath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scopeRoots": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "assessmentCliPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "language": {
+      "enum": [
+        "java",
+        "dotnet",
+        "javascript",
+        "typescript"
+      ]
+    },
+    "phase": {
+      "enum": [
+        "assessment",
+        "planning",
+        "execution"
+      ]
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "mode": {
+      "const": "batch-headless"
+    },
+    "userRequest": {
+      "type": "string",
+      "minLength": 1
+    },
+    "phaseApproved": {
+      "type": "boolean"
+    },
+    "resultPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inputArtifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "decisions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domains", "analysisCoverage", "maxConcurrency"],
+      "properties": {
+        "domains": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": { "enum": ["security", "cloud-readiness", "java-upgrade"] }
+        },
+        "analysisCoverage": { "enum": ["issue-only", "full"] },
+        "maxConcurrency": { "type": "integer", "minimum": 1, "maximum": 7 },
+        "targetRuntime": { "type": "string", "minLength": 1 },
+        "targetComputeServices": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "enableContainerization": { "type": "boolean" },
+        "targetOS": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "minimumCveSeverity": { "type": "string", "minLength": 1 },
+        "cveScanScope": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

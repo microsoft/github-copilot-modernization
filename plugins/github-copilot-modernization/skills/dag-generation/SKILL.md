@@ -11,6 +11,7 @@ NOT for:
   - Pure architecture analysis (use analyzing-architecture)
   - Grouping / topology decisions (coordinator handles directly)
   - Recon / measurement (use project-recon FIRST)
+user-invocable: false
 ---
 
 # DAG Generation

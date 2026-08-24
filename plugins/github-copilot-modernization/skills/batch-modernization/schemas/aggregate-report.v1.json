@@ -1,0 +1,319 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aggregate-report.v1.json",
+  "title": "Plugin Batch Assessment aggregate report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "version",
+    "producer",
+    "platform",
+    "metadata",
+    "summary",
+    "projects",
+    "rules",
+    "extensions",
+    "apps"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "version": { "const": "1.0.0" },
+    "producer": { "const": "GitHub Copilot Modernization Plugin" },
+    "platform": { "const": "copilot-cli-plugin" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "batchId",
+        "generatedAt",
+        "analysisStartTime",
+        "analysisEndTime",
+        "status",
+        "domains",
+        "mode",
+        "repos"
+      ],
+      "properties": {
+        "schema": { "const": "github-copilot-modernization/batch-assessment/v1" },
+        "batchId": { "type": "string", "minLength": 1 },
+        "generatedAt": { "type": "string", "minLength": 1 },
+        "analysisStartTime": { "type": "string", "minLength": 1 },
+        "analysisEndTime": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["completed", "completed_with_issues", "failed"] },
+        "domains": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "mode": { "enum": ["issue-only", "full"] },
+        "repos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "identity",
+              "name",
+              "path",
+              "sourceRepo",
+              "appIdentifiers",
+              "status",
+              "language",
+              "reportPath"
+            ],
+            "properties": {
+              "identity": { "type": "string", "minLength": 1 },
+              "name": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "minLength": 1 },
+              "sourceRepo": { "type": "string", "minLength": 1 },
+              "appIdentifiers": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "status": {
+                "enum": ["completed", "completed_with_issues", "protocol_error", "failed", "interrupted"]
+              },
+              "language": { "enum": ["java", "dotnet", "javascript", "typescript"] },
+              "reportPath": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "totalProjects",
+        "totalIssues",
+        "totalIncidents",
+        "totalEffort"
+      ],
+      "properties": {
+        "totalProjects": { "type": "integer", "minimum": 0 },
+        "totalIssues": { "type": "integer", "minimum": 0 },
+        "totalIncidents": { "type": "integer", "minimum": 0 },
+        "totalEffort": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["properties", "incidents"],
+        "properties": {
+          "properties": { "type": "object" },
+          "incidents": { "type": "array" }
+        }
+      }
+    },
+    "rules": { "type": "object" },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["github-copilot-modernization"],
+      "properties": {
+        "github-copilot-modernization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema", "batchId", "status", "counts", "assessmentConfig", "topRecommendations", "planningSupported", "repositories"],
+          "properties": {
+            "schema": { "const": "github-copilot-modernization/batch-assessment/v1" },
+            "batchId": { "type": "string", "minLength": 1 },
+            "status": { "enum": ["completed", "completed_with_issues", "failed"] },
+            "counts": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["total", "completed", "completedWithIssues", "failed", "findings", "actionableFindings", "trackedFindings", "bySeverity", "byState"],
+              "properties": {
+                "total": { "type": "integer", "minimum": 0 },
+                "completed": { "type": "integer", "minimum": 0 },
+                "completedWithIssues": { "type": "integer", "minimum": 0 },
+                "failed": { "type": "integer", "minimum": 0 },
+                "findings": { "type": "integer", "minimum": 0 },
+                "actionableFindings": { "type": "integer", "minimum": 0 },
+                "trackedFindings": { "type": "integer", "minimum": 0 },
+                "bySeverity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["critical", "high", "medium", "low", "info"],
+                  "properties": {
+                    "critical": { "type": "integer", "minimum": 0 },
+                    "high": { "type": "integer", "minimum": 0 },
+                    "medium": { "type": "integer", "minimum": 0 },
+                    "low": { "type": "integer", "minimum": 0 },
+                    "info": { "type": "integer", "minimum": 0 }
+                  }
+                },
+                "byState": {
+                  "type": "object",
+                  "additionalProperties": { "type": "integer", "minimum": 0 }
+                }
+              }
+            },
+            "assessmentConfig": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "targetRuntime": { "type": "string", "minLength": 1 },
+                "targetComputeServices": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+                "enableContainerization": { "type": "boolean" },
+                "targetOS": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+                "minimumCveSeverity": { "type": "string", "minLength": 1 },
+                "cveScanScope": { "type": "string", "minLength": 1 }
+              }
+            },
+            "topRecommendations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["identity", "kind", "summary", "nextAction", "prefilledPrompt"],
+                "properties": {
+                  "identity": { "type": "string", "minLength": 1 },
+                  "kind": { "type": "string", "minLength": 1 },
+                  "summary": { "type": "string", "minLength": 1 },
+                  "nextAction": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+                  "prefilledPrompt": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+                }
+              }
+            },
+            "planningSupported": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["supported", "unsupported", "unavailable"],
+              "properties": {
+                "supported": { "type": "integer", "minimum": 0 },
+                "unsupported": { "type": "integer", "minimum": 0 },
+                "unavailable": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "repositories": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["identity", "repoId", "executionUnitId", "status", "language", "workspacePath", "reports", "findings", "assessmentConfig", "topRecommendation", "planningSupported", "errors"],
+                "properties": {
+                  "identity": { "type": "string", "minLength": 1 },
+                  "repoId": { "type": "string", "minLength": 1 },
+                  "executionUnitId": { "type": "string", "minLength": 1 },
+                  "status": { "enum": ["completed", "completed_with_issues", "protocol_error", "failed", "interrupted"] },
+                  "language": { "enum": ["java", "dotnet", "javascript", "typescript"] },
+                  "workspacePath": { "type": "string", "minLength": 1 },
+                  "reports": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["json", "html", "facts", "digests"],
+                        "properties": {
+                          "json": { "type": "string", "minLength": 1 },
+                          "html": { "type": "string", "minLength": 1 },
+                          "facts": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+                          "digests": { "type": "object", "additionalProperties": { "type": "string", "pattern": "^sha256:[A-Fa-f0-9]{64}$" } }
+                        }
+                      },
+                      { "type": "null" }
+                    ]
+                  },
+                  "findings": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["total", "actionable", "tracked", "categories", "security", "bySeverity", "byState"],
+                    "properties": {
+                      "total": { "type": "integer", "minimum": 0 },
+                      "actionable": { "type": "integer", "minimum": 0 },
+                      "tracked": { "type": "integer", "minimum": 0 },
+                      "categories": { "type": "integer", "minimum": 0 },
+                      "security": { "type": "integer", "minimum": 0 },
+                      "bySeverity": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["critical", "high", "medium", "low", "info"],
+                        "properties": {
+                          "critical": { "type": "integer", "minimum": 0 },
+                          "high": { "type": "integer", "minimum": 0 },
+                          "medium": { "type": "integer", "minimum": 0 },
+                          "low": { "type": "integer", "minimum": 0 },
+                          "info": { "type": "integer", "minimum": 0 }
+                        }
+                      },
+                      "byState": {
+                        "type": "object",
+                        "additionalProperties": { "type": "integer", "minimum": 0 }
+                      }
+                    }
+                  },
+                  "assessmentConfig": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "targetRuntime": { "type": "string", "minLength": 1 },
+                          "targetComputeServices": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+                          "enableContainerization": { "type": "boolean" },
+                          "targetOS": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+                          "minimumCveSeverity": { "type": "string", "minLength": 1 },
+                          "cveScanScope": { "type": "string", "minLength": 1 }
+                        }
+                      },
+                      { "type": "null" }
+                    ]
+                  },
+                  "topRecommendation": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["kind", "summary", "nextAction", "prefilledPrompt"],
+                        "properties": {
+                          "kind": { "type": "string", "minLength": 1 },
+                          "summary": { "type": "string", "minLength": 1 },
+                          "nextAction": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+                          "prefilledPrompt": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+                        }
+                      },
+                      { "type": "null" }
+                    ]
+                  },
+                  "planningSupported": {
+                    "anyOf": [{ "type": "boolean" }, { "type": "null" }]
+                  },
+                  "errors": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "apps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["identifier", "repos"],
+        "properties": {
+          "identifier": { "type": "string", "minLength": 1 },
+          "repos": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}

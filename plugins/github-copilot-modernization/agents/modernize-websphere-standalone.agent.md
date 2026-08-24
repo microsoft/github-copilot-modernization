@@ -1,6 +1,7 @@
 ---
 name: modernize-websphere-standalone
 description: Migrate Spring Boot on WebSphere Application Server to Spring Boot standalone executable JAR
+user-invocable: false
 ---
 
 # Code Migration: Spring Boot 2.7 on WebSphere Application Server to Spring Boot Standalone

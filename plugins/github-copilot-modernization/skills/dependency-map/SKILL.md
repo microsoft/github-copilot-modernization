@@ -1,6 +1,7 @@
 ---
 name: dependency-map
 description: Generate dependency map diagram from project build files
+user-invocable: false
 ---
 
 # Dependency Map

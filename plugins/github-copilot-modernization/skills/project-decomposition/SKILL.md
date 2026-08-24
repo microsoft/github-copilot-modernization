@@ -4,6 +4,7 @@ description: |
   Single-source codebase decomposition: scans a project scope, builds the module dependency graph, counts LOC by language, computes skip patterns (caller-supplied ∪ .gitignore ∪ baseline), and (when grouping is required) produces topology groupings with L3 quality validation. One skill owns ProjectProfile JSON, grouping protocols, and quality gates.
   Triggers: "before generating a workflow plan", "before topology grouping", "project sizing", "LOC counting", "module grouping", "topology splitting rules", "topology consumer rules", "scale-aware splitting", "large codebase decomposition", "module dependency graph", "scope measurement".
   NOT for: semantic architecture analysis, implementation planning, running tests/builds/linters.
+user-invocable: false
 ---
 
 # Project Decomposition: Recon, Grouping & Validation

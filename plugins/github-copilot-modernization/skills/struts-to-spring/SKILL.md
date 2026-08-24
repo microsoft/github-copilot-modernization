@@ -1,3 +1,9 @@
+---
+name: struts-to-spring
+description: Migration guideline for transforming Apache Struts 2 applications to Spring Boot 3.x and Spring MVC.
+user-invocable: false
+---
+
 # Struts 2 to Spring Boot 3.x Migration Guideline
 
 ## Metadata

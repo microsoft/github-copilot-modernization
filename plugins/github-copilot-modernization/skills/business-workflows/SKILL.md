@@ -1,6 +1,7 @@
 ---
 name: business-workflows
 description: Generate core business workflow documentation with sequence diagram
+user-invocable: false
 ---
 
 # Core Business Workflows

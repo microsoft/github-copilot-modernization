@@ -1,7 +1,7 @@
 ---
 name: modernize-rearchitecture
 description: This custom agent coordinates a multi-agent team to modernize and rearchitect a legacy application. It decomposes the project into analysis, design, and implementation phases, assigns tasks to specialized roles whose definitions live in the `team-charters` skill (charters are the single source of truth for the available role set), and manages execution flow based on task dependencies and quality gates.
-user-invocable: true
+user-invocable: false
 disable-model-invocation: false
 hooks:
   SessionStart:

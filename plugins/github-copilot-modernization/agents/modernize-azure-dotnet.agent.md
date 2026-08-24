@@ -1,7 +1,7 @@
 ---
 name: modernize-azure-dotnet
 description: 'Modernize the .NET application'
-user-invocable: true
+user-invocable: false
 argument-hint: Describe what to modernize (.NET)
 
 tools:

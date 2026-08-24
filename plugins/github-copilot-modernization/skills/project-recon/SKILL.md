@@ -3,6 +3,7 @@ name: project-recon
 description: |
   Zero-dependency shell recon for any code repository — detect languages, count LOC, and report project scale. Pure POSIX find/wc or PowerShell, no Python or third-party tools required.
   Triggers: "how big is this project", "what languages", "project sizing", "repo recon", "LOC count", "scope check".
+user-invocable: false
 ---
 
 # Project Recon: Zero-Dependency Repo Sizing

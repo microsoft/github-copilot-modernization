@@ -1,6 +1,7 @@
 ---
 name: sharing-learnings
 description: How to record project learnings so that later-phase workers and future agent runs can consume them.
+user-invocable: false
 ---
 
 # Sharing Learnings

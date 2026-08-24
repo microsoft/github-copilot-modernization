@@ -1,6 +1,7 @@
 ---
 name: configuration-inventory
 description: Generate comprehensive configuration and externalized settings inventory
+user-invocable: false
 ---
 
 # Configuration & Externalized Settings Inventory

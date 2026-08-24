@@ -1,0 +1,259 @@
+version: 1
+findings:
+  # ── Security: CVE ────────────────────────────────────────────────────
+  - id: cve-known-vulnerabilities::a3f2c19b8e1d
+    skill: cve-known-vulnerabilities
+    source: osv
+    severity: critical
+    title: "CVE-2021-44228 in log4j-core 2.14.1"
+    location: "pom.xml"
+    line: 42
+    first_seen: 2026-05-13T10:42:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: new
+    state_changed_at: 2026-05-13T10:42:11Z
+    state_reason: ""
+    rationale: "Remote code execution via JNDI lookups in logged strings. Patch path is a single property bump in pom.xml; Spring Boot 2.7 manages log4j-core via the spring-boot-dependencies BOM."
+    links:
+      - url: "https://nvd.nist.gov/vuln/detail/CVE-2021-44228"
+        title: "NVD — CVE-2021-44228"
+    runs:
+      - 2026-05-13T10:42:11Z
+      - 2026-05-20T14:22:11Z
+
+  - id: cve-known-vulnerabilities::beef0102dead
+    skill: cve-known-vulnerabilities
+    source: osv
+    severity: high
+    title: "CVE-2022-22965 in spring-beans 5.3.18 (Spring4Shell)"
+    location: "pom.xml"
+    line: 67
+    first_seen: 2026-05-20T14:22:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: new
+    state_changed_at: 2026-05-20T14:22:11Z
+    state_reason: ""
+    rationale: "Remote code execution via crafted ClassLoader access on JDK 9+. Mitigated by upgrading spring-framework to 5.3.20 or later."
+    links:
+      - url: "https://nvd.nist.gov/vuln/detail/CVE-2022-22965"
+        title: "NVD — CVE-2022-22965"
+    runs:
+      - 2026-05-20T14:22:11Z
+
+  # ── Security: CWE ────────────────────────────────────────────────────
+  - id: cwe-injection-attacks::aa11bb22cc33
+    skill: cwe-injection-attacks
+    source: cwe-injection-attacks
+    severity: medium
+    title: "Possible SQL injection in OrderRepository.findByUser"
+    location: "src/main/java/com/acme/orders/OrderRepository.java"
+    line: 42
+    first_seen: 2026-05-13T10:42:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: acknowledged
+    state_changed_at: 2026-05-13T11:05:00Z
+    state_reason: "Reviewed; planned for Q3 sprint"
+    rationale: "String concatenation builds a SQL WHERE clause from a request parameter. Replace with PreparedStatement or the JPA criteria API."
+    runs:
+      - 2026-05-13T10:42:11Z
+      - 2026-05-20T14:22:11Z
+
+  - id: cwe-credentials-secrets::deadbeef9001
+    skill: cwe-credentials-secrets
+    source: cwe-credentials-secrets
+    severity: high
+    title: "Hardcoded database password in application.properties"
+    location: "src/main/resources/application.properties"
+    line: 7
+    first_seen: 2026-05-13T10:42:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: new
+    state_changed_at: 2026-05-13T10:42:11Z
+    state_reason: ""
+    rationale: "spring.datasource.password is a literal in application.properties. Move to an environment variable or, preferably, Azure Key Vault."
+    runs:
+      - 2026-05-13T10:42:11Z
+      - 2026-05-20T14:22:11Z
+
+  - id: cwe-credentials-secrets::deadbeef9002
+    skill: cwe-credentials-secrets
+    source: cwe-credentials-secrets
+    severity: medium
+    title: "Hardcoded S3 access key in S3Uploader"
+    location: "src/main/java/com/acme/orders/storage/S3Uploader.java"
+    line: 18
+    first_seen: 2026-05-20T14:22:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: new
+    state_changed_at: 2026-05-20T14:22:11Z
+    state_reason: ""
+    rationale: "AWS_ACCESS_KEY_ID is hardcoded as a private final String. Use the default credential chain or Managed Identity when migrating off AWS."
+    runs:
+      - 2026-05-20T14:22:11Z
+
+  # ── Cloud readiness (AppCAT) ────────────────────────────────────────
+  - id: appcat::file-system-management::8b1f2c0a4d33
+    skill: appcat::file-system-management
+    source: appcat
+    severity: medium
+    title: "Local file-system usage incompatible with stateless containers"
+    location: "src/main/java/com/acme/orders/io/Reader.java"
+    line: 23
+    occurrences: 5
+    effort: 3
+    rationale: |
+      The application uses Java NIO for file-system access. To migrate to Azure, consider:
+
+       * Use **Azure Files**: Replace local NIO paths with Azure Files SMB shares mounted into the container.
+       * Use **Azure Blob Storage**: For append-only or large-object workloads, switch to the Azure Blob SDK.
+       * Use **ephemeral storage** only for scratch space that does not need to survive container restarts.
+    links:
+      - url: "https://learn.microsoft.com/azure/storage/files/storage-files-introduction"
+        title: "Azure Files documentation"
+    locations:
+      - file: "src/main/java/com/acme/orders/io/Reader.java"
+        line: 23
+      - file: "src/main/java/com/acme/orders/io/Reader.java"
+        line: 47
+      - file: "src/main/java/com/acme/orders/io/Writer.java"
+        line: 12
+      - file: "src/main/java/com/acme/orders/cache/DiskCache.java"
+        line: 88
+      - file: "src/main/java/com/acme/orders/cache/DiskCache.java"
+        line: 91
+    first_seen: 2026-05-13T10:42:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: new
+    state_changed_at: 2026-05-13T10:42:11Z
+    state_reason: ""
+    runs:
+      - 2026-05-13T10:42:11Z
+      - 2026-05-20T14:22:11Z
+
+  - id: appcat::aws-s3::5678cdaa11bb
+    skill: appcat::aws-s3
+    source: appcat
+    severity: medium
+    title: "AWS S3 usage detected"
+    location: "src/main/java/com/acme/orders/storage/S3Uploader.java"
+    line: 33
+    occurrences: 3
+    effort: 5
+    rationale: |
+      The application uses AWS S3 SDK calls. For a Microsoft-aligned cloud
+      target, migrate to **Azure Blob Storage**:
+
+       * Replace `com.amazonaws.services.s3` with `com.azure.storage.blob`.
+       * Switch authentication from AWS access keys to Managed Identity.
+    links:
+      - url: "https://learn.microsoft.com/azure/storage/blobs/storage-quickstart-blobs-java"
+        title: "Azure Blob Storage quickstart (Java)"
+    locations:
+      - file: "src/main/java/com/acme/orders/storage/S3Uploader.java"
+        line: 33
+      - file: "src/main/java/com/acme/orders/storage/S3Uploader.java"
+        line: 71
+      - file: "src/main/java/com/acme/orders/storage/S3Lister.java"
+        line: 19
+    first_seen: 2026-05-20T14:22:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: new
+    state_changed_at: 2026-05-20T14:22:11Z
+    state_reason: ""
+    runs:
+      - 2026-05-20T14:22:11Z
+
+  - id: appcat::rabbitmq-messaging::abc123def456
+    skill: appcat::rabbitmq-messaging
+    source: appcat
+    severity: medium
+    title: "RabbitMQ message broker detected"
+    location: "src/main/java/com/acme/orders/messaging/OrderEventPublisher.java"
+    line: 14
+    occurrences: 2
+    effort: 5
+    rationale: |
+      The project depends on RabbitMQ. The Azure-native equivalent is
+      **Azure Service Bus**, which offers similar pub/sub and queue
+      primitives with managed-identity authentication.
+    links:
+      - url: "https://learn.microsoft.com/azure/service-bus-messaging/service-bus-messaging-overview"
+        title: "Azure Service Bus overview"
+    first_seen: 2026-05-13T10:42:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: new
+    state_changed_at: 2026-05-13T10:42:11Z
+    state_reason: ""
+    runs:
+      - 2026-05-13T10:42:11Z
+      - 2026-05-20T14:22:11Z
+
+  # ── Code quality ────────────────────────────────────────────────────
+  - id: cwe-concurrency::feed0001face
+    skill: cwe-concurrency-synchronization
+    source: cwe-concurrency-synchronization
+    severity: low
+    title: "Non-thread-safe SimpleDateFormat used in a static field"
+    location: "src/main/java/com/acme/orders/util/DateUtils.java"
+    line: 11
+    first_seen: 2026-05-13T10:42:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: acknowledged
+    state_changed_at: 2026-05-13T11:10:00Z
+    state_reason: "Switching to java.time in Q4 cleanup"
+    rationale: "SimpleDateFormat is not thread-safe. Under load this causes silent date-parsing errors. Prefer java.time.format.DateTimeFormatter."
+    runs:
+      - 2026-05-13T10:42:11Z
+      - 2026-05-20T14:22:11Z
+
+  - id: cwe-file-path::cafe0002babe
+    skill: cwe-file-path-security
+    source: cwe-file-path-security
+    severity: low
+    title: "Path concatenated from request parameter without validation"
+    location: "src/main/java/com/acme/orders/api/DownloadController.java"
+    line: 56
+    first_seen: 2026-05-13T10:42:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: new
+    state_changed_at: 2026-05-13T10:42:11Z
+    state_reason: ""
+    rationale: "Path traversal risk: ../ sequences are not stripped. Use java.nio.file.Path.resolve() with the base directory and reject paths that escape it."
+    runs:
+      - 2026-05-13T10:42:11Z
+      - 2026-05-20T14:22:11Z
+
+  # ── Inventory / facts ───────────────────────────────────────────────
+  - id: fact-base-image::ubuntu-jdk17::1111aaaa
+    skill: fact-base-image
+    source: fact-base-image
+    severity: info
+    title: "Base image: eclipse-temurin:17-jre on Ubuntu 22.04"
+    location: "Dockerfile"
+    line: 1
+    first_seen: 2026-05-13T10:42:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: new
+    state_changed_at: 2026-05-13T10:42:11Z
+    state_reason: ""
+    rationale: "Image is supported through 2030. Consider the `-jre-alpine` variant if image size matters more than glibc compatibility."
+    runs:
+      - 2026-05-13T10:42:11Z
+      - 2026-05-20T14:22:11Z
+
+  - id: fact-language-dependencies::spring-boot-2.7.18::2222bbbb
+    skill: fact-language-dependencies
+    source: fact-language-dependencies
+    severity: info
+    title: "Spring Boot 2.7.18 (LTS, end of OSS support 2025-08-24)"
+    location: "pom.xml"
+    line: 12
+    first_seen: 2026-05-13T10:42:11Z
+    last_seen: 2026-05-20T14:22:11Z
+    state: new
+    state_changed_at: 2026-05-13T10:42:11Z
+    state_reason: ""
+    rationale: "OSS support ended in August 2025. Plan a move to Spring Boot 3.x before the next major dependency upgrade forces it."
+    runs:
+      - 2026-05-13T10:42:11Z
+      - 2026-05-20T14:22:11Z

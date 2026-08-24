@@ -1,0 +1,13 @@
+version: 1
+captured_at: 2026-05-20T14:22:11Z
+user_concern: cloud-readiness
+selected_groups:
+  - security-cve
+  - security-cwe
+  - infrastructure
+  - configuration
+  - application-facts
+priorities:
+  high: [security-cve]
+  normal: [security-cwe, infrastructure, configuration, application-facts]
+notes: "Pre-flight check before the Azure Container Apps migration kick-off."

@@ -1,6 +1,7 @@
 ---
 name: api-service-contracts
 description: Generate API and service communication contracts with sequence diagram
+user-invocable: false
 ---
 
 # API & Service Communication Contracts

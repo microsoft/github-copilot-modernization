@@ -1,0 +1,10 @@
+version: 1
+rules:
+  - id: rule-test-injection
+    description: "Test fixtures contain intentional SQL strings; exclude from injection scans"
+    created_at: 2026-05-13T11:30:00Z
+    created_by: user
+    match:
+      skill: cwe-injection-attacks
+      location_glob: "**/src/test/**"
+    action: suppress

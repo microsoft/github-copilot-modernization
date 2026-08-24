@@ -84,11 +84,21 @@ When `intent` is `list-and-select-plan`:
 
 ## Process — Mode A — Generate Plan
 
-1. **Load Assessment or Inspect Workspace**
+1. **Load Assessment Memory Constraints**
+  - Read `.github/modernize/.memory/bias-patches.yaml` when it exists.
+  - Keep only entries with `state: active` whose `applies_to.skills` includes `create-modernization-plan` or `planning-coordinator` and whose intents match this request.
+  - Treat each retained `actual` value as a hard planning constraint. It overrides default target choices and recommendations but not an explicit contradictory instruction in the current user request.
+  - If the current request directly contradicts an active patch, ask the user whether this run overrides the patch, the patch should be retired, or planning should stop. Do not silently choose.
+  - Include retained patch IDs and concise `actual` text in the input to plan generation and in the generated plan's constraints/context section.
+
+2. **Load Assessment or Inspect Workspace**
 
    **If `assessment-report-path` was provided (Option A1):**
    - Read the assessment `report.json` from `.github/modernize/assessment/`
    - Extract issues, recommendations, and **detected language** (`java` or `dotnet`)
+  - The native assessment compatibility report stores groups under `categories[]`. Each category contains `issues[]` finding objects and `solutions[]` objects shaped as `{ solutionId, name, description, kbId }`. Preserve a non-empty `kbId` exactly; never infer one. A `null` `kbId` marks a `bare/` guidance-only solution and must stay null.
+  - Normalize solution objects for planning as follows: display/use `name` as the task description unless `description` is more specific; copy `kbId` directly to the generated task; keep alternatives grouped under their category so the existing multi-solution user choice rule still applies.
+  - Language is at `metadata.language` in the native compatibility report.
    - **If `selected-categories` was provided**: filter the assessment to only those categories (ignore unselected ones)
 
    **If `tasks` was provided and no `assessment-report-path` exists (Option A2):**
@@ -96,7 +106,7 @@ When `intent` is `list-and-select-plan`:
    - Pass the user tasks directly to the `create-modernization-plan` skill as `modernization-prompt` — do NOT convert them into an intermediate assessment format
    - **CRITICAL**: Do NOT create `tasks.json` or `plan.md` files manually. Proceed directly to invoke `create-modernization-plan` with the task list and detected language.
 
-2. **Check for Rulebook Folder**
+3. **Check for Rulebook Folder**
    - Check if `.github/modernize/rulebook/` exists in the workspace
    - **If no rulebook found, skip this step and proceed to Generate Plan**
    - If found, read **all `.md` files** in the rulebook folder **recursively** (including subdirectories). The rulebook may contain any combination of files (e.g., `charter.md`, `targets.md`, `policies.md`, or other names).
@@ -111,14 +121,14 @@ When `intent` is `list-and-select-plan`:
      - Apply requirements from rulebook (ensure compliance in task definitions)
    - Merge rulebook requirements with assessment results before invoking MCP tool
 
-3. **Generate Plan**
+4. **Generate Plan**
    - Invoke `create_upgrade_plan` MCP tool or the `create-modernization-plan` skill with:
      - Assessment results (filtered if `selected-categories` was provided)
      - Rulebook constraints (extracted from all rulebook files)
      - **Language parameter**: Pass `language: "java"` or `language: "dotnet"` based on detected language
    - Receive tasks.json structure that honors rulebook requirements
 
-4. **Task Schema** (see [`skills/create-modernization-plan/tasks-schema.json`](../skills/create-modernization-plan/tasks-schema.json) for the authoritative schema)
+5. **Task Schema** (see [`skills/create-modernization-plan/tasks-schema.json`](../skills/create-modernization-plan/tasks-schema.json) for the authoritative schema)
    ```json
    {
      "tasks": [
@@ -156,15 +166,15 @@ When `intent` is `list-and-select-plan`:
    - `metadata.language` MUST be set correctly (`"java"` or `"dotnet"`). The execution-coordinator uses this to route tasks to the correct executor agent.
    - `kbId` (when present) is what the executor passes to `#appmod-run-task`. It is independent from `skills[].name` — do NOT copy one into the other (the namespaces differ; see the kbId marker rule above).
 
-5. **Save Results**
+6. **Save Results**
    - Write to `.github/modernize/<plan-name>/plan.md`
    - Write tasks to `.github/modernize/<plan-name>/.metadata/tasks.json`
 
-6. **MANDATORY: Preview Plan**
+7. **MANDATORY: Preview Plan**
    - Call `#appmod-preview-markdown` with the generated `plan.md` file path to open the plan preview for the user
    - **DO NOT skip this step** — the user must see the plan before proceeding
 
-7. **Return to Orchestrator**
+8. **Return to Orchestrator**
    - Summary: Detected language, number of tasks, task breakdown, plan file path
    - Confirm: "Plan preview has been opened for the user"
 

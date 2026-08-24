@@ -4,6 +4,7 @@ description: |
   Catalogs existing features from a codebase (API endpoints, user flows, UI screens, observable behaviors) and generates structured feature specs with REQ-XXX IDs, user scenarios, and success criteria.
   Triggers: "inventory features", "catalog existing functionality", "list what the app does", "extract requirements from code", "generate feature specs from research", "write a spec", "create feature specification", "define requirements".
   NOT for: implementation planning (use creating-implementation-plan), implementation (use implementing-code).
+user-invocable: false
 ---
 
 

@@ -17,6 +17,7 @@ description: |
   "startup check", "write tests", "run tests", "test the migration",
   "playwright", "testcontainers", "test strategy", "test plan",
   "runtime gate", "testing phase", "validation phase"
+user-invocable: false
 ---
 
 # Runtime Validation

@@ -7,7 +7,7 @@ description: |
   Triggers: "generate integration tests", "add integration tests", "create Layer 1 tests", "create Layer 2 tests"
   NOT for: unit tests, performance tests, load tests.
 argument-hint: Generate Layer [1|2|3|4] tests for this project
-user-invocable: true
+user-invocable: false
 disable-model-invocation: false
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: spring-boot-scaffolding
 description: Reference guide for creating a new Spring Boot project during rewrite migration.
+user-invocable: false
 ---
 
 ## Overview

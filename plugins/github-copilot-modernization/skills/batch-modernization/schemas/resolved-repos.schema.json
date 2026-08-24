@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resolved-repos.schema.json",
+  "title": "Resolved batch repositories v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "configPath",
+    "configSha256",
+    "producer",
+    "repositories",
+    "apps",
+    "unknownFields"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "configPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "configSha256": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    },
+    "producer": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "repositories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "repoId",
+          "name",
+          "input",
+          "workspacePath",
+          "preflightStatus",
+          "warnings",
+          "errors",
+          "executionUnits",
+          "unknownFields"
+        ],
+        "properties": {
+          "repoId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "url",
+              "path",
+              "branch",
+              "includePaths"
+            ],
+            "properties": {
+              "url": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "path": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "branch": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "includePaths": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "workspacePath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "preflightStatus": {
+            "enum": [
+              "ready",
+              "needs_attention",
+              "blocked"
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "executionUnits": {
+            "type": "array",
+            "items": {
+              "$ref": "execution-unit.schema.json"
+            }
+          },
+          "unknownFields": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "apps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "identifier",
+          "repoIds",
+          "unknownFields"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "minLength": 1
+          },
+          "repoIds": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "unknownFields": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "unknownFields": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "attempt-validation.v1.json",
+  "title": "Batch attempt validation record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "batchId",
+    "invocationId",
+    "repoId",
+    "executionUnitId",
+    "phase",
+    "attempt",
+    "requestDigest",
+    "resultDigest",
+    "status",
+    "valid",
+    "errors",
+    "artifacts",
+    "artifactDigests",
+    "validatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "batchId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "invocationId": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9-]{36}$"
+    },
+    "repoId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "executionUnitId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "phase": {
+      "const": "assessment"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "requestDigest": {
+      "type": "string",
+      "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+    },
+    "resultDigest": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "enum": [
+        "completed",
+        "completed_with_issues",
+        "failed",
+        "protocol_error",
+        "needs_input",
+        "skipped",
+        "interrupted"
+      ]
+    },
+    "valid": {
+      "type": "boolean"
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "artifactDigests": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+      }
+    },
+    "validatedAt": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

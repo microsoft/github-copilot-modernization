@@ -3,8 +3,9 @@ name: guidelines
 description: |
   Collection of framework-to-framework migration rules and transformation patterns (e.g., Struts→Spring MVC, JSP→Thymeleaf, EJB→Spring Boot).
   Triggers: "check migration guidelines", "look up transformation rules", "find Struts-to-Spring patterns", "apply migration conventions", "conversion rules for X→Y".
-  Also consumed automatically by breaking-down-tasks and implementing-code during migration workflows.
+  Also consumed automatically by planning and implementation skills during migration workflows.
   NOT for: direct execution — other skills scan this directory.
+user-invocable: false
 ---
 
 ## User Input
@@ -19,23 +20,27 @@ Guidelines are curated, domain-specific knowledge bases providing:
 - **Transformation rules**: Concrete mappings and conversion templates
 - **Checklists**: Step-by-step validation criteria
 
-## Directory Structure
+## Skill Structure
 
 ```
-skills/guidelines/
-├── SKILL.md                    # This file - lookup mechanism
-├── struts-to-spring/           # Struts 2 → Spring Boot 3.x
-│   └── SKILL.md
-└── {domain}/                   # Future guideline domains
-    └── SKILL.md
+skills/
+├── guidelines/
+│   └── SKILL.md                # This lookup contract
+├── struts-to-spring/
+│   ├── SKILL.md                # Independent Struts 2 → Spring Boot 3.x skill
+│   └── SKILL-*.md              # Supporting rule documents
+└── {domain}/
+  └── SKILL.md                # Future independent guideline skill
 ```
+
+Every directory containing a `SKILL.md` is a direct child of `skills/`. Never nest one skill inside another skill.
 
 ## Lookup Mechanism
 
 When other skills need guideline lookup:
 
 1. **Context Analysis**: Extract technology keywords from spec/plan/code.
-2. **Guideline Discovery**: Search `skills/guidelines/` subdirectories for matching patterns.
+2. **Guideline Discovery**: Search top-level `skills/*/SKILL.md` metadata for matching source and target technologies.
 3. **Application**: Load matching SKILL.md, extract applicable rules for current phase.
 
 ## Integration Points
@@ -50,7 +55,7 @@ When other skills need guideline lookup:
 
 ## Creating New Guidelines
 
-1. Create directory: `skills/guidelines/{domain}/`
+1. Create a top-level directory: `skills/{domain}/`
 2. Create `SKILL.md` with:
    - Metadata header (name, description, triggers)
    - Rules organized by migration step
@@ -65,5 +70,5 @@ When guidelines are applied, document in the relevant artifact:
 ## Applied Guidelines
 - **Guideline**: struts-to-spring
 - **Rules Used**: convert-action-to-controller, convert-validation
-- **Reference**: skills/guidelines/struts-to-spring/SKILL.md
+- **Reference**: skills/struts-to-spring/SKILL.md
 ```

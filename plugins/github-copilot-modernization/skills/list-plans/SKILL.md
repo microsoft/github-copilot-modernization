@@ -5,6 +5,7 @@ description: |
   A valid plan is a subdirectory of .github/modernize/ that contains plan.md AND tasks.json (tasks.json may be in the plan folder or in a .metadata subfolder).
   Handles 0, 1, or multiple plans and prompts the user when a choice is needed.
   Triggers: "list plans", "find plans", "select plan", "list-and-select-plan", "discover plans".
+user-invocable: false
 ---
 
 # List and Select Plan

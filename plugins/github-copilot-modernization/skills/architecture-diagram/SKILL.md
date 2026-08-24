@@ -1,6 +1,7 @@
 ---
 name: architecture-diagram
 description: Generate architecture diagram with component relationship details from project analysis
+user-invocable: false
 ---
 
 # Architecture Diagram

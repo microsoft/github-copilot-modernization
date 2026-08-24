@@ -5,6 +5,7 @@ description: |
   Triggers: "run quality gate", "validate spec quality", "spec quality", "plan coverage", "check plan coverage", "validate plan to tasks", "check task traceability", "verify task completeness", "run completeness review", "review implementation", "check plan traceability", "check coverage", "completeness quality gate", "final sign-off", "feature parity sign-off", "completeness gate", "feature parity", "sign-off report", "verify all requirements".
   Requires `type` parameter to select the gate.
   NOT for: code review, implementation (use implementing-code), spec writing.
+user-invocable: false
 ---
 
 ## User Input

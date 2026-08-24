@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-12",
+  "scenarios": [
+    {
+      "id": "no-default-config-broad-intent",
+      "prompt": "Modernize my application",
+      "environment": {
+        "defaultReposConfig": false,
+        "scope": "current-workspace"
+      },
+      "expected": {
+        "mode": "single",
+        "coordinatorSequence": [
+          "assessment-coordinator",
+          "planning-coordinator",
+          "execution-coordinator"
+        ],
+        "approvalPoints": [
+          "after-assessment",
+          "after-planning"
+        ]
+      }
+    },
+    {
+      "id": "explicit-current-repository",
+      "prompt": "Modernize this repository",
+      "environment": {
+        "defaultReposConfig": true,
+        "scope": "current-workspace"
+      },
+      "expected": {
+        "mode": "single",
+        "coordinatorSequence": [
+          "assessment-coordinator",
+          "planning-coordinator",
+          "execution-coordinator"
+        ],
+        "approvalPoints": [
+          "after-assessment",
+          "after-planning"
+        ]
+      }
+    },
+    {
+      "id": "explicit-assessment",
+      "prompt": "Assess this codebase and stop after presenting the result",
+      "environment": {
+        "defaultReposConfig": false,
+        "scope": "current-workspace"
+      },
+      "expected": {
+        "mode": "single",
+        "coordinatorSequence": [
+          "assessment-coordinator"
+        ],
+        "approvalPoints": []
+      }
+    },
+    {
+      "id": "one-specific-task",
+      "prompt": "Upgrade Java 17 to Java 21",
+      "environment": {
+        "defaultReposConfig": false,
+        "scope": "current-workspace"
+      },
+      "expected": {
+        "mode": "single",
+        "coordinatorSequence": [
+          "execution-coordinator"
+        ],
+        "approvalPoints": []
+      }
+    },
+    {
+      "id": "multiple-specific-tasks",
+      "prompt": "Upgrade Java to 21 and migrate RabbitMQ to Azure Service Bus",
+      "environment": {
+        "defaultReposConfig": false,
+        "scope": "current-workspace"
+      },
+      "expected": {
+        "mode": "single",
+        "coordinatorSequence": [
+          "planning-coordinator",
+          "execution-coordinator"
+        ],
+        "approvalPoints": [
+          "after-planning"
+        ]
+      }
+    },
+    {
+      "id": "execute-existing-plan",
+      "prompt": "Execute the migration plan",
+      "environment": {
+        "defaultReposConfig": false,
+        "scope": "current-workspace"
+      },
+      "expected": {
+        "mode": "single",
+        "coordinatorSequence": [
+          "planning-coordinator:list-and-select-plan",
+          "execution-coordinator"
+        ],
+        "approvalPoints": [
+          "after-plan-selection"
+        ]
+      }
+    }
+  ],
+  "sourceAnchors": [
+    {
+      "file": "agents/modernize.agent.md",
+      "contains": [
+        "### Broad Intent (single session)",
+        "**Single task**: Skip assessment AND planning",
+        "**Multiple tasks**: Skip assessment",
+        "### Execute Existing Plan Intent",
+        "### Create Plan from Assessment Intent",
+        "### Headless (no prompts)",
+        "Ask user: \"Proceed to planning?\"",
+        "The plan is ready. What would you like to do?"
+      ]
+    },
+    {
+      "file": "agents/assessment-coordinator.agent.md",
+      "contains": [
+        "a versioned HTML report under `.github/modernize/reports/`",
+        "`.github/modernize/assessment/reports/report-<timestamp>/report.json`"
+      ]
+    },
+    {
+      "file": "agents/planning-coordinator.agent.md",
+      "contains": [
+        "Write to `.github/modernize/<plan-name>/plan.md`",
+        "Write tasks to `.github/modernize/<plan-name>/.metadata/tasks.json`"
+      ]
+    },
+    {
+      "file": "agents/execution-coordinator.agent.md",
+      "contains": [
+        "Take the worker's return text as the final result",
+        "tasks.json` may be in either `.github/modernize/<plan-name>/tasks.json` or `.github/modernize/<plan-name>/.metadata/tasks.json`"
+      ]
+    },
+    {
+      "file": "agents/modernize-java-upgrade.agent.md",
+      "contains": [
+        ".github/modernize/java-upgrade/<SESSION_ID>/plan.md",
+        "Write `summary.md` as a new file using `create_file`"
+      ]
+    },
+    {
+      "file": "agents/modernize-deployment.agent.md",
+      "contains": [
+        "{{workspacePath}}/.github/modernize/deployment/summary.md"
+      ]
+    }
+  ]
+}

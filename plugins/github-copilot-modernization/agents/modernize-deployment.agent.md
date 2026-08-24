@@ -1,7 +1,7 @@
 ---
 name: modernize-deployment
 description: 'Handles infrastructure and deployment modernization tasks: Dockerfile generation, Kubernetes/AKS/ACA configuration, Bicep/ARM IaC, and CI/CD pipeline setup'
-user-invocable: true
+user-invocable: false
 argument-hint: Describe the deployment scenario (Dockerfile generation, Kubernetes/AKS/ACA configuration, Bicep/Terraform IaC, CI/CD pipeline setup)
 
 tools:

@@ -1,0 +1,127 @@
+name: Batch Assessment E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Copilot model used by the production agents
+        required: true
+        default: gpt-5-mini
+        type: string
+      copilot-version:
+        description: "@github/copilot npm version or dist-tag"
+        required: true
+        default: latest
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  product-e2e:
+    name: ${{ matrix.os }} product host
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    env:
+      COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+      PRODUCT_PROBE_OUTPUT: ${{ runner.temp }}/batch-assessment-evidence/batch-assessment-e2e.${{ runner.os }}-${{ runner.arch }}.json
+      TMPDIR: ${{ runner.temp }}
+      TMP: ${{ runner.temp }}
+      TEMP: ${{ runner.temp }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Require Copilot token
+        shell: bash
+        run: |
+          if [ -z "$COPILOT_GITHUB_TOKEN" ]; then
+            echo "COPILOT_GITHUB_TOKEN must be a user-owned fine-grained token with Copilot Requests permission."
+            exit 1
+          fi
+
+      - name: Install Copilot CLI
+        shell: bash
+        env:
+          COPILOT_VERSION: ${{ inputs['copilot-version'] }}
+        run: npm_config_ignore_scripts=false npm install -g "@github/copilot@$COPILOT_VERSION"
+
+      - name: Run packaged product E2E
+        id: product-e2e
+        continue-on-error: true
+        shell: bash
+        env:
+          COPILOT_MODEL: ${{ inputs.model }}
+        run: |
+          node plugins/github-copilot-modernization/tests/batch-assessment/e2e/product-scenario-runner.mjs \
+            --model "$COPILOT_MODEL" \
+            --output "$PRODUCT_PROBE_OUTPUT" \
+            --keep-workspaces
+
+      - name: Upload product evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: batch-assessment-e2e-${{ matrix.os }}
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/batch-assessment-evidence/*.json
+            ${{ runner.temp }}/batch-assessment-*
+
+      - name: Enforce product verdict
+        if: always()
+        shell: bash
+        run: |
+          node -e 'const fs=require("fs"); const e=JSON.parse(fs.readFileSync(process.env.PRODUCT_PROBE_OUTPUT)); if(e.status!=="passed"){console.error(`Batch Assessment E2E: ${e.status}`); process.exit(1)}'
+
+  compare-platform-evidence:
+    name: Compare platform evidence
+    if: always()
+    needs: product-e2e
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download platform evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: batch-assessment-e2e-*
+          path: evidence
+          merge-multiple: true
+
+      - name: Require two passing records from one package
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const path = require("path");
+          function findProductRecords(directory) {
+            return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+              const entryPath = path.join(directory, entry.name);
+              if (entry.isDirectory()) return findProductRecords(entryPath);
+              return /^batch-assessment-e2e\..+\.json$/.test(entry.name) ? [entryPath] : [];
+            });
+          }
+          const files = findProductRecords("evidence");
+          if (files.length !== 2) throw new Error(`Expected two platform records, found ${files.length}`);
+          const records = files.map((file) => JSON.parse(fs.readFileSync(file, "utf8")));
+          if (records.some((record) => record.status !== "passed")) {
+            throw new Error(`Non-passing product verdicts: ${records.map((record) => `${record.platform}=${record.status}`).join(", ")}`);
+          }
+          if (new Set(records.map((record) => record.platform)).size !== 2) {
+            throw new Error("Product evidence did not come from two distinct platforms");
+          }
+          if (new Set(records.map((record) => record.productPackage.sha256)).size !== 1) {
+            throw new Error("Windows and POSIX product package digests differ");
+          }
+          NODE

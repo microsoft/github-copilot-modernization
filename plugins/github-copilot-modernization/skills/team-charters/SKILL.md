@@ -4,6 +4,7 @@ description: |
   Provides role charters (mission, ownership, core principles, quality bar) for a multi-agent coding team. Each charter defines the role's mission, ownership scope, core principle (boundary constraints), and quality bar. Most roles also include communication rules. Consumed by the coordinator during task decomposition to assign work to the correct role.
   Triggers: "look up role charter", "what does the architect own", "check role boundaries", "find team roles", "which role handles X", "list agent charters", "role responsibilities".
   NOT for: task decomposition (use breaking-down-tasks), implementation (use implementing-code), architecture analysis (use analyzing-architecture).
+user-invocable: false
 ---
 
 # Team Charters

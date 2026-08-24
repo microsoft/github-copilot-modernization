@@ -1,6 +1,7 @@
 ---
 name: appmod-hooks
 description: Lifecycle hooks for the modernize-rearchitecture coordinator. Defines hook points, registered actions, and execution rules.
+user-invocable: false
 ---
 
 # appmod-hooks

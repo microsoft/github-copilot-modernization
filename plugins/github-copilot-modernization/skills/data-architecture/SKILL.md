@@ -1,6 +1,7 @@
 ---
 name: data-architecture
 description: Generate data architecture and persistence layer documentation with data model diagram
+user-invocable: false
 ---
 
 # Data Architecture & Persistence Layer

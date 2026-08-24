@@ -1,0 +1,17 @@
+{
+  "description": "Bootstrap the Node-native assessment runtime into the active project.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/bootstrap-assessment.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

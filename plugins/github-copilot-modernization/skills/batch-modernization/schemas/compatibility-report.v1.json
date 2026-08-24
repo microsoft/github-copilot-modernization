@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "compatibility-report.v1.json",
+  "title": "Assessment compatibility report v1.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "metadata",
+    "categories",
+    "findings",
+    "security"
+  ],
+  "properties": {
+    "version": {
+      "const": "1.1.0"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "runId",
+        "generatedAt",
+        "analysisStartTime",
+        "analysisEndTime",
+        "status",
+        "domains",
+        "language",
+        "intent",
+        "totalFindings",
+        "totalActionableFindings",
+        "totalTrackedFindings"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generatedAt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "analysisStartTime": {
+          "type": "string",
+          "minLength": 1
+        },
+        "analysisEndTime": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": "completed"
+        },
+        "domains": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "language": {
+          "enum": [
+            "java",
+            "dotnet",
+            "javascript",
+            "typescript"
+          ]
+        },
+        "intent": {
+          "type": "object"
+        },
+        "totalFindings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "totalActionableFindings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "totalTrackedFindings": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "category",
+          "categoryId",
+          "sourceSkill",
+          "issues",
+          "solutions"
+        ],
+        "properties": {
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "categoryId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceSkill": {
+            "type": "string",
+            "minLength": 1
+          },
+          "issues": {
+            "type": "array"
+          },
+          "solutions": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "security": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

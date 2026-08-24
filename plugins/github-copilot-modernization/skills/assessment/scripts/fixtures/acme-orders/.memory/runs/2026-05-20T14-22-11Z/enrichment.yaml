@@ -1,0 +1,675 @@
+version: 1
+generated_at: 2026-05-20T14:22:15Z
+generated_by: copilot-chat
+model_hint: claude-opus-4.7
+intent_slug: cloud-readiness
+
+briefing:
+  paragraph: |
+    Acme Orders is a Spring Boot 2.7 service on Java 17, packaged with Maven and deployed to Tomcat 9.
+    Across the 12 tracked findings, the headline risk is a critical Log4j CVE that is internet-exploitable
+    today; everything else is moderate. Cloud-migration effort to Azure Container Apps is **roughly 18 story
+    points**, dominated by file-system, S3, and RabbitMQ patterns that need Azure-native replacements.
+    Since last week's scan you acknowledged the SQL-injection backlog and gained 2 new mediums in the
+    new payment module — overall posture is similar but the surface area has grown.
+  project_tags:
+    - "Spring Boot 2.7"
+    - "Java 17"
+    - "Maven"
+    - "Tomcat 9"
+    - "Targets Azure Container Apps"
+
+headlines:
+  - kind: critical-risk
+    title: "Log4Shell is live in production today"
+    body: "log4j-core 2.14.1 in pom.xml — internet-exploitable, one-line fix"
+    jump_to:
+      kind: finding
+      id: cve-known-vulnerabilities::a3f2c19b8e1d
+  - kind: effort
+    title: "Cloud migration: ~18 story points across 3 rewrites"
+    body: "File-system, AWS S3 and RabbitMQ all need Azure-native replacements"
+    jump_to:
+      kind: theme
+      id: cloud-readiness
+  - kind: warning
+    title: "Two new secrets leaked into source since last scan"
+    body: "DB password and AWS access key — Key Vault is the natural fix"
+    jump_to:
+      kind: theme
+      id: security
+  - kind: trend
+    title: "Spring Boot 2.7 OSS support ended August 2025"
+    body: "Plan a 3.x upgrade before the next forced dependency bump"
+    jump_to:
+      kind: finding
+      id: fact-language-dependencies::spring-boot-2.7.18::2222bbbb
+
+change_narrative:
+  baseline_run_id: 2026-05-13T10-42-11Z
+  summary: |
+    Since the scan a week ago, you acknowledged the SQL-injection and SimpleDateFormat findings
+    (planned work, no source change). Two new mediums appeared in the new payment / storage module:
+    a hardcoded AWS access key and a fresh batch of AWS S3 calls. The Spring4Shell CVE also surfaced
+    after the spring-beans version was widened in pom.xml. **No regressions**, but the new code is
+    actively expanding the cloud-readiness gap.
+  highlights:
+    - kind: added
+      title: "2 new mediums in the payment / storage module"
+      finding_ids:
+        - cwe-credentials-secrets::deadbeef9002
+        - appcat::aws-s3::5678cdaa11bb
+    - kind: added
+      title: "Spring4Shell CVE surfaced after dependency widening"
+      finding_ids:
+        - cve-known-vulnerabilities::beef0102dead
+    - kind: unchanged-critical
+      title: "Log4Shell still open from last run"
+      finding_ids:
+        - cve-known-vulnerabilities::a3f2c19b8e1d
+
+themes:
+  - id: security
+    label: "Security risks"
+    summary: |
+      Two CVEs (one critical Log4Shell, one high Spring4Shell — both with one-line fixes) and two
+      hardcoded secrets. The CVE fixes can ship as a hotfix; the secrets need a small refactor to
+      read from environment variables or Azure Key Vault.
+    finding_ids:
+      - cve-known-vulnerabilities::a3f2c19b8e1d
+      - cve-known-vulnerabilities::beef0102dead
+      - cwe-credentials-secrets::deadbeef9001
+      - cwe-credentials-secrets::deadbeef9002
+      - cwe-injection-attacks::aa11bb22cc33
+
+  - id: cloud-readiness
+    label: "Cloud readiness gaps"
+    summary: |
+      Three patterns block a clean lift to Azure Container Apps: local file-system writes, AWS S3
+      calls, and RabbitMQ messaging. Each maps cleanly to an Azure equivalent (Azure Files,
+      Azure Blob, Azure Service Bus). Total effort estimate: ~13 story points.
+    finding_ids:
+      - appcat::file-system-management::8b1f2c0a4d33
+      - appcat::aws-s3::5678cdaa11bb
+      - appcat::rabbitmq-messaging::abc123def456
+
+  - id: code-quality
+    label: "Code quality debt"
+    summary: |
+      Two low-severity items already on the Q4 roadmap: a non-thread-safe date formatter and an
+      unvalidated path concatenation. Neither blocks the migration, but the path-traversal one
+      should not ship to the internet without a fix.
+    finding_ids:
+      - cwe-concurrency::feed0001face
+      - cwe-file-path::cafe0002babe
+
+  - id: inventory
+    label: "Project inventory"
+    summary: |
+      Stack: Spring Boot 2.7 on Java 17, packaged with Maven, deployed in a Temurin 17-jre Ubuntu
+      container. The Spring Boot version is past OSS support — flagged for forward planning.
+    finding_ids:
+      - fact-base-image::ubuntu-jdk17::1111aaaa
+      - fact-language-dependencies::spring-boot-2.7.18::2222bbbb
+
+findings:
+  # ── Security ───────────────────────────────────────────────────────
+  - id: cve-known-vulnerabilities::a3f2c19b8e1d
+    why_it_matters: |
+      Log4Shell is the most exploited Java vulnerability of the last five years. Because Acme Orders
+      exposes an HTTP API, any request whose contents end up in a log line can trigger remote code
+      execution — and public internet scanners hit this pattern continuously. The longer this stays
+      open, the higher the chance that opportunistic exploitation succeeds.
+    what_to_do: |
+      Set `<log4j2.version>2.17.2</log4j2.version>` in `<properties>` of `pom.xml` and rebuild.
+      Spring Boot 2.7 manages `log4j-core` via the `spring-boot-dependencies` BOM, so overriding the
+      property is the **only** correct way — adding a direct dependency on a newer log4j-core
+      version will be silently overridden at build time.
+    tags:
+      - "internet-exposed"
+      - "patch-available"
+      - "low-effort"
+      - "hotfix-candidate"
+    related_findings:
+      - reason: same_root_cause
+        reason_label: "Both CVEs are in the same dependency stack"
+        finding_ids:
+          - cve-known-vulnerabilities::beef0102dead
+    related_knowledge:
+      - title: "Log4j 2.17 upgrade for Spring Boot 2.7"
+        body: |
+          Spring Boot 2.7 pins `log4j-core` through its BOM. The right override is a property,
+          not a direct `<dependency>` — Maven's nearest-wins rule does NOT apply to BOM-managed
+          versions, so a direct dependency gets silently downgraded.
+        steps:
+          - "Add `<log4j2.version>2.17.2</log4j2.version>` to `<properties>` in pom.xml"
+          - "Run `mvn -U clean verify` to invalidate the cached BOM"
+          - "Verify with `mvn dependency:tree | grep log4j`"
+          - "Check transitive deps (especially logging-config jars) with the same command"
+        references:
+          - url: "https://logging.apache.org/log4j/2.x/security.html"
+            title: "Apache Log4j Security Vulnerabilities"
+            verified: false
+          - url: "https://docs.spring.io/spring-boot/docs/2.7.x/reference/html/howto.html#howto.logging.log4j"
+            title: "Spring Boot howto: configure Log4j 2 for logging"
+            verified: false
+    quick_actions:
+      - kind: plan
+        label: "Plan a hotfix"
+        prompt: |
+          Upgrade log4j-core from 2.14.1 to the latest 2.17.x in pom.xml by setting the
+          log4j2.version property. Verify with mvn dependency:tree and prepare a hotfix branch.
+      - kind: plan-with-related
+        label: "Plan all logging-stack CVEs"
+        prompt: |
+          Audit and upgrade the logging stack (log4j-core, log4j-api) and the spring-framework
+          dependency to versions immune to Log4Shell and Spring4Shell. Single coordinated PR.
+
+  - id: cve-known-vulnerabilities::beef0102dead
+    why_it_matters: |
+      Spring4Shell allows remote code execution through crafted ClassLoader access on JDK 9+, which
+      this service runs (Java 17). The exploit path requires a controller using data binding to a
+      POJO, which Acme Orders does in `OrderController` — meaning the conditions for exploitation
+      are actually met here, not just theoretical.
+    what_to_do: |
+      Bump `spring-framework` to **5.3.20 or later** in pom.xml. The fix is BOM-managed, same
+      pattern as the Log4j override: set `<spring-framework.version>5.3.20</spring-framework.version>`
+      in `<properties>`.
+    tags:
+      - "internet-exposed"
+      - "patch-available"
+      - "low-effort"
+      - "java-9-plus"
+    related_findings:
+      - reason: same_root_cause
+        reason_label: "Coordinate with the Log4Shell upgrade"
+        finding_ids:
+          - cve-known-vulnerabilities::a3f2c19b8e1d
+    related_knowledge:
+      - title: "Spring4Shell (CVE-2022-22965) mitigation"
+        body: |
+          The vulnerability is in `spring-beans`, but the fix is to upgrade `spring-framework`
+          as a whole because the BOM pins them together. JDK 9+ is required for the exploit;
+          upgrading the framework is the only durable mitigation.
+        steps:
+          - "Set `<spring-framework.version>5.3.20</spring-framework.version>` in pom.xml"
+          - "Run `mvn -U clean verify`"
+          - "Smoke-test all `@RequestMapping` endpoints that bind to POJOs"
+        references:
+          - url: "https://spring.io/blog/2022/03/31/spring-framework-rce-early-announcement"
+            title: "Spring Framework RCE early announcement"
+            verified: false
+    quick_actions:
+      - kind: plan
+        label: "Plan a hotfix"
+        prompt: |
+          Upgrade spring-framework from 5.3.18 to 5.3.20+ via the spring-framework.version
+          property in pom.xml. Smoke-test all POJO-binding controllers.
+
+  - id: cwe-credentials-secrets::deadbeef9001
+    why_it_matters: |
+      The database password sits in plain text in `application.properties`. Anyone with read access
+      to the repo (or a leaked container image layer) has the production credential. Since the
+      project is Azure-bound, Azure Key Vault is the natural target — and Spring Boot's `spring-cloud-azure-starter-keyvault-secrets`
+      makes the migration straightforward.
+    what_to_do: |
+      As an immediate step, move the value to an environment variable (`SPRING_DATASOURCE_PASSWORD`)
+      and rotate the credential. The follow-up is to add `spring-cloud-azure-starter-keyvault-secrets`
+      and read the password from a Key Vault reference.
+    tags:
+      - "secret-in-source"
+      - "azure-key-vault-candidate"
+      - "credential-rotation-needed"
+    related_findings:
+      - reason: same_root_cause
+        reason_label: "Same anti-pattern in the new payment module"
+        finding_ids:
+          - cwe-credentials-secrets::deadbeef9002
+    related_knowledge:
+      - title: "Migrate secrets to Azure Key Vault"
+        body: |
+          Three-step migration: provision a Key Vault, give the workload identity `get` permission,
+          and switch the Spring Boot config source. The starter handles binding `${secret-name}`
+          syntax in `application.properties` to live Key Vault lookups.
+        steps:
+          - "Create a Key Vault and grant Managed Identity `get` on secrets"
+          - "Store the DB password as a secret (e.g. `acme-db-password`)"
+          - "Add `spring-cloud-azure-starter-keyvault-secrets` to pom.xml"
+          - "Change `spring.datasource.password=…` to `${acme-db-password}`"
+          - "Rotate the leaked credential before going live"
+        references:
+          - url: "https://learn.microsoft.com/azure/key-vault/secrets/quick-create-net"
+            title: "Azure Key Vault quickstart"
+            verified: false
+          - url: "https://learn.microsoft.com/azure/developer/java/spring-framework/configure-spring-boot-starter-java-app-with-azure-key-vault"
+            title: "Spring Boot + Key Vault starter guide"
+            verified: false
+    quick_actions:
+      - kind: plan
+        label: "Plan Key Vault migration"
+        prompt: |
+          Migrate spring.datasource.password (and any other secrets in application.properties)
+          to Azure Key Vault using spring-cloud-azure-starter-keyvault-secrets. Include the
+          credential-rotation step in the plan.
+      - kind: plan-with-related
+        label: "Plan all hardcoded secrets"
+        prompt: |
+          Inventory all hardcoded secrets across the codebase and migrate every one to Azure
+          Key Vault using spring-cloud-azure-starter-keyvault-secrets. Include rotation.
+
+  - id: cwe-credentials-secrets::deadbeef9002
+    why_it_matters: |
+      The new payment module ships an AWS access key as a `private final String` literal. On top of
+      being a secret leak, it locks Acme Orders into AWS exactly while the rest of the project is
+      migrating off it. Both problems are solved by removing the literal and using a credential
+      provider chain — AWS for now, Managed Identity after the S3-to-Blob migration.
+    what_to_do: |
+      Delete the hardcoded value, configure the AWS SDK to use the default credential provider
+      chain (env vars + instance profile), and pair this change with the S3-to-Blob migration so
+      that the credential disappears entirely afterwards.
+    tags:
+      - "secret-in-source"
+      - "azure-key-vault-candidate"
+      - "tied-to-s3-migration"
+    related_findings:
+      - reason: co_fix
+        reason_label: "Fix together with the S3 migration"
+        finding_ids:
+          - appcat::aws-s3::5678cdaa11bb
+    related_knowledge:
+      - title: "Removing AWS access keys from source"
+        body: |
+          AWS SDK v2's `DefaultCredentialsProvider` reads env vars, profile files, and instance
+          metadata — no code should ever contain a literal access key. After the S3-to-Blob
+          migration the AWS dependency goes away entirely.
+        steps:
+          - "Delete the hardcoded `AWS_ACCESS_KEY_ID` literal"
+          - "Inject credentials via env vars during local dev"
+          - "Use instance profile / Managed Identity in deployed environments"
+          - "Schedule the S3-to-Azure-Blob migration to remove AWS entirely"
+        references:
+          - url: "https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials.html"
+            title: "AWS SDK for Java — Using credentials"
+            verified: false
+    quick_actions:
+      - kind: plan-with-related
+        label: "Plan with S3 migration"
+        prompt: |
+          Remove the hardcoded AWS access key from S3Uploader and pair the credential cleanup
+          with the migration from AWS S3 to Azure Blob Storage. Single coordinated plan.
+
+  - id: cwe-injection-attacks::aa11bb22cc33
+    why_it_matters: |
+      String concatenation builds a SQL `WHERE` clause from a request parameter in
+      `OrderRepository.findByUser`. While it's been acknowledged for the Q3 sprint, the migration
+      to Azure Container Apps does not de-risk this — moving the workload to a managed environment
+      doesn't change the injection surface inside the JVM.
+    what_to_do: |
+      Convert to a `PreparedStatement` (or use the JPA criteria API, which the rest of this
+      repository already prefers). Mechanical change; the test suite already covers the affected
+      paths.
+    tags:
+      - "user-input-reaches-sql"
+      - "scheduled-q3"
+      - "low-effort"
+    related_knowledge:
+      - title: "PreparedStatement migration in JDBC code"
+        body: |
+          The pattern is mechanical: every `"…" + userValue + "…"` becomes a `?` placeholder with a
+          `setString(idx, userValue)` call. The JPA criteria API is preferable when the rest of the
+          codebase uses it — consistency reduces review burden.
+        steps:
+          - "Replace concatenation with parameterized placeholders"
+          - "Run the existing OrderRepository tests"
+          - "Add one negative test asserting the placeholder path"
+        references:
+          - url: "https://owasp.org/www-community/attacks/SQL_Injection"
+            title: "OWASP — SQL Injection"
+            verified: false
+    quick_actions:
+      - kind: plan
+        label: "Plan the JDBC refactor"
+        prompt: |
+          Refactor OrderRepository.findByUser to use a PreparedStatement (or JPA criteria API
+          if it matches local conventions) and add a regression test.
+
+  # ── Cloud readiness ────────────────────────────────────────────────
+  - id: appcat::file-system-management::8b1f2c0a4d33
+    why_it_matters: |
+      `Reader`, `Writer`, and `DiskCache` all use local filesystem paths. In Azure Container Apps,
+      the container filesystem is ephemeral and not shared across replicas — anything cached
+      locally vanishes on restart and is invisible to other instances. The Reader/Writer paths
+      look like permanent storage; the DiskCache path is presumably scratch.
+    what_to_do: |
+      Split the migration by intent: persistent reads/writes go to **Azure Files** (mounted into
+      the container as a volume — minimal code change), and the scratch cache can stay ephemeral
+      if you accept a cold-cache hit on restart, or move to **Redis** if not.
+    tags:
+      - "blocks-cloud-migration"
+      - "azure-files-candidate"
+      - "5-evidence-points"
+    related_findings:
+      - reason: same_owner
+        reason_label: "All three cloud-readiness blockers"
+        finding_ids:
+          - appcat::aws-s3::5678cdaa11bb
+          - appcat::rabbitmq-messaging::abc123def456
+    related_knowledge:
+      - title: "Replacing local NIO with Azure Files"
+        body: |
+          Azure Files is the smallest-change option: mount the share into the container, change
+          the base path, no code rewrites. Use Azure Blob only if access patterns are large-object
+          or append-only — for typical file I/O, Files is the right primitive.
+        steps:
+          - "Provision an Azure Files share"
+          - "Mount it into the container via the ACA volumes spec"
+          - "Externalize the base path via env var"
+          - "Replace hardcoded path roots with the env-driven base"
+        references:
+          - url: "https://learn.microsoft.com/azure/storage/files/storage-files-introduction"
+            title: "Azure Files overview"
+            verified: false
+          - url: "https://learn.microsoft.com/azure/container-apps/storage-mounts"
+            title: "Azure Container Apps storage mounts"
+            verified: false
+    quick_actions:
+      - kind: plan
+        label: "Plan the Azure Files migration"
+        prompt: |
+          Migrate local filesystem I/O in Reader/Writer/DiskCache to an Azure Files mount in
+          Azure Container Apps. Externalize the base path via env var and keep DiskCache
+          ephemeral unless cold-restart cost is unacceptable.
+
+  - id: appcat::aws-s3::5678cdaa11bb
+    why_it_matters: |
+      S3Uploader and S3Lister directly call the AWS S3 SDK. This is functional today but bakes
+      AWS into the deployment model right when the rest of Acme Orders is moving to Azure. The
+      Azure-native equivalent (Blob) covers every operation the codebase currently uses.
+    what_to_do: |
+      Swap `com.amazonaws.services.s3` for `com.azure.storage.blob`. The API shape is similar —
+      most operations have a one-to-one mapping. Pair the swap with switching to Managed Identity,
+      which removes the hardcoded-access-key finding above as a side effect.
+    tags:
+      - "blocks-cloud-migration"
+      - "azure-blob-candidate"
+      - "tied-to-secret-cleanup"
+    related_findings:
+      - reason: co_fix
+        reason_label: "Pair with the AWS access-key cleanup"
+        finding_ids:
+          - cwe-credentials-secrets::deadbeef9002
+    related_knowledge:
+      - title: "S3 to Azure Blob Storage migration"
+        body: |
+          The Azure SDK uses `BlobServiceClient` → `BlobContainerClient` → `BlobClient` where AWS
+          uses `AmazonS3` → bucket → key. Authentication switches from access keys to
+          `DefaultAzureCredential`, which transparently uses Managed Identity in production.
+        steps:
+          - "Add `com.azure:azure-storage-blob` to pom.xml"
+          - "Replace S3Uploader's `AmazonS3` client with `BlobServiceClient`"
+          - "Map upload/download/list calls (one-to-one)"
+          - "Switch auth to `DefaultAzureCredential` (Managed Identity in ACA)"
+          - "Remove the AWS SDK dependency"
+        references:
+          - url: "https://learn.microsoft.com/azure/storage/blobs/storage-quickstart-blobs-java"
+            title: "Azure Blob quickstart (Java)"
+            verified: false
+    quick_actions:
+      - kind: plan
+        label: "Plan the S3 → Blob migration"
+        prompt: |
+          Migrate S3Uploader/S3Lister from the AWS S3 SDK to Azure Blob Storage, switch
+          authentication to DefaultAzureCredential / Managed Identity, and remove the AWS
+          dependency once unused.
+
+  - id: appcat::rabbitmq-messaging::abc123def456
+    why_it_matters: |
+      `OrderEventPublisher` publishes to RabbitMQ. Running RabbitMQ inside Azure Container Apps
+      is awkward (stateful, needs StatefulSets-style coordination), and the operational burden
+      doesn't add value vs the managed alternative. **Azure Service Bus** covers every
+      publish/subscribe pattern this code uses.
+    what_to_do: |
+      Replace the AMQP client with the Service Bus SDK. The semantics are close (topics, queues,
+      sessions), but the API is different enough that this needs a focused refactor, not a
+      drop-in swap. Plan as a two-week effort with both producer and consumer changes.
+    tags:
+      - "blocks-cloud-migration"
+      - "azure-service-bus-candidate"
+      - "needs-refactor-not-drop-in"
+    related_knowledge:
+      - title: "RabbitMQ to Azure Service Bus migration"
+        body: |
+          Service Bus offers topics (≈ exchanges), queues, and sessions. The Java SDK is
+          `azure-messaging-servicebus`. Authentication is Managed Identity. Plan for both the
+          producer (`OrderEventPublisher`) and any consumer changes — Service Bus push delivery
+          differs from RabbitMQ's poll model.
+        steps:
+          - "Provision a Service Bus namespace and the matching queues/topics"
+          - "Add `com.azure:azure-messaging-servicebus`"
+          - "Rewrite `OrderEventPublisher` against `ServiceBusSenderClient`"
+          - "Update consumers to use `ServiceBusProcessorClient`"
+          - "Switch auth to `DefaultAzureCredential`"
+        references:
+          - url: "https://learn.microsoft.com/azure/service-bus-messaging/service-bus-messaging-overview"
+            title: "Azure Service Bus overview"
+            verified: false
+          - url: "https://learn.microsoft.com/azure/developer/java/sdk/identity-azure-hosted-auth"
+            title: "Azure SDK authentication in hosted environments"
+            verified: false
+    quick_actions:
+      - kind: plan
+        label: "Plan the Service Bus migration"
+        prompt: |
+          Migrate OrderEventPublisher and its consumers from RabbitMQ to Azure Service Bus.
+          Plan as a single coordinated change that includes producer, consumer, and auth.
+
+  # ── Code quality ───────────────────────────────────────────────────
+  - id: cwe-concurrency::feed0001face
+    why_it_matters: |
+      `SimpleDateFormat` is mutable and not thread-safe; using one as a `static final` field will
+      silently corrupt dates under load. Already acknowledged for the Q4 cleanup, but worth
+      noting that the bug shows up as **wrong** dates, not as exceptions — so it's invisible
+      until something downstream catches it.
+    what_to_do: |
+      Replace the `SimpleDateFormat` field with a `DateTimeFormatter` (which is immutable and
+      thread-safe). Mechanical, single-file change.
+    tags:
+      - "thread-safety"
+      - "silent-corruption"
+      - "scheduled-q4"
+      - "low-effort"
+    quick_actions:
+      - kind: plan
+        label: "Plan the DateTime refactor"
+        prompt: |
+          Replace SimpleDateFormat in DateUtils with java.time.format.DateTimeFormatter and
+          update all callers.
+
+  - id: cwe-file-path::cafe0002babe
+    why_it_matters: |
+      `DownloadController` concatenates a request parameter into a file path without normalizing
+      or rejecting `..` segments. Under the current network topology this is bounded by the
+      reverse proxy's path rules, but those are not documented as a security control — making
+      this a real path-traversal risk if the proxy is ever changed.
+    what_to_do: |
+      Use `java.nio.file.Path.resolve()` with a fixed base directory, then verify the resolved
+      path starts with the base. Reject anything that doesn't. ~10 lines of code.
+    tags:
+      - "path-traversal"
+      - "internet-exposed"
+      - "low-effort"
+    related_knowledge:
+      - title: "Safe path resolution in Java"
+        body: |
+          The robust pattern is `base.resolve(input).normalize()` followed by an
+          `startsWith(base)` check on the normalized result. Anything that doesn't pass is rejected
+          with a 400, not a 404 — leaking the difference is itself a small information leak.
+        steps:
+          - "Resolve the input against a fixed base path"
+          - "Normalize and verify `startsWith(base)`"
+          - "Return 400 on mismatch"
+          - "Add tests covering `..`, absolute paths, and symlinks"
+        references:
+          - url: "https://owasp.org/www-community/attacks/Path_Traversal"
+            title: "OWASP — Path Traversal"
+            verified: false
+    quick_actions:
+      - kind: plan
+        label: "Plan the path-validation fix"
+        prompt: |
+          Harden DownloadController's path handling by resolving against a fixed base,
+          normalizing, and rejecting paths that escape. Add coverage for traversal patterns.
+
+  # ── Inventory ──────────────────────────────────────────────────────
+  - id: fact-base-image::ubuntu-jdk17::1111aaaa
+    why_it_matters: |
+      Eclipse Temurin 17-jre on Ubuntu 22.04 is a fully-supported runtime through 2030.
+      No action required; flagged purely as inventory context for the migration.
+    tags:
+      - "supported-runtime"
+      - "no-action"
+
+  - id: fact-language-dependencies::spring-boot-2.7.18::2222bbbb
+    why_it_matters: |
+      Spring Boot 2.7's OSS support ended August 24, 2025. Commercial support continues, but the
+      free patch stream stops. The next forced dependency bump (likely the Log4j / Spring4Shell
+      remediation above) is a natural moment to plan a 3.x upgrade because the same `pom.xml`
+      surgery is needed anyway.
+    what_to_do: |
+      Don't rush. After the security hotfixes ship, plan the Spring Boot 3.x upgrade as a
+      dedicated piece of work — `javax.*` → `jakarta.*` is the biggest blast radius, but tooling
+      exists (OpenRewrite recipes). Budget 2–3 sprints.
+    tags:
+      - "eol-oss-support"
+      - "plan-for-spring-boot-3"
+      - "jakarta-namespace-migration"
+    related_knowledge:
+      - title: "Spring Boot 2.7 → 3.x upgrade path"
+        body: |
+          The headline change is `javax.*` → `jakarta.*` across servlet, persistence, and
+          validation. OpenRewrite ships a recipe that handles the mechanical rename. The
+          non-mechanical work is everything that hooks into Spring Security (rewritten) and
+          actuator endpoints (moved).
+        steps:
+          - "Run OpenRewrite Spring Boot 3.x recipe on a branch"
+          - "Bump Java to 17 (already done here) and Spring Boot to 3.2.x"
+          - "Fix Spring Security config rewrites"
+          - "Verify actuator endpoint paths"
+        references:
+          - url: "https://spring.io/blog/2022/05/24/preparing-for-spring-boot-3-0"
+            title: "Preparing for Spring Boot 3.0"
+            verified: false
+    quick_actions:
+      - kind: plan
+        label: "Plan the Spring Boot 3 upgrade"
+        prompt: |
+          Plan an upgrade from Spring Boot 2.7.18 to the latest 3.2.x, including the
+          javax → jakarta migration via OpenRewrite. Budget 2–3 sprints.
+
+risks:
+  - id: r1
+    title: "Data migration window (S3 → Blob, RabbitMQ → Service Bus)"
+    severity: medium
+    body: |
+      A live cutover from AWS S3 and self-managed RabbitMQ to their Azure equivalents
+      needs a coordinated window. Reads/writes during the sync gap may be lost unless
+      double-writing is implemented first on the producer side.
+    mitigation: |
+      Use **AzCopy** for an incremental S3 → Blob sync, then flip the producer to
+      double-write for 48 hours before the cutover. For RabbitMQ, run both brokers in
+      parallel with a feature flag on the consumer side; drain the old queue, then
+      retire it.
+    finding_ids:
+      - appcat::aws-s3::5678cdaa11bb
+      - appcat::rabbitmq-messaging::abc123def456
+  - id: r2
+    title: "Cold-start latency on scale-to-zero plans"
+    severity: low
+    body: |
+      Azure Container Apps scales to zero when idle. The first request after idle pays a
+      ~2–5 s JVM warm-up, which is invisible internally but jarring for customer-facing
+      endpoints with strict SLOs.
+    mitigation: |
+      Set `minReplicas: 1` on the customer-facing app; leave the background workers at
+      `minReplicas: 0` to keep the bill in the low band.
+  - id: r3
+    title: "Spring Boot 3 upgrade is the bigger structural risk"
+    severity: medium
+    body: |
+      OSS support for 2.7 ended August 2025. The cloud migration above does not require
+      the 3.x upgrade, but they will compete for engineering bandwidth in Q4 and need
+      explicit prioritization.
+    mitigation: |
+      Ship the security hotfix this week; complete the Azure migration first; schedule the
+      Spring Boot 3 upgrade as a dedicated workstream once the platform is stable.
+    finding_ids:
+      - fact-language-dependencies::spring-boot-2.7.18::2222bbbb
+
+cost_estimate:
+  effort_person_days:
+    low: 12
+    high: 18
+  monthly_run_cost:
+    currency: USD
+    low: 180
+    high: 450
+  breakdown:
+    - item: "Azure Container Apps (2 apps, 0.5 vCPU × 1–3 replicas)"
+      monthly: "30–80"
+      note: "Customer-facing app pinned to minReplicas=1"
+    - item: "Azure Database for PostgreSQL Flexible (B2s, 32 GB)"
+      monthly: "50–120"
+    - item: "Azure Service Bus (Standard tier)"
+      monthly: "10–30"
+    - item: "Azure Blob Storage (Hot, 100 GB + egress)"
+      monthly: "20–50"
+    - item: "Azure Files (Standard, 50 GB)"
+      monthly: "10–25"
+    - item: "Log Analytics + Application Insights"
+      monthly: "20–80"
+    - item: "Key Vault + Container Registry"
+      monthly: "10–30"
+    - item: "Front Door / Application Gateway (if needed)"
+      monthly: "30–60"
+      note: "Omit if the workload is behind an existing edge"
+  notes: |
+    Assumes the modest workload profile we saw in `findings.yaml` (≤ 100 RPM sustained,
+    single-region deployment, managed-identity auth throughout). Production traffic would
+    push monthly cost toward the upper bound and may require Premium tiers for Service Bus
+    (geo-replication) and PostgreSQL (zone redundancy).
+
+next_steps:
+  - kind: plan-now
+    title: "Ship the security hotfix"
+    body: |
+      Both CVEs (Log4Shell and Spring4Shell) have one-line fixes and the service is
+      internet-facing. There is no reason to leave them open another day.
+    effort_hint: "≤ 1 day"
+    prompt: |
+      Upgrade log4j-core to 2.17.2 and spring-framework to 5.3.20 via the pom.xml properties
+      block. Verify with mvn dependency:tree, run the full test suite, and prepare a single
+      hotfix PR covering both CVEs.
+    target_skill: create-modernization-plan
+
+  - kind: plan-soon
+    title: "Plan the Azure migration as one piece of work"
+    body: |
+      File-system, AWS S3, and RabbitMQ migrations all need to happen before Acme Orders
+      can run cleanly on Azure Container Apps. Each one is achievable in isolation, but
+      sequencing them as a single plan avoids stepping on each other.
+    effort_hint: "~1–2 sprints"
+    prompt: |
+      Plan a migration from local filesystem to Azure Files, AWS S3 to Azure Blob Storage,
+      and RabbitMQ to Azure Service Bus, targeting Azure Container Apps. Pair the S3
+      migration with the AWS access-key removal so the credential disappears entirely.
+    target_skill: create-modernization-plan
+
+  - kind: monitor
+    title: "Watch the new payment module"
+    body: |
+      Two of the three new findings this run come from the new payment / storage module
+      (`S3Uploader` and friends). Worth re-scanning after the next deploy to make sure
+      the team's not introducing new variants faster than we're closing them.
+    effort_hint: null
+    prompt: null
+    target_skill: null

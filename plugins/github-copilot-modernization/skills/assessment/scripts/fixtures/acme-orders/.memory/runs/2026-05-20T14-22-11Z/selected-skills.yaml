@@ -1,0 +1,12 @@
+version: 1
+selected:
+  - cve-known-vulnerabilities
+  - cwe-injection-attacks
+  - cwe-credentials-secrets
+  - cwe-concurrency-synchronization
+  - cwe-file-path-security
+  - fact-base-image
+  - fact-language-dependencies
+  - appcat::file-system-management
+  - appcat::aws-s3
+  - appcat::rabbitmq-messaging

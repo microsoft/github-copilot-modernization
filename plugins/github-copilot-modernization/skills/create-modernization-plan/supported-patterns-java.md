@@ -1,6 +1,6 @@
 ## Supported Task Patterns
 
-The following are the task patterns supported by the modernize CLI. These patterns are used to identify the modernization tasks that need to be performed based on the user's input.
+The following task patterns are owned by this plugin. They identify modernization tasks from the user's input without invoking an external modernization CLI.
 
 The patterns are categorized into two groups, and they should be treated differently if picked:
 

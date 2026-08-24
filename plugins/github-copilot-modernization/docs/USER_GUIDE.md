@@ -8,7 +8,8 @@ GitHub Copilot modernization provides an autonomous workflow for modernizing app
 
 1. [Getting Started](#getting-started)
 2. [Understanding the Workflow](#understanding-the-workflow)
-3. [Troubleshooting](#troubleshooting)
+3. [Batch Assessment Private Preview](#batch-assessment-private-preview)
+4. [Troubleshooting](#troubleshooting)
 
 ## Getting Started
 
@@ -65,10 +66,13 @@ Update to the latest version:
 ### Phase 1: Assessment
 
 The assessment phase:
-- Discovers Java applications in the specified path
-- Analyzes dependencies, frameworks, and Java version
-- Identifies migration opportunities and risks
-- Saves results to `.github/modernize/assessment/` (report.json)
+- Uses a plugin-owned local catalog and does not call MCP tools
+- Supports Java, .NET, and JavaScript/TypeScript discovery and analysis; downstream automated planning/execution supports Java and .NET
+- Uses the bundled Node 18+ runtime for AppCAT, npm-check-updates, normalized findings, and report generation
+- Full coverage runs six fact documents; security runs one CVE task plus six CWE category tasks
+- Executes those as separate batches, with a maximum of seven concurrent assessment subagents
+- Writes a versioned HTML report under `.github/modernize/reports/`
+- Writes a compatibility report for planning to `.github/modernize/assessment/reports/report-<timestamp>/report.json`
 
 ### Phase 2: Planning
 
@@ -125,6 +129,58 @@ copilot> modernize my application
 ```
 
 The orchestrator will assess your app, identify all modernization opportunities, generate a comprehensive plan, and execute it.
+
+## Batch Assessment Private Preview
+
+Batch Assessment can assess several local repositories through the normal `modernize` entry point. Create `.github/modernize/repos.json` under a launch directory:
+
+```json
+{
+   "repos": [
+      {
+         "name": "orders",
+         "path": "C:\\source\\orders"
+      },
+      {
+         "name": "billing",
+         "path": "C:\\source\\billing"
+      }
+   ]
+}
+```
+
+Start `modernize` from the launch directory and make your normal request. Whenever the default file exists, the orchestrator's first question asks whether to process its repositories or only the current repository, even if the request already mentions Batch or the current repository:
+
+```text
+Assess for cloud readiness using issue-only coverage.
+```
+
+Choose **Process repositories from repos.json** to enter Batch mode, or **Only process the current repository** to continue the classic Single workflow. The mode choice does not approve execution. Batch mode next presents a read-only Review; approve that separately through **Start batch**, or choose **Cancel** to stop without execution.
+
+Repositories run sequentially, each in a fresh internal Assessment invocation. Repository reports retain the standard Single Assessment locations. After all repositories reach a terminal state, Batch mode atomically publishes the user-facing result using the same outer layout as the Modernization CLI:
+
+```text
+.github/modernize/assessment/reports-<timestamp>/
+├── index.html
+├── aggregate-report.json
+└── repos/
+   └── <repository-identity>/
+      ├── report.json
+      ├── report.html
+      └── facts/
+```
+
+The final TUI response shows the `index.html` path as the primary result. Plugin-private audit artifacts remain under `.github/modernize/batches/<batch-id>/`; users do not need to navigate that directory to find their report. The copied repository reports are byte-for-byte snapshots of validated canonical artifacts. Classic Single Planning continues to consume the canonical repository-local `report.json` files.
+
+The private preview has these hard limits:
+
+- Only `modernize` is user-invocable; all probe, review, coordinator, phase, and specialist agents are internal.
+- Assessment only; Batch Planning, Execution, upgrade, migration, and remediation are unavailable.
+- Whole repositories only. Configurations using `include_paths` fail before batch state is created.
+- Local execution only; no cloud delegation.
+- No retry, cross-session resume, pause, or scheduling after lease takeover. Single Assessment also starts a new run rather than resuming an interrupted Assessment.
+- A stale batch is retained only for diagnostics. Start a new Batch Assessment when another run is required.
+- Completion comes only from request-bound validated report artifacts, not agent prose.
 
 ## Troubleshooting
 

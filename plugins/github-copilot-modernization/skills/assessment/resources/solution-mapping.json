@@ -1,0 +1,2386 @@
+{
+    "$schema": "./solution-mapping-schema.json",
+    "solutions": [
+        {
+            "solutionId": "scan-and-resolve-cwe-vulnerabilities",
+            "name": "Scan and resolve CWE vulnerabilities",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Security vulnerability detected. Ask Copilot to scan and resolve it."
+        },
+        {
+            "solutionId": "scan-and-resolve-cve-vulnerabilities",
+            "name": "Resolve CVE issues by upgrading to secure, vulnerability-free versions",
+            "type": "Formula",
+            "effort": "MEDIUM",
+            "tooltip": "Scan and fix CVE vulnerabilities."
+        },
+        {
+            "solutionId": "activemq-servicebus",
+            "name": "Migrate from Active Artemis to Azure Service Bus",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from ActiveMQ Artemis to Azure Service Bus for messaging."
+        },
+        {
+            "solutionId": "java-ee-amqp-rabbitmq-servicebus",
+            "name": "Migrate from RabbitMQ(AMQP) to Azure Service Bus for Java EE/Jakarta EE",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from RabbitMQ with AMQP to Azure Service Bus for messaging in Java EE/Jakarta EE applications."
+        },
+        {
+            "solutionId": "amqp-rabbitmq-servicebus",
+            "name": "Migrate from RabbitMQ(AMQP) to Azure Service Bus",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from RabbitMQ with AMQP to Azure Service Bus for messaging."
+        },
+        {
+            "solutionId": "ibm-mq-jms-to-azure-service-bus",
+            "name": "Migrate IBM MQ to Azure Service Bus via JMS",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from IBM JMS to Azure Service Bus for messaging.",
+            "experimental": true
+        },
+        {
+            "solutionId": "javax.email-send-to-azure-communication-service-email",
+            "name": "Migrate to Azure Communication Service",
+            "type": "Formula",
+            "effort": "LOW",
+            "tooltip": "Migrate from Javax Email to Azure Communication Service for sending emails."
+        },
+        {
+            "solutionId": "jax-rpc-to-jax-ws",
+            "name": "Migrate from JAX-RPC to JAX-WS",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from JAX-RPC to JAX-WS for web services. JAX-RPC is deprecated and JAX-WS is the recommended alternative."
+        },
+        {
+            "solutionId": "java-version-upgrade",
+            "name": "Upgrade Java Version",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Upgrade to the latest stable version of Java for improved security, performance, and compatibility."
+        },
+        {
+            "solutionId": "deprecated-api-upgrade",
+            "name": "Upgrade Deprecated APIs",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Upgrade deprecated APIs to their recommended alternatives for improved security, performance, and compatibility."
+        },
+        {
+            "solutionId": "spring-boot-upgrade",
+            "name": "Upgrade Spring Boot Version",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Upgrade to the latest stable version of Spring Boot for improved security, performance, and compatibility."
+        },
+        {
+            "solutionId": "spring-framework-upgrade",
+            "name": "Upgrade Spring Framework Version",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Upgrade to the latest stable version of Spring Framework for improved security, performance, and compatibility."
+        },
+        {
+            "solutionId": "jakarta-ee-upgrade",
+            "name": "Upgrade Jakarta EE Version",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Upgrade to the latest stable version of Jakarta EE for improved security, performance, and compatibility."
+        },
+        {
+            "solutionId": "confluent-cloud-kafka",
+            "name": "Migrate from Kafka to Kafka on Confluent Cloud",
+            "type": "Formula",
+            "effort": "HIGH",
+            "variants": [
+                "kafka-to-eventhubs"
+            ],
+            "tooltip": "Migrate from Kafka to Apache Kafka on Confluent Cloud with managed identity for secure, credential-free authentication."
+        },
+        {
+            "solutionId": "kafka-to-eventhubs",
+            "name": "Migrate from Kafka to Azure Event Hubs for Apache Kafka",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Kafka to Azure Event Hubs for Apache Kafka with managed identity for secure, credential-free authentication."
+        },
+        {
+            "solutionId": "other-cache-solutions-to-azure-managed-cache",
+            "name": "Migrate Other Cache Solutions to Azure Managed Redis",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from other cache solutions (like Apache Commons JCS, Ehcache, Hazelcast, Infinispan, or local Redis/session) to Azure Managed Redis."
+        },
+        {
+            "solutionId": "log-to-console",
+            "name": "Migrate to Console Logging",
+            "type": "Formula",
+            "effort": "MEDIUM",
+            "tooltip": "Migrate from file-based logging to console logging to support cloud-native apps and integration with Azure Monitor."
+        },
+        {
+            "solutionId": "mi-azure-sql",
+            "name": "Secure Azure SQL Database with Managed Identity",
+            "type": "Formula",
+            "effort": "MEDIUM",
+            "tooltip": "Secure Azure SQL Database with Managed Identity."
+        },
+        {
+            "solutionId": "mi-cassandra",
+            "name": "Secure Azure Cosmos DB for Cassandra with Service Connector",
+            "type": "Formula",
+            "effort": "LOW",
+            "tooltip": "Secure Azure Cosmos DB for Cassandra with Service Connector for a fully managed, scalable database with Cassandra API support."
+        },
+        {
+            "solutionId": "mi-mariadb",
+            "name": "Migrate to Azure Database for MariaDB (Spring)",
+            "type": "Formula",
+            "effort": "MEDIUM",
+            "tooltip": "Migrate from MariaDB to Azure Database for MariaDB with managed identity for secure, credential-free authentication."
+        },
+        {
+            "solutionId": "mi-mongodb",
+            "name": "Secure Azure DocumentDB (with MongoDB Compatibility) with Microsoft Entra ID Authentication",
+            "type": "Formula",
+            "effort": "LOW",
+            "tooltip": "Secure Azure DocumentDB (with MongoDB Compatibility) with Microsoft Entra ID authentication."
+        },
+        {
+            "solutionId": "mi-mysql",
+            "name": "Migrate to Azure Database for MySQL",
+            "type": "Formula",
+            "effort": "MEDIUM",
+            "tooltip": "Migrate from MySQL to Azure Database for MySQL with managed identity for secure, credential-free authentication."
+        },
+        {
+            "solutionId": "mi-postgresql",
+            "name": "Secure Azure Database for PostgreSQL with Managed Identity",
+            "type": "Formula",
+            "effort": "MEDIUM",
+            "tooltip": "Secure Azure Database for PostgreSQL with Managed Identity."
+        },
+        {
+            "solutionId": "AWS-secrets-manager-to-azure-key-vault",
+            "name": "Migrate from AWS Secrets Manager to Azure Key Vault",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from AWS Secrets Manager to Azure Key Vault to securely manage and access sensitive information in Azure."
+        },
+        {
+            "solutionId": "certificate-management-to-azure-key-vault",
+            "name": "Migrate from KeyStore to Azure Key Vault",
+            "type": "Formula",
+            "effort": "LOW",
+            "tooltip": "Migrate from a local KeyStore to Azure Key Vault for secure storage and access to certificates and keys."
+        },
+        {
+            "solutionId": "local-files-to-mounted-azure-storage",
+            "name": "Migrate to Azure Storage Account File Share mounts",
+            "type": "Formula",
+            "effort": "LOW",
+            "tooltip": "Migrate from local file system to Azure Storage Account File Share mounts for scalable and secure file storage."
+        },
+        {
+            "solutionId": "on-premises-user-authentication-to-microsoft-entra-id",
+            "name": "Migrate from on-premises user authentication to Microsoft Entra ID",
+            "description": "TODO: need to further check if this aligns with the solution",
+            "type": "Formula",
+            "effort": "MEDIUM",
+            "tooltip": "Migrate from on-premises user authentication systems to Microsoft Entra ID for secure and scalable user management in Azure."
+        },
+        {
+            "solutionId": "plaintext-credential-to-azure-keyvault",
+            "name": "Migrate from Plaintext Credentials to Azure Key Vault",
+            "type": "Formula",
+            "effort": "LOW",
+            "tooltip": "Migrate from plaintext credentials in the code to Azure Key Vault for storage and access to sensitive information."
+        },
+        {
+            "solutionId": "s3-to-azure-blob-storage",
+            "name": "Migrate from AWS S3 to Azure Blob Storage",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from AWS S3 to Azure Blob Storage for scalable and secure object storage in Azure."
+        },
+        {
+            "solutionId": "spring-jms-rabbitmq-servicebus",
+            "name": "Migrate from RabbitMQ(JMS) to Azure Service Bus",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from RabbitMQ with JMS to Azure Service Bus for a managed messaging service with JMS API support."
+        },
+        {
+            "solutionId": "sqs-to-servicebus",
+            "name": "Migrate from AWS Simple Queue Service to Azure Service Bus",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from AWS Simple Queue Service to Azure Service Bus for a managed messaging service with advanced features."
+        },
+        {
+            "solutionId": "oracle-to-postgresql",
+            "name": "Migrate from Oracle DB to PostgreSQL",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Oracle DB to PostgreSQL"
+        },
+        {
+            "solutionId": "bare/redesign-java-gui-app",
+            "name": "Redesign Java GUI application to migrate it to Azure",
+            "type": "Chat",
+            "prompt": "The application uses desktop GUI framework which requires desktop runtime and is not cloud-native, consider containerizing for Azure deployment or redesigning as a web application.",
+            "tooltip": "Redesign the Java app's graphical user interface (GUI) using Java Swing or JavaFX to migrate it to Azure."
+        },
+        {
+            "solutionId": "bare/apm-to-application-insights",
+            "name": "Migrate APM to application insights",
+            "type": "Chat",
+            "prompt": "The app uses an application performance monitoring (APM) platform. To migrating Java app to Azure, use Azure Monitor or Application Insights for built-in tracing and auto-instrumentation support in Azure services.",
+            "tooltip": "The app uses an application performance monitoring (APM) platform. Chat with Copilot to learn how to migrate APM to Azure Monitor or Application Insights."
+        },
+        {
+            "solutionId": "bare/encoding-standards",
+            "name": "Check Encoding in the Code",
+            "type": "Chat",
+            "prompt": "The code uses UTF-8 by default. If it's not appropriate for your code, use a different character set.",
+            "tooltip": "The code uses UTF-8 by default. Chat with Copilot to learn how to check and update the encoding."
+        },
+        {
+            "solutionId": "bare/local-resource-access",
+            "name": "Migrate the Local Resource to Azure",
+            "type": "Chat",
+            "prompt": "The application is using some resource or service from localhost. When you migrate the application to Azure, you also need to migrate the dependent resource or service to Azure.",
+            "tooltip": "The app uses some resource or service from localhost. Chat with Copilot to learn how to migrate the local resource to Azure."
+        },
+        {
+            "solutionId": "bare/remote-communication",
+            "name": "Use Loosely coupled protocols in Cloud Environment",
+            "type": "Chat",
+            "prompt": "The app uses legacy protocols. Please use loosely coupled protocols like REST, gRPC, etc.",
+            "tooltip": "The app uses legacy protocols. Chat with Copilot to learn how to use loosely coupled protocols like REST, gRPC, etc."
+        },
+        {
+            "solutionId": "bare/remote-communication/java-socket",
+            "name": "Use Java Socket Communication in Cloud Environment",
+            "type": "Chat",
+            "prompt": "The application uses Java socket communication, which depends on fixed IP addresses and ports, making it unsuitable for cloud environments where service endpoints are dynamic and scaling is required. Replace socket-based communication with cloud-friendly, loosely coupled alternatives such as RESTful APIs, gRPC, JMS messaging, Azure Service Bus, etc.",
+            "tooltip": "The app uses legacy protocols. Chat with Copilot to learn how to use loosely coupled protocols like REST, gRPC, etc."
+        },
+        {
+            "solutionId": "bare/remote-communication/corba",
+            "name": "Check CORBA usage",
+            "type": "Chat",
+            "prompt": "The application uses CORBA which is tightly coupled and not suitable for cloud environments. Replace with REST APIs, gRPC, or Azure Service Bus for messaging. Use Azure API Management for API gateway capabilities.",
+            "tooltip": "The app uses CORBA for remote communication. Chat with Copilot to learn how to review and update it when migrating to Azure."
+        },
+        {
+            "solutionId": "bare/remote-communication/hardcode-ip",
+            "name": "Check hardcoded IP address",
+            "type": "Chat",
+            "prompt": "The application uses hardcoded IP addresses. When migrating to Azure cloud, review and update any hardcoded IP addresses as needed, or migrate the dependent services accordingly.",
+            "tooltip": "The app uses hardcoded IP addresses. Chat with Copilot to learn how to review and update them when migrating to Azure."
+        },
+        {
+            "solutionId": "bare/remote-communication/secure-protocols",
+            "name": "Use Secure Protocols",
+            "type": "Chat",
+            "prompt": "The application uses insecure protocols. When migrating to Azure cloud, review and update any insecure protocols to secure protocols such as HTTPS and SFTP (over HTTP and FTP).",
+            "tooltip": "The app uses insecure protocols. Chat with Copilot to learn how to switch to secure ones like HTTPS or SFTP."
+        },
+        {
+            "solutionId": "bare/remote-communication/hardcoded-urls",
+            "name": "Check hardcoded URLs",
+            "type": "Chat",
+            "prompt": "The application uses hardcoded URLs. When migrating to Azure cloud, review and update any hardcoded URLs as needed, or migrate the dependent services accordingly.",
+            "tooltip": "The app uses hardcoded URLs. Chat with Copilot to learn how to review and update them when migrating to Azure."
+        },
+        {
+            "solutionId": "bare/os-compatibility",
+            "name": "Redesign OS Specific Code",
+            "type": "Chat",
+            "prompt": "The app uses a Windows Dynamic-Link Library (DLL). Redesign the code to avoid using OS specific code.",
+            "tooltip": "The app uses a Windows Dynamic-Link Library (DLL). Chat with Copilot to learn how to redesign the code to avoid using OS specific code."
+        },
+        {
+            "solutionId": "bare/java-native-code",
+            "name": "Build Native Process into Container Image",
+            "type": "Chat",
+            "prompt": "The application uses Java native libraries (JNI, JNA) which may not be compatible with cloud container environments. Identify these dependencies and either containerize them with matching base images or replace them with platform-independent libraries, cloud-native solutions, or Azure managed services.",
+            "tooltip": "The app uses Java native libraries (JNI, JNA). Chat with Copilot to learn how to build them into containers or find Azure alternatives."
+        },
+        {
+            "solutionId": "bare/jakataee-to-azure",
+            "name": "Deploy JakartaEE App to Azure",
+            "type": "Chat",
+            "prompt": "The Application relies on Jakarta EE APIs. Azure provides support for Jakarta EE applications from different vendors, including Red Hat OpenShift, IBM WebSphere Liberty, and Oracle WebLogic Server.",
+            "tooltip": "The app uses Jakarta EE APIs. Chat with Copilot to learn how to deploy them to Azure using supported vendors."
+        },
+        {
+            "solutionId": "bare/jakataee-to-azure/rmi",
+            "name": "Check Java Remote Method Invocation(RMI)",
+            "type": "Chat",
+            "prompt": "The application uses Java RMI which is tightly coupled and not cloud-ready, replace it with HTTP-based RESTful APIs for standard communication or Azure Service Bus for messaging scenarios.",
+            "tooltip": "The app uses Java RMI. Chat with Copilot to learn how to replace it with cloud-ready alternatives."
+        },
+        {
+            "solutionId": "bare/jakataee-to-azure/jca",
+            "name": "Check Java Connector Architecture(JCA)",
+            "type": "Chat",
+            "prompt": "The application uses Java Connector Architecture(JCA) which is tightly coupled and not suitable for cloud scalability, replace with appropriate Azure managed services like Azure Service Bus, Azure Event Hub, etc.",
+            "tooltip": "The app uses Java Connector Architecture(JCA). Chat with Copilot to learn how to replace it with cloud-ready alternatives."
+        },
+        {
+            "solutionId": "bare/configuration-management/environment-variables",
+            "name": "Configure System Environment Variables",
+            "type": "Chat",
+            "prompt": "The application uses environment variables or system properties. When migrating to Azure, they need to be passed according to the target hosting service's setup. If they contain sensitive information, it's better to store in KeyVault. If some configurations are shared, Azure App Configuration service may be an option to store them.",
+            "tooltip": "The app uses environment variables or system properties. Chat with Copilot to learn how to configure system environment variables when migrating to Azure."
+        },
+        {
+            "solutionId": "bare/configuration-management/external-configuration",
+            "name": "Manage External Configuration",
+            "type": "Chat",
+            "prompt": "The app stores settings in external files other than web.config. When migrating to Azure, they need to be passed according to the target hosting services's setup. If they contain sensitive information, it's better to store in KeyVault. If some configurations are shared, Azure App Configuration service may be an option to store them.",
+            "tooltip": "The app stores settings in external files. Chat with Copilot to learn how to manage external configuration when migrating to Azure."
+        },
+        {
+            "solutionId": "bare/configuration-management/windows-registry",
+            "name": "Manage Windows Registry Configuration",
+            "type": "Chat",
+            "prompt": "The application writes application settings into OS-specific storage such as Windows Registry. When migrating to Azure, these application settings should not be defined in such storage. If they contain sensitive information, it's better to store in KeyVault. If some configurations are shared, Azure App Configuration service may be an option to store them.",
+            "tooltip": "The app stores settings in OS-specific storage like the Windows Registry. Chat with Copilot to learn managing Windows Registry configuration when migrating to Azure."
+        },
+        {
+            "solutionId": "quartz-scheduler-to-azure-functions",
+            "name": "Migrate from Quartz Scheduler to Azure Functions",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Quartz Scheduler to Azure Functions for serverless, event-driven task scheduling in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "bare/spring-migration",
+            "name": "Deploy Spring Cloud App To Azure",
+            "type": "Chat",
+            "prompt": "The application has Spring Boot or Spring Cloud dependencies. Azure Container Apps offers managed components for Spring Cloud, so it may be an option for Spring Cloud migration. Special attention is required for some environment related settings, such as server.port, Config Server or Eureka bindings.",
+            "tooltip": "The app uses Spring Boot or Spring Cloud. Chat with Copilot to learn how to deploy Spring Cloud apps to Azure using Azure Container Apps."
+        },
+        {
+            "solutionId": "bare/eap-migration/jboss-eap",
+            "name": "Deploy JBoss EAP to Azure",
+            "type": "Chat",
+            "prompt": "The app uses JBoss EAP related code, configs, dependencies, and/or environment settings. JBoss EAP is a Java EE application server available on Azure.",
+            "tooltip": "The app uses JBoss EAP related code, configs, dependencies, and/or environment settings. Chat with Copilot to learn how to deploy JBoss EAP apps to Azure using supported vendors."
+        },
+        {
+            "solutionId": "bare/azure-service-connector",
+            "name": "Use Azure Service Connector",
+            "type": "Chat",
+            "prompt": "The app uses VMware Tanzu Application Service (TAS) service bindings. In Azure, use Azure Service Connect to link to Azure services.",
+            "tooltip": "The app uses VMware Tanzu Application Service (TAS) service bindings. Chat with Copilot to learn how to use Azure Service Connector to connect to Azure services."
+        },
+        {
+            "solutionId": "bare/aws-region-configuration-to-azure",
+            "name": "Migrate from AWS Region Configuration to Azure Region Configuration",
+            "type": "Chat",
+            "prompt": "The app has AWS region settings. Identify the AWS service to migrate, find Azure alternatives, and check their region availability. Provide the links to Azure docs page for latest region availability.",
+            "tooltip": "The app has AWS region settings. Chat with Copilot to learn how to migrate from AWS region configuration to Azure region configuration."
+        },
+        {
+            "solutionId": "bare/spring-cloud-vault-migration",
+            "name": "Migrate from Spring Cloud Vault to Azure Key Vault",
+            "type": "Chat",
+            "prompt": "The application integrates with Spring Cloud Vault. To migrate a Java application that uses Spring Cloud Vault to Azure, you should identify all secrets and the backing secret store, then migrate them to Azure Key Vault. Use the Azure Key Vault Spring Boot Starter for secret injection. You may need to rename some secrets and update references in the application code.",
+            "tooltip": "The app integrates with Spring Cloud Vault. Chat with Copilot to learn how to migrate from Spring Cloud Vault to Azure Key Vault."
+        },
+        {
+            "solutionId": "bare/aws-credentials-to-azure",
+            "name": "Migrate from AWS Access Key ID/Secret to Azure Credentials",
+            "type": "Chat",
+            "prompt": "The application contains AWS credential configuration. We need to find out what AWS service we want to migrate, find the candidate alternatives on Azure, do the code changes according to the source service and target service. Secrets should be stored in Azure Key Vault. The best practice is to use DefaultAzureCredential to authenticate to Azure and access the target service.",
+            "tooltip": "The app has AWS credential configuration. Chat with Copilot to learn how to migrate from AWS access key ID/secret to Azure credentials."
+        },
+        {
+            "solutionId": "bare/openliberty-migration/openliberty-database",
+            "name": "Migrate from Open Liberty Database to Azure Database Services",
+            "type": "Chat",
+            "prompt": "The application uses Open Liberty database configurations and datasources. When migrating to Azure, identify the specific database type (MySQL, PostgreSQL, SQL Server) and migrate to the appropriate Azure Database service. Use connection pooling optimized for cloud environments and configure Azure Key Vault to securely store connection strings. Implement DefaultAzureCredential for managed identity authentication to eliminate hard-coded credentials. Consider using Azure App Configuration for centralized connection management across environments.",
+            "tooltip": "The app uses Open Liberty database configurations and datasources. Chat with Copilot to learn how to migrate from Open Liberty database to Azure Database Services."
+        },
+        {
+            "solutionId": "bare/openliberty-migration/openliberty-filesystem",
+            "name": "Migrate from Open Liberty Filesystem to Azure Storage",
+            "type": "Chat",
+            "prompt": "The application uses Open Liberty filesystem for data storage or configuration. When migrating to Azure, replace local filesystem dependencies with Azure Blob Storage or Azure Files depending on access patterns. For read-heavy shared configuration, consider Azure Blob Storage with CDN. For applications requiring file system mounting, use Azure Files with SMB protocol. Implement the Azure Storage SDK with DefaultAzureCredential for secure access, and store any access keys in Azure Key Vault. Consider data access patterns when selecting storage tier and replication options.",
+            "tooltip": "The app uses Open Liberty filesystem for data storage or configuration. Chat with Copilot to learn how to migrate from Open Liberty filesystem to Azure Storage."
+        },
+        {
+            "solutionId": "bare/openliberty-migration/openliberty-jms",
+            "name": "Migrate from Open Liberty JMS to Azure Service Bus",
+            "type": "Chat",
+            "prompt": "The application uses Open Liberty Java Message Service (JMS) for messaging. When migrating to Azure, Azure Service Bus is the recommended alternative. Analyze current JMS usage patterns (queues, topics, message selectors) to map to Service Bus concepts. Use the JMS over AMQP provider with the Azure Service Bus SDK for Java. Implement DefaultAzureCredential for authentication, store connection strings in Azure Key Vault, and adjust client-side configurations for cloud reliability patterns like retry policies and circuit breakers.",
+            "tooltip": "The app uses Open Liberty Java Message Service (JMS) for messaging. Chat with Copilot to learn how to migrate from Open Liberty JMS to Azure Service Bus."
+        },
+        {
+            "solutionId": "bare/openliberty-migration/openliberty-logging",
+            "name": "Migrate from Open Liberty Logging to Azure Monitor",
+            "type": "Chat",
+            "prompt": "The application uses Open Liberty logging configurations. When migrating to Azure, implement a cloud-native logging strategy using Azure Monitor and Application Insights. Configure the Application Insights Java agent for auto-instrumentation or use the Application Insights SDK for more customization. For structured logging, consider Log Analytics workspace integration. Update logging configurations to use console output (stdout/stderr) instead of files when deployed to Azure App Service or Azure Container Apps. Implement correlation IDs across services for distributed tracing and use Azure Monitor Workbooks for custom dashboards.",
+            "tooltip": "The app uses Open Liberty logging configurations. Chat with Copilot to learn how to migrate from Open Liberty logging to Azure Monitor."
+        },
+        {
+            "solutionId": "bare/oraclejdk-to-openjdk/resource-management-apis",
+            "name": "Update Resource Management APIs for migration from Oracle JDK to OpenJDK",
+            "type": "Chat",
+            "prompt": "The application uses Resource Management APIs. When migrating to OpenJDK, OpenJDK does not support the resource management API for Java, review and update the resource management API usage to ensure compatibility with OpenJDK. Specifically, identify and replace the use of classes and methods from the `jdk.management.resource` package with alternative approaches for resource monitoring and management.",
+            "tooltip": "The app uses Resource Management APIs. Chat with Copilot to learn how to update Resource Management APIs for migration from Oracle JDK to OpenJDK."
+        },
+        {
+            "solutionId": "bare/oraclejdk-to-openjdk/imageio",
+            "name": "Replace ImageIO usage for migration from Oracle JDK to OpenJDK",
+            "type": "Chat",
+            "prompt": "The application uses Oracle JDK JPEG image encoder/decoder usage. When migrating to OpenJDK, review and update the image encoder/decoder usage to ensure compatibility with OpenJDK. Specifically, identify and replace the use of classes and methods from the `com.sun.image.codec.jpeg` package with `javax.imageio.ImageIO`.",
+            "tooltip": "The application uses Oracle JDK JPEG image encoder/decoder usage. Chat with Copilot to learn how to replace ImageIO usage for migration from Oracle JDK to OpenJDK."
+        },
+        {
+            "solutionId": "bare/database-migration/database-reliability",
+            "name": "Update database configurations for cloud readiness and resilience",
+            "type": "Chat",
+            "prompt": "The application uses database. When migrating to Azure, review and update the database configurations to ensure readiness for Azure cloud deployment. Specifically, identify any on-premise specific settings that are incompatible or suboptimal for Azure; recommend updates to support high availability, automatic failover, and geo-redundancy; ensure connection strings support retry policies, transient fault handling, and use managed identity authentication if possible; detect hardcoded paths, IPs, or dependencies that may need reconfiguration.",
+            "tooltip": "The app uses database. Chat with Copilot to learn how to update database configurations for cloud readiness and resilience."
+        },
+        {
+            "solutionId": "bare/jakarta-auth-migration",
+            "name": "Migrate Jakarta EE Authentication to Microsoft Entra ID",
+            "type": "Chat",
+            "prompt": "The application uses Jakarta Authentication and Authorization APIs. When migrating to Azure, how should I modernize the authentication to integrate with Microsoft Entra ID? Please provide: 1. Code examples for replacing Jakarta Authentication with OAuth 2.0/OIDC. 2. Microsoft Entra ID configuration steps (App Registration, permissions) 3. Best practices for container-based authentication on Azure. 4. Authorization strategy (RBAC vs application claims). Include configuration samples and highlight key migration considerations.",
+            "tooltip": "The app uses Jakarta Authentication and Authorization APIs. Chat with Copilot to learn how to migrate Jakarta EE Authentication to Microsoft Entra ID."
+        },
+        {
+            "solutionId": "bare/jakarta-websocket-migration",
+            "name": "Migrate Jakarta EE WebSocket",
+            "type": "Chat",
+            "prompt": "The application uses Jakarta WebSocket APIs. When migrating to Azure, please advise on: 1. Best Azure service for hosting WebSocket applications (self-hosted vs Azure Web PubSub)? 2. Code examples for migrating @ServerEndpoint to Azure-compatible patterns. 3. Required Azure configurations: session affinity, TLS, connection timeouts. 4. How to integrate Microsoft Entra ID authentication for WebSocket connections? 5. Load balancing and scalability considerations for real-time connections. Include code samples, configuration examples, and migration trade-offs.",
+            "tooltip": "The app uses Jakarta WebSocket APIs. Chat with Copilot to learn how to migrate Jakarta EE WebSocket."
+        },
+        {
+            "solutionId": "bare/jakarta-jaxrs-migration",
+            "name": "Migrate Jakarta JAX-RS to Azure",
+            "type": "Chat",
+            "prompt": "My Java application uses Jakarta JAX-RS APIs (jakarta.ws.rs.* or javax.ws.rs.*) on a Jakarta EE/MicroProfile runtime. I need to migrate to Azure. Please advise on: 1. Deployment options - Azure App Service, AKS, or Container Apps for JAX-RS applications? 2. Configuration externalization - migrating to Azure App Configuration and Key Vault with code examples. 3. API security - securing JAX-RS endpoints with Microsoft Entra ID, OAuth 2.0/OIDC filters, and JWT validation in JAX-RS filters and interceptors. 4. Observability - integrating Azure Application Insights for telemetry and distributed tracing. 5. Production readiness - HTTPS configuration, Managed Identity, auto-scaling, and health checks. Include code examples, Azure configuration samples, and migration checklist.",
+            "tooltip": "The application uses Jakarta JAX-RS APIs for RESTful services. Chat with Copilot to learn how to migrate to Azure App Service, AKS, or Container Apps with proper security and monitoring."
+        },
+        {
+            "solutionId": "bare/jakarta-nosql-migration",
+            "name": "Migrate Jakarta NoSQL to Azure",
+            "type": "Chat",
+            "prompt": "My application uses Jakarta NoSQL APIs (jakarta.nosql.*). I need to migrate to Azure. Please advise on: 1. Should I migrate to Azure Cosmos DB native SDKs? Which Cosmos DB API (NoSQL, MongoDB, Cassandra, Gremlin, Table) matches my data model? 2. How to update data access layer from Jakarta NoSQL to Cosmos DB SDK with code examples? 3. Configuration - connection strings, authentication (Managed Identity), and security. 4. Network security - VNet integration, private endpoints, and firewall rules. 5. Performance - throughput settings, consistency levels, and optimization. Include before/after code examples and Azure configuration.",
+            "tooltip": "The application uses Jakarta NoSQL APIs. Chat with Copilot to learn how to migrate to Azure Cosmos DB."
+        },
+        {
+            "solutionId": "bare/jakarta-persistence-migration",
+            "name": "Migrate Jakarta JPA to Azure",
+            "type": "Chat",
+            "prompt": "My application uses Jakarta JPA APIs (jakarta.persistence.* or javax.persistence.*) with Hibernate/EclipseLink. I need to migrate to Azure. Please advise on: 1. Which Azure database - PostgreSQL, MySQL, or SQL Database? 2. Updating persistence.xml/properties for Azure connections, dialect, and connection pools. 3. Storing credentials in Azure Key Vault with Managed Identity examples. 4. Network security - VNet integration, private endpoints, and firewall rules. 5. Deployment on Azure App Service, AKS, or Container Apps. Include configuration examples and Spring Data JPA guidance.",
+            "tooltip": "The application uses Jakarta JPA APIs. Chat with Copilot to learn how to migrate to Azure database services."
+        },
+        {
+            "solutionId": "bare/jakarta-data-migration",
+            "name": "Migrate Jakarta Data to Azure",
+            "type": "Chat",
+            "prompt": "My application uses Jakarta Data APIs (jakarta.data.*) for repository-based data access. I need to migrate to Azure. Please advise on: 1. For relational workloads: Azure PostgreSQL/MySQL/SQL Database; for NoSQL: Azure Cosmos DB - which fits my use case? 2. Ensuring Jakarta Data providers (Eclipse JNoSQL, Micronaut Data) work with Azure. 3. Updating repository configuration for Azure with connection URLs and credentials. 4. Network security - VNet integration, private endpoints, and firewall rules. 5. Using Azure Key Vault for credential management. 6. Deployment on Azure App Service, AKS, or Container Apps. Include configuration examples.",
+            "tooltip": "The application uses Jakarta Data APIs. Chat with Copilot to learn how to migrate to Azure databases."
+        },
+        {
+            "solutionId": "bare/jboss-eap-to-azure-app-service",
+            "name": "Migrate JBoss EAP to Azure App Service",
+            "type": "Chat",
+            "prompt": "My application uses JBoss EAP and I need to migrate to Azure App Service. Please advise on: 1. Preparing JBoss EAP application for Azure App Service deployment. 2. Configuring JBoss EAP runtime (version, startup settings) and updating build files. 3. Managing configuration with Azure App Configuration and Key Vault. 4. Deployment options - Maven/Gradle plugins or CI/CD. 5. Setting up monitoring with Application Insights. Include configuration examples.",
+            "tooltip": "The application uses JBoss EAP. Chat with Copilot to learn how to migrate to JBoss EAP on Azure App Service."
+        },
+        {
+            "solutionId": "bare/jboss-eap-to-aks",
+            "name": "Migrate JBoss EAP to Azure Kubernetes Service",
+            "type": "Chat",
+            "prompt": "My application uses JBoss EAP and I need to migrate to AKS. Please advise on two options: Option 1 - Lift-and-Shift: Using Red Hat JBoss EAP container images, Dockerfile examples, and Kubernetes manifests (Deployment, Service, ConfigMap). Option 2 - Refactor: Migrating to Spring Boot/Quarkus/Micronaut with code refactoring patterns. For both: include networking, scaling, Azure Key Vault integration, and monitoring. Help me choose the right approach with code examples.",
+            "tooltip": "The application uses JBoss EAP. Chat with Copilot to learn migration to AKS: lift-and-shift or refactor to cloud-native."
+        },
+        {
+            "solutionId": "bare/jboss-eap-to-azure-container-apps",
+            "name": "Migrate JBoss EAP to Azure Container Apps",
+            "type": "Chat",
+            "prompt": "My application uses JBoss EAP and I need to migrate to Azure Container Apps. Please advise on two options: Option 1 - Lift-and-Shift: Using Red Hat JBoss EAP container images and Dockerfile examples. Option 2 - Refactor: Migrating to Spring Boot/Quarkus/Micronaut with refactoring patterns. For both: include Container Apps configuration (scaling, traffic splitting), Azure Key Vault, ingress, and Application Insights. Help me choose with code examples.",
+            "tooltip": "The application uses JBoss EAP. Chat with Copilot to learn migration to Container Apps: lift-and-shift or refactor."
+        },
+        {
+            "solutionId": "bare/weblogic-to-azure-app-service",
+            "name": "Migrate WebLogic to JBoss EAP on Azure App Service",
+            "type": "Chat",
+            "prompt": "My application uses WebLogic Server and I need to migrate to JBoss EAP on Azure App Service. Please advise on: 1. Key differences between WebLogic and JBoss EAP. 2. Migrating weblogic.xml and descriptors to JBoss equivalents. 3. Updating build files to replace WebLogic dependencies. 4. Configuring JBoss EAP runtime on App Service. 5. Data sources, JNDI, and JMS setup. Include configuration examples and checklist.",
+            "tooltip": "The application uses WebLogic Server. Chat with Copilot to learn how to migrate to JBoss EAP on Azure App Service."
+        },
+        {
+            "solutionId": "bare/weblogic-to-aks",
+            "name": "Migrate WebLogic to Azure Kubernetes Service",
+            "type": "Chat",
+            "prompt": "My application uses WebLogic Server and I need to migrate to AKS. Please advise on: 1. Migration approach - WebLogic on AKS or refactor to cloud-native? 2. Using Oracle WebLogic Kubernetes Operator. 3. Containerizing WebLogic with Dockerfile examples. 4. Kubernetes manifests for WebLogic domains and clusters. 5. Networking, secrets with Azure Key Vault, and monitoring. Include code examples and architecture guidance.",
+            "tooltip": "The application uses WebLogic Server. Chat with Copilot to learn how to migrate to Azure Kubernetes Service."
+        },
+        {
+            "solutionId": "bare/weblogic-to-azure-container-apps",
+            "name": "Migrate WebLogic to Azure Container Apps",
+            "type": "Chat",
+            "prompt": "My application uses WebLogic Server and I need to migrate to Azure Container Apps. Please advise on two options: Option 1 - Lift-and-Shift: WebLogic container images and Dockerfile examples. Option 2 - Refactor: Migrating to Spring Boot/Quarkus/Micronaut. For both: include Container Apps configuration, Azure Key Vault, autoscaling, and monitoring. Help me choose with code examples.",
+            "tooltip": "The application uses WebLogic Server. Chat with Copilot to learn migration to Container Apps: lift-and-shift or refactor."
+        },
+        {
+            "solutionId": "bare/websphere-to-azure-app-service",
+            "name": "Migrate WebSphere to JBoss EAP on Azure App Service",
+            "type": "Chat",
+            "prompt": "My application uses WebSphere and I need to migrate to JBoss EAP on Azure App Service. Please advise on: 1. Key differences between WebSphere and JBoss EAP. 2. Migrating WebSphere descriptors (ibm-web-ext.xml, ibm-application-bnd.xml) to JBoss equivalents. 3. Replacing WebSphere dependencies (com.ibm.websphere.*) in build files. 4. Configuring JBoss EAP runtime on App Service. 5. Data sources, JNDI, and messaging setup. Include configuration examples and checklist.",
+            "tooltip": "The application uses WebSphere. Chat with Copilot to learn how to migrate to JBoss EAP on Azure App Service."
+        },
+        {
+            "solutionId": "bare/websphere-to-aks",
+            "name": "Migrate WebSphere to Azure Kubernetes Service",
+            "type": "Chat",
+            "prompt": "My application uses WebSphere and I need to migrate to AKS. Please advise on: 1. Migration approach - WebSphere Liberty on AKS or refactor to cloud-native? 2. Using IBM WebSphere Liberty Operator for Kubernetes. 3. Containerizing WebSphere applications with Dockerfile examples. 4. Kubernetes manifests for WebSphere Liberty deployment. 5. Networking, secrets with Azure Key Vault, and monitoring. Include code examples and architecture guidance.",
+            "tooltip": "The application uses WebSphere. Chat with Copilot to learn how to migrate to Azure Kubernetes Service."
+        },
+        {
+            "solutionId": "bare/websphere-to-azure-container-apps",
+            "name": "Migrate WebSphere to Azure Container Apps",
+            "type": "Chat",
+            "prompt": "My application uses WebSphere and I need to migrate to Azure Container Apps. Please advise on two options: Option 1 - Lift-and-Shift: IBM WebSphere Liberty container images and Dockerfile examples. Option 2 - Refactor: Migrating to Spring Boot/Quarkus/Micronaut. For both: include Container Apps configuration, Azure Key Vault, autoscaling, and monitoring. Help me choose with code examples.",
+            "tooltip": "The application uses WebSphere. Chat with Copilot to learn migration to Container Apps: lift-and-shift or refactor."
+        },
+        {
+            "solutionId": "bare/appserver-api-migration-to-standard-java",
+            "name": "Migrate Proprietary App Server APIs to Standard Java/Jakarta EE",
+            "type": "Chat",
+            "prompt": "The application uses proprietary application server APIs (WebLogic, WebSphere, JBoss EAP, or JBoss Seam) that must be migrated to standard Java/Jakarta EE equivalents. This is an application server portability migration — not a simple JDK deprecated API fix — and typically involves significant code changes across imports, annotations, deployment descriptors, and build dependencies.\n\nPlease analyze the detected issues and provide file-level migration guidance based on these patterns:\n\n1. **CommonJ Timer/Work Manager (WebLogic or WebSphere)**: Replace `commonj.timers.*` with `java.util.concurrent.ScheduledExecutorService`; replace `commonj.work.*` with `java.util.concurrent.ExecutorService` or Jakarta Concurrency `ManagedExecutorService` (`jakarta.enterprise.concurrent`).\n\n2. **Vendor-specific JMS (WebLogic/WebSphere JMS)**: Replace `weblogic.jms.*` or `com.ibm.websphere.jms.*` with standard Jakarta JMS (`jakarta.jms.*`). Update connection factory lookups to use standard JNDI; remove vendor-specific extensions for destinations, connection pooling, and message handling.\n\n3. **WebLogic Servlet/Lifecycle**: Replace `weblogic.application.ApplicationLifecycleListener` with standard `jakarta.servlet.ServletContextListener` or `@WebListener`. Replace WebLogic-specific servlet classes with standard Servlet API equivalents.\n\n4. **WebLogic WebServices**: Migrate from `weblogic.wsee.*` proprietary annotations and descriptors to standard JAX-WS (`jakarta.xml.ws.*`) or JAX-RS (`jakarta.ws.rs.*`). Remove WebLogic-specific web service deployment descriptors.\n\n5. **WebLogic Webapp Descriptors**: Replace `weblogic.xml` and vendor-specific deployment descriptors with standard `web.xml` or annotation-based configuration.\n\n6. **JBoss EAP Cross-Version Migration**: Replace deprecated JBoss-internal classes (logging, transactions, classloading) with standard Java/Jakarta EE equivalents or updated JBoss APIs.\n\n7. **JBoss Seam → CDI**: Replace Seam annotations (`@Name`, `@In`, `@Out`, `@Factory`) with CDI equivalents (`@Named`, `@Inject`, `@Produces`). Refactor Seam interceptors, page flows, and bijection to CDI interceptors, decorators, and standard scopes.\n\n8. **CDI Deprecated API**: Update deprecated CDI methods (e.g., `Bean#isNullable()`, `BeanManager.fireEvent()`) to current Jakarta CDI replacements.\n\n9. **JBoss Deprecated Dependencies**: Replace deprecated JBoss-specific dependencies with their standard Java/Jakarta EE or community-maintained equivalents.\n\nGeneral approach: (a) Scan for vendor-specific package imports to build an inventory. (b) Map each proprietary class to its standard equivalent. (c) Refactor incrementally per module — update imports, class references, method signatures and descriptors. (d) Remove vendor SDK dependencies from pom.xml/build.gradle and add standard Jakarta EE API dependencies. (e) Validate with integration tests, especially messaging, lifecycle hooks, and web service endpoints.",
+            "tooltip": "The app uses proprietary app server APIs (WebLogic, WebSphere, JBoss). Chat with Copilot to learn how to migrate to standard Java/Jakarta EE equivalents."
+        },
+        {
+            "solutionId": "eclipse-project-to-maven-project",
+            "name": "Migrate from Eclipse Project to Maven Project",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate current project from eclipse project to maven project"
+        },
+        {
+            "solutionId": "ant-project-to-maven-project",
+            "name": "Migrate from Ant Project to Maven Project",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate current project from Ant project to Maven project"
+        },
+        {
+            "solutionId": "containerization-copilot-agent",
+            "name": "Containerize Java Application for Container Readiness",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "The app does not have a Dockerfile and/or is not container-ready. Use Agent Mode with Copilot to create and execute a containerization plan."
+        },
+        {
+            "solutionId": "google-cloud-pub-sub-to-azure-service-bus",
+            "name": "Migrate from Google Pub/Sub to Azure Service Bus",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Google Pub/Sub to Azure Service Bus for reliable and secure messaging in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "google-gcr-to-azure-acr",
+            "name": "Migrate from Google GCR to Azure ACR",
+            "type": "Chat",
+            "prompt": "The application uses Google Container Registry (GCR) for container image storage. To migrate to Azure, use Azure Container Registry (ACR) as the alternative container registry service. Set up an ACR instance, configure authentication using Azure Active Directory and DefaultAzureCredential, and update deployment pipelines to push/pull images from ACR. Consider using Azure Container Apps or Azure Kubernetes Service (AKS) for hosting containerized applications.",
+            "tooltip": "Migrate from Google GCR to Azure ACR for reliable and secure container registry in Azure."
+        },
+        {
+            "solutionId": "spring-cloud-config-to-azure-app-configuration",
+            "name": "Migrate from Spring Cloud Config to Azure App Configuration",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from pring Cloud Config to Azure App Configuration for scalable and secure configuration management in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "sybase-ase-to-azure-postgresql",
+            "name": "Migrate from Sybase ASE to Azure PostgreSQL",
+            "type": "Formula",
+            "effort": "HIGH",
+            "variants": [
+                "sybase-ase-to-azure-sql-database"
+            ],
+            "tooltip": "Migrate from Sybase ASE to Azure PostgreSQL for scalable and secure database management in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "sybase-ase-to-azure-sql-database",
+            "name": "Migrate from Sybase ASE to Azure SQL Database",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Sybase ASE to Azure SQL Database for scalable and secure database management in Azure."
+        },
+        {
+            "solutionId": "google-firestore-to-azure-cosmos-db",
+            "name": "Migrate from Google Firestore to Azure Cosmos DB",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Google Firestore to Azure Cosmos DB for scalable and secure NoSQL database management in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "google-cloud-bigtable-to-azure-cosmos-db",
+            "name": "Migrate from Google Cloud Bigtable to Azure Cosmos DB",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Google Cloud Bigtable to Azure Cosmos DB for scalable and secure NoSQL database management in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "google-cloud-spanner-to-azure-postgresql",
+            "name": "Migrate from Google Cloud Spanner to Azure PostgreSQL",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Google Cloud Spanner to Azure PostgreSQL for scalable and secure database management in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "apache-pulsar-to-azure-event-hubs",
+            "name": "Migrate from Apache Pulsar to Azure Event Hubs",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Apache Pulsar to Azure Event Hubs for scalable and secure event streaming in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "ibm-db2-to-azure-postgresql",
+            "name": "Migrate from IBM DB2 to Azure PostgreSQL",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from IBM DB2 to Azure PostgreSQL for scalable and secure database management in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "firebird-to-azure-postgresql",
+            "name": "Migrate from Firebird to Azure PostgreSQL",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Firebird to Azure PostgreSQL for scalable and secure database management in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "sqlite-to-azure-postgresql",
+            "name": "Migrate from SQLite to Azure PostgreSQL",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from SQLite to Azure PostgreSQL for scalable and secure database management in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "google-cloud-functions-to-azure-functions",
+            "name": "Migrate from Google Cloud Functions to Azure Functions",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Google Cloud Functions to Azure Functions for scalable and secure serverless compute in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "aws-lambda-to-azure-functions",
+            "name": "Migrate from AWS Lambda to Azure Functions",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from AWS Lambda to Azure Functions for scalable and secure serverless compute in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "spring-batch-to-azure-durable-functions",
+            "name": "Migrate from Spring Batch to Azure Durable Functions",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Spring Batch to Azure Durable Functions for scalable and secure serverless compute in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "google-cloud-storage-to-azure-blob-storage",
+            "name": "Migrate from Google Cloud Storage to Azure Blob Storage",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Google Cloud Storage to Azure Blob Storage for scalable and secure object storage in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "amazon-sns-to-azure-service-bus",
+            "name": "Migrate from Amazon SNS to Azure Service Bus",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Amazon SNS to Azure Service Bus for scalable and secure messaging in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "tibco-ems-jms-to-azure-service-bus",
+            "name": "Migrate from TIBCO EMS JMS to Azure Service Bus",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from TIBCO EMS JMS to Azure Service Bus for scalable and secure messaging in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "solace-pubsub-to-azure-service-bus",
+            "name": "Migrate from Solace PubSub+ to Azure Service Bus",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Solace PubSub+ to Azure Service Bus for scalable and secure messaging in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "amazon-kinesis-to-azure-event-hubs",
+            "name": "Migrate from Amazon Kinesis to Azure Event Hubs",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Migrate from Amazon Kinesis to Azure Event Hubs for scalable and secure event streaming in Azure.",
+            "experimental": true
+        },
+        {
+            "solutionId": "azure-legacy-java-sdk-upgrade",
+            "name": "Upgrade from Legacy Azure SDKs for Java to the latest",
+            "type": "Formula",
+            "effort": "HIGH",
+            "tooltip": "Upgrade to the latest stable version of Azure SDKs for Java that follow current Azure SDK guidelines."
+        },
+        {
+            "solutionId": "bare/weak-cryptography",
+            "name": "Replace Weak Cryptographic Algorithms",
+            "type": "Chat",
+            "prompt": "The application uses weak or broken cryptographic algorithms (such as MD5, SHA-1, DES, RC4, ECB mode, or Blowfish) that do not meet EU Cyber Resilience Act requirements. Replace weak hash algorithms with SHA-256 or SHA-3. Replace broken encryption (DES, RC4, Blowfish, ECB mode) with AES-GCM or ChaCha20-Poly1305. For password hashing, use bcrypt, Argon2, scrypt, or PBKDF2 instead of plain message digests.",
+            "tooltip": "The app uses weak cryptographic algorithms. Chat with Copilot to learn how to upgrade to modern, secure alternatives."
+        },
+        {
+            "solutionId": "bare/insecure-tls",
+            "name": "Fix Insecure TLS/SSL Configuration",
+            "type": "Chat",
+            "prompt": "The application uses insecure TLS/SSL configurations, such as deprecated protocol versions (SSLv3, TLS 1.0, TLS 1.1), disabled certificate validation, disabled hostname verification, or weak cipher suites. Upgrade to TLS 1.2 or TLS 1.3, remove trust-all certificate patterns, ensure proper hostname verification, and use only strong cipher suites (AEAD modes like GCM or ChaCha20-Poly1305). For Spring Boot, set server.ssl.enabled-protocols=TLSv1.2,TLSv1.3.",
+            "tooltip": "The app has insecure TLS/SSL settings. Chat with Copilot to learn how to upgrade to secure TLS configurations."
+        },
+        {
+            "solutionId": "bare/hardcoded-credentials",
+            "name": "Remove Hardcoded Credentials",
+            "type": "Chat",
+            "prompt": "The application contains hardcoded credentials (passwords, API keys, secrets, cryptographic keys, or default passwords) in source code or configuration files, violating EU Cyber Resilience Act secure-by-default requirements. Move all secrets to Azure Key Vault or a secrets management service. Use environment variables or externalized configuration for sensitive values. Use managed identities for service-to-service authentication. Ensure configuration files with secrets are excluded from version control.",
+            "tooltip": "The app has hardcoded credentials. Chat with Copilot to learn how to externalize secrets using Azure Key Vault or environment variables."
+        },
+        {
+            "solutionId": "bare/insecure-random",
+            "name": "Use Cryptographically Secure Random Number Generation",
+            "type": "Chat",
+            "prompt": "The application uses insecure random number generators (java.util.Random, Math.random(), or ThreadLocalRandom) which are predictable and not suitable for security-sensitive operations such as token generation, session IDs, nonces, or encryption keys. Replace with java.security.SecureRandom for all security-relevant random number generation. SecureRandom provides a cryptographically strong random number generator (CSPRNG) backed by the OS entropy source.",
+            "tooltip": "The app uses insecure random number generators. Chat with Copilot to learn how to switch to SecureRandom for security-sensitive operations."
+        },
+        {
+            "solutionId": "bare/aws-bedrock-to-azure-ai",
+            "name": "Migrate from AWS Bedrock to Azure OpenAI Service",
+            "type": "Chat",
+            "prompt": "The application uses AWS Bedrock SDK for generative AI capabilities. Consider migrating to Azure OpenAI Service or Azure AI Foundry. Replace AWS Bedrock SDK dependencies with the Azure OpenAI client library (com.azure:azure-ai-openai). Update application code to replace AWS Bedrock API calls with Azure OpenAI equivalents. Replace AWS IAM-based authentication with Azure AD managed identity or API key authentication using DefaultAzureCredential. Update configuration to replace AWS Bedrock settings (endpoint, model IDs, region) with Azure OpenAI configurations (endpoint, deployment name, API version). If using streaming APIs, refactor from AWS reactive streams pattern to Azure OpenAI's iterative streaming model.",
+            "tooltip": "The app uses AWS Bedrock for AI services. Chat with Copilot to learn how to migrate to Azure OpenAI Service or Azure AI Foundry."
+        }
+    ],
+    "rules": [
+        {
+            "ruleId": "apm-00001",
+            "sourceCategory": "apm-newrelic",
+            "solution": "bare/apm-to-application-insights"
+        },
+        {
+            "ruleId": "apm-00002",
+            "sourceCategory": "apm-elastic",
+            "solution": "bare/apm-to-application-insights"
+        },
+        {
+            "ruleId": "apm-00003",
+            "sourceCategory": "apm-dynatrace",
+            "solution": "bare/apm-to-application-insights"
+        },
+        {
+            "ruleId": "auth-00000",
+            "sourceCategory": "saml",
+            "solution": "on-premises-user-authentication-to-microsoft-entra-id"
+        },
+        {
+            "ruleId": "auth-01000",
+            "sourceCategory": "opensaml",
+            "solution": "on-premises-user-authentication-to-microsoft-entra-id"
+        },
+        {
+            "ruleId": "auth-02000",
+            "sourceCategory": "spring-security",
+            "solution": "on-premises-user-authentication-to-microsoft-entra-id"
+        },
+        {
+            "ruleId": "auth-03000",
+            "sourceCategory": "oauth2",
+            "solution": "on-premises-user-authentication-to-microsoft-entra-id"
+        },
+        {
+            "ruleId": "auth-04000",
+            "sourceCategory": "openid",
+            "solution": "on-premises-user-authentication-to-microsoft-entra-id"
+        },
+        {
+            "ruleId": "webform-auth-00000",
+            "sourceCategory": "webform-auth",
+            "solution": "on-premises-user-authentication-to-microsoft-entra-id"
+        },
+        {
+            "ruleId": "java-ldap-to-msft-entra-id-01000",
+            "solution": "on-premises-user-authentication-to-microsoft-entra-id"
+        },
+        {
+            "ruleId": "azure-aws-config-credential-01000",
+            "sourceCategory": "aws-credentials",
+            "solution": "bare/aws-credentials-to-azure"
+        },
+        {
+            "ruleId": "azure-aws-config-region-02000",
+            "sourceCategory": "aws-region-configuration",
+            "solution": "bare/aws-region-configuration-to-azure"
+        },
+        {
+            "ruleId": "azure-aws-config-s3-03000",
+            "sourceCategory": "aws-s3",
+            "solution": "s3-to-azure-blob-storage"
+        },
+        {
+            "ruleId": "azure-aws-config-s3-03001",
+            "sourceCategory": "aws-s3",
+            "solution": "s3-to-azure-blob-storage"
+        },
+        {
+            "ruleId": "azure-aws-config-s3-03002",
+            "sourceCategory": "aws-s3",
+            "solution": "s3-to-azure-blob-storage"
+        },
+        {
+            "ruleId": "azure-aws-config-secret-manager-05000",
+            "sourceCategory": "aws-secrets-manager",
+            "solution": "AWS-secrets-manager-to-azure-key-vault"
+        },
+        {
+            "ruleId": "azure-aws-config-sqs-04000",
+            "sourceCategory": "aws-sqs",
+            "solution": "sqs-to-servicebus"
+        },
+        {
+            "ruleId": "azure-aws-config-sqs-04001",
+            "sourceCategory": "aws-sqs",
+            "solution": "sqs-to-servicebus"
+        },
+        {
+            "ruleId": "azure-aws-config-sqs-04002",
+            "sourceCategory": "aws-sqs",
+            "solution": "sqs-to-servicebus"
+        },
+        {
+            "ruleId": "azure-aws-config-sqs-04003",
+            "sourceCategory": "aws-sqs",
+            "solution": "sqs-to-servicebus"
+        },
+        {
+            "ruleId": "azure-aws-config-sqs-04004",
+            "sourceCategory": "aws-sqs",
+            "solution": "sqs-to-servicebus"
+        },
+        {
+            "ruleId": "azure-cache-redis-01000",
+            "sourceCategory": "redis",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "azure-database-config-mongodb-02000",
+            "sourceCategory": "mongodb",
+            "solution": "mi-mongodb"
+        },
+        {
+            "ruleId": "azure-database-microsoft-cassandra-04000",
+            "sourceCategory": "cassandra",
+            "solution": "mi-cassandra"
+        },
+        {
+            "ruleId": "azure-database-microsoft-mariadb-06000",
+            "sourceCategory": "mariadb",
+            "solution": "mi-mariadb"
+        },
+        {
+            "ruleId": "azure-database-microsoft-mongodb-05000",
+            "sourceCategory": "mongodb",
+            "solution": "mi-mongodb"
+        },
+        {
+            "ruleId": "azure-database-microsoft-sql-03000",
+            "sourceCategory": "microsoft-sql",
+            "solution": "mi-azure-sql"
+        },
+        {
+            "ruleId": "azure-database-mysql-01000",
+            "sourceCategory": "mysql",
+            "solution": "mi-mysql"
+        },
+        {
+            "ruleId": "azure-database-postgresql-02000",
+            "sourceCategory": "postgresql",
+            "solution": "mi-postgresql"
+        },
+        {
+            "ruleId": "azure-java-version-01000",
+            "solution": "java-version-upgrade"
+        },
+        {
+            "ruleId": "azure-java-version-02000",
+            "solution": "java-version-upgrade"
+        },
+        {
+            "ruleId": "azure-keystore-certificates-01000",
+            "solution": "certificate-management-to-azure-key-vault"
+        },
+        {
+            "ruleId": "azure-keystore-certificates-02000",
+            "solution": "certificate-management-to-azure-key-vault"
+        },
+        {
+            "ruleId": "dockerfile-00000",
+            "solution": "containerization-copilot-agent"
+        },
+        {
+            "ruleId": "dockerfile-00010",
+            "solution": "containerization-copilot-agent"
+        },
+        {
+            "ruleId": "dockerfile-00020",
+            "solution": "containerization-copilot-agent"
+        },
+        {
+            "ruleId": "dockerfile-00030",
+            "solution": "containerization-copilot-agent"
+        },
+        {
+            "ruleId": "azure-message-queue-activemq-01000",
+            "sourceCategory": "activemq-artemis",
+            "solution": "activemq-servicebus"
+        },
+        {
+            "ruleId": "azure-message-queue-amqp-02000",
+            "sourceCategory": "spring-amqp-rabbitmq",
+            "solution": "amqp-rabbitmq-servicebus"
+        },
+        {
+            "ruleId": "azure-message-queue-config-artemis-01000",
+            "sourceCategory": "activemq-artemis",
+            "solution": "activemq-servicebus"
+        },
+        {
+            "ruleId": "azure-message-queue-config-kafka-01000",
+            "sourceCategory": "kafka",
+            "solution": "confluent-cloud-kafka"
+        },
+        {
+            "ruleId": "azure-message-queue-config-rabbitmq-01000",
+            "sourceCategory": "spring-amqp-rabbitmq",
+            "solution": "amqp-rabbitmq-servicebus"
+        },
+        {
+            "ruleId": "azure-message-queue-rabbitmq-01000",
+            "sourceCategory": "spring-amqp-rabbitmq",
+            "solution": "amqp-rabbitmq-servicebus"
+        },
+        {
+            "ruleId": "azure-message-queue-java-ee-rabbitmq-amqp-01000",
+            "sourceCategory": "java-ee-amqp-rabbitmq",
+            "solution": "java-ee-amqp-rabbitmq-servicebus"
+        },
+        {
+            "ruleId": "azure-message-queue-spring-jms-rabbitmq-01000",
+            "sourceCategory": "spring-jms-rabbitmq",
+            "solution": "spring-jms-rabbitmq-servicebus"
+        },
+        {
+            "ruleId": "azure-message-queue-ibm-jms-01000",
+            "sourceCategory": "jms-ibm-mq",
+            "solution": "ibm-mq-jms-to-azure-service-bus"
+        },
+        {
+            "ruleId": "azure-password-01000",
+            "solution": "plaintext-credential-to-azure-keyvault"
+        },
+        {
+            "ruleId": "azure-system-config-01000",
+            "sourceCategory": "environment-variables",
+            "solution": "bare/configuration-management/environment-variables"
+        },
+        {
+            "ruleId": "external-config-00000",
+            "sourceCategory": "external-configuration",
+            "solution": "bare/configuration-management/external-configuration"
+        },
+        {
+            "ruleId": "windows-registry-00000",
+            "sourceCategory": "windows-registry",
+            "solution": "bare/configuration-management/windows-registry"
+        },
+        {
+            "ruleId": "azure-tas-binding-01000",
+            "sourceCategory": "tanzu-application-service",
+            "solution": "bare/azure-service-connector"
+        },
+        {
+            "ruleId": "clustering-00000",
+            "sourceCategory": "http-session",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "eap-to-azure-appservice-datasource-driver-01000",
+            "sourceCategory": "jboss-eap",
+            "solution": "bare/eap-migration/jboss-eap"
+        },
+        {
+            "ruleId": "eap-to-azure-appservice-pom-001",
+            "sourceCategory": "jboss-eap",
+            "solution": "bare/eap-migration/jboss-eap"
+        },
+        {
+            "ruleId": "embedded-cache-01000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-02000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-03000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-04000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-05000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-06000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-07000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-08000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-09000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-10000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-11000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-12000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-13000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-14000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-15000",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "embedded-cache-16000",
+            "sourceCategory": "redis",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "hardcoded-ip-address",
+            "sourceCategory": "hardcode-ip",
+            "solution": "bare/remote-communication/hardcode-ip"
+        },
+        {
+            "ruleId": "unsecure-network-protocol-00000",
+            "sourceCategory": "secure-protocols",
+            "solution": "bare/remote-communication/secure-protocols"
+        },
+        {
+            "ruleId": "hardcoded-urls-00001",
+            "sourceCategory": "hardcoded-urls",
+            "solution": "bare/remote-communication/hardcoded-urls"
+        },
+        {
+            "ruleId": "hardcoded-urls-00002",
+            "sourceCategory": "hardcoded-urls",
+            "solution": "bare/remote-communication/hardcoded-urls"
+        },
+        {
+            "ruleId": "java-corba-00000",
+            "sourceCategory": "corba",
+            "solution": "bare/remote-communication/corba"
+        },
+        {
+            "ruleId": "java-removals-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-removals-00010",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-rmi-00000",
+            "sourceCategory": "rmi",
+            "solution": "bare/jakataee-to-azure/rmi"
+        },
+        {
+            "ruleId": "java-rmi-00001",
+            "sourceCategory": "rmi",
+            "solution": "bare/jakataee-to-azure/rmi"
+        },
+        {
+            "ruleId": "java-rpc-00000",
+            "solution": "jax-rpc-to-jax-ws"
+        },
+        {
+            "ruleId": "jca-00000",
+            "sourceCategory": "jca",
+            "solution": "bare/jakataee-to-azure/jca"
+        },
+        {
+            "ruleId": "jni-native-code-00000",
+            "sourceCategory": "jni-native-code",
+            "solution": "bare/java-native-code"
+        },
+        {
+            "ruleId": "jni-native-code-00001",
+            "sourceCategory": "jni-native-code",
+            "solution": "bare/java-native-code"
+        },
+        {
+            "ruleId": "azure-file-system-02000",
+            "sourceCategory": "local-file-system",
+            "solution": "local-files-to-mounted-azure-storage"
+        },
+        {
+            "ruleId": "azure-file-system-03000",
+            "sourceCategory": "local-file-system",
+            "solution": "local-files-to-mounted-azure-storage"
+        },
+        {
+            "ruleId": "local-storage-00001",
+            "sourceCategory": "local-file-system",
+            "solution": "local-files-to-mounted-azure-storage"
+        },
+        {
+            "ruleId": "local-storage-00002",
+            "sourceCategory": "local-file-system",
+            "solution": "local-files-to-mounted-azure-storage"
+        },
+        {
+            "ruleId": "local-storage-00003",
+            "sourceCategory": "local-file-system",
+            "solution": "local-files-to-mounted-azure-storage"
+        },
+        {
+            "ruleId": "local-storage-00004",
+            "sourceCategory": "local-file-system",
+            "solution": "local-files-to-mounted-azure-storage"
+        },
+        {
+            "ruleId": "local-storage-00005",
+            "sourceCategory": "local-file-system",
+            "solution": "local-files-to-mounted-azure-storage"
+        },
+        {
+            "ruleId": "local-storage-00006",
+            "sourceCategory": "local-file-system",
+            "solution": "local-files-to-mounted-azure-storage"
+        },
+        {
+            "ruleId": "localhost-http-00001",
+            "sourceCategory": "localhost",
+            "solution": "bare/local-resource-access"
+        },
+        {
+            "ruleId": "localhost-jdbc-00002",
+            "sourceCategory": "localhost",
+            "solution": "bare/local-resource-access"
+        },
+        {
+            "ruleId": "localhost-ws-00003",
+            "sourceCategory": "localhost",
+            "solution": "bare/local-resource-access"
+        },
+        {
+            "ruleId": "localhost-00004",
+            "sourceCategory": "localhost",
+            "solution": "bare/local-resource-access"
+        },
+        {
+            "ruleId": "logging-0000",
+            "solution": "log-to-console"
+        },
+        {
+            "ruleId": "logging-0001",
+            "solution": "log-to-console"
+        },
+        {
+            "ruleId": "logging-0002",
+            "solution": "log-to-console"
+        },
+        {
+            "ruleId": "logging-0004",
+            "sourceCategory": "splunk",
+            "solution": "log-to-console"
+        },
+        {
+            "ruleId": "logging-0005",
+            "sourceCategory": "zipkin",
+            "solution": "bare/apm-to-application-insights"
+        },
+        {
+            "ruleId": "lombok-incompatibility-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "mail-00000",
+            "sourceCategory": "java-mail",
+            "solution": "javax.email-send-to-azure-communication-service-email"
+        },
+        {
+            "ruleId": "os-specific-00002",
+            "solution": "bare/os-compatibility"
+        },
+        {
+            "ruleId": "removed-packages-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "removed-packages-00010",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "session-00001",
+            "sourceCategory": "http-session",
+            "solution": "other-cache-solutions-to-azure-managed-cache"
+        },
+        {
+            "ruleId": "socket-communication-00000",
+            "sourceCategory": "java-socket",
+            "solution": "bare/remote-communication/java-socket"
+        },
+        {
+            "ruleId": "socket-communication-00001",
+            "sourceCategory": "java-socket",
+            "solution": "bare/remote-communication/java-socket"
+        },
+        {
+            "ruleId": "spring-boot-to-azure-config-server-01000",
+            "sourceCategory": "spring-cloud",
+            "solution": "spring-cloud-config-to-azure-app-configuration"
+        },
+        {
+            "ruleId": "spring-boot-to-azure-eureka-01000",
+            "sourceCategory": "spring-cloud",
+            "solution": "bare/spring-migration"
+        },
+        {
+            "ruleId": "spring-boot-to-azure-eureka-02000",
+            "sourceCategory": "spring-cloud",
+            "solution": "bare/spring-migration"
+        },
+        {
+            "ruleId": "spring-boot-to-azure-eureka-03000",
+            "sourceCategory": "spring-cloud",
+            "solution": "bare/spring-migration"
+        },
+        {
+            "ruleId": "spring-boot-to-azure-key-vault-01000",
+            "sourceCategory": "spring-cloud-vault",
+            "solution": "bare/spring-cloud-vault-migration"
+        },
+        {
+            "ruleId": "spring-boot-to-azure-openfeign-01000",
+            "sourceCategory": "spring-cloud",
+            "solution": "bare/spring-migration"
+        },
+        {
+            "ruleId": "spring-boot-to-azure-port-01000",
+            "sourceCategory": "spring-cloud",
+            "solution": "bare/spring-migration"
+        },
+        {
+            "ruleId": "spring-boot-to-azure-restricted-config-01000",
+            "sourceCategory": "spring-cloud",
+            "solution": "bare/spring-migration"
+        },
+        {
+            "ruleId": "spring-boot-to-azure-spring-boot-version-01000",
+            "sourceCategory": "spring-boot",
+            "solution": "spring-boot-upgrade"
+        },
+        {
+            "ruleId": "spring-boot-to-azure-spring-cloud-version-01000",
+            "sourceCategory": "spring-cloud",
+            "solution": "spring-boot-upgrade"
+        },
+        {
+            "ruleId": "spring-boot-to-azure-spring-cloud-version-02000",
+            "sourceCategory": "spring-cloud",
+            "solution": "spring-boot-upgrade"
+        },
+        {
+            "ruleId": "spring-framework-version-01000",
+            "sourceCategory": "spring-framework",
+            "solution": "spring-framework-upgrade"
+        },
+        {
+            "ruleId": "jakarta-ee-version-01000",
+            "sourceCategory": "java-ee/jakarta-ee",
+            "solution": "jakarta-ee-upgrade"
+        },
+        {
+            "ruleId": "utf-8-by-default-00000",
+            "solution": "bare/encoding-standards"
+        },
+        {
+            "ruleId": "utf-8-by-default-00010",
+            "solution": "bare/encoding-standards"
+        },
+        {
+            "ruleId": "utf-8-by-default-00020",
+            "solution": "bare/encoding-standards"
+        },
+        {
+            "ruleId": "utf-8-by-default-00030",
+            "solution": "bare/encoding-standards"
+        },
+        {
+            "ruleId": "web-10000",
+            "sourceCategory": "javax-swing",
+            "solution": "bare/redesign-java-gui-app"
+        },
+        {
+            "ruleId": "web-11000",
+            "sourceCategory": "javafx",
+            "solution": "bare/redesign-java-gui-app"
+        },
+        {
+            "ruleId": "oracle2openjdk-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "oracle2openjdk-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "oracle2openjdk-00002",
+            "solution": "bare/oraclejdk-to-openjdk/resource-management-apis"
+        },
+        {
+            "ruleId": "oracle2openjdk-00003",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "oracle2openjdk-00004",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "oracle2openjdk-00005",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "oracle2openjdk-00006",
+            "solution": "bare/oraclejdk-to-openjdk/imageio"
+        },
+        {
+            "ruleId": "java-8-deprecate-apt-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-callback-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-corba-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-javafx-builder-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-log-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-odbc-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-pack-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-pack-00002",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-security-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-security-00002",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-security-manager-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-security-manager-00002",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-stream-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-8-deprecate-thread-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-10-deprecate-dom-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-10-deprecate-javafx-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-10-deprecate-runtime-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-10-deprecate-security-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-10-deprecate-security-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-10-deprecate-security-00002",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-10-deprecate-security-00003",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-10-deprecate-security-00004",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-awt-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-corba-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-javaee-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-javaee-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-pack-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-peer-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-property-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-property-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-security-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-security-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-stream-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-thread-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-unsafe-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-11-deprecate-unsafe-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-agent-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-dom-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-javafx-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-log-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-pack-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-peer-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-property-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-property-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-reflect-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-reflect-00010",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-security-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-security-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-security-00002",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-tracing-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-unsafe-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-unsafe-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-9-deprecate-url-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-removals-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-removals-00010",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-12-deprecate-finalize-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-12-deprecate-finalize-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-12-deprecate-security-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-13-deprecate-runtime-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-13-deprecate-security-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-14-deprecate-pack-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-14-deprecate-property-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-14-deprecate-property-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-14-deprecate-security-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-14-deprecate-thread-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-15-deprecate-property-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-15-deprecate-signer-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-15-deprecate-ssl-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-15-deprecate-ssl-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-16-deprecate-security-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-16-deprecate-thread-group-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-17-deprecate-applet-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-17-deprecate-security-manager-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-17-deprecate-security-manager-00010",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-17-deprecate-security-manager-00020",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-17-deprecate-security-manager-00030",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-17-deprecate-security-manager-00040",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-17-deprecate-security-manager-00050",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-17-deprecate-security-manager-00060",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-17-deprecate-security-manager-00070",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-17-deprecate-socket-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-17-deprecate-unsafe-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "lombok-incompatibility-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "removed-packages-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "removed-packages-00010",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-18-deprecate-finalize-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-18-deprecate-finalize-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-18-deprecate-property-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-18-deprecate-runtime-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-18-deprecate-security-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-18-deprecate-socket-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-18-deprecate-thread-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-18-deprecate-unsafe-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-19-deprecate-locale-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-19-deprecate-param-spec-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-19-deprecate-param-spec-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-19-deprecate-class-00010",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-19-deprecate-thread-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-19-deprecate-thread-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-19-deprecate-thread-00002",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-20-deprecate-jmx-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-20-deprecate-net-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-20-deprecate-thread-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-20-deprecate-thread-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-20-deprecate-thread-00002",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-21-deprecate-dynamic-agents-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-21-deprecate-file-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-21-deprecate-file-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-21-deprecate-jmx-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-21-deprecate-jmx-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-21-deprecate-property-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-21-deprecate-property-00001",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-21-deprecate-signer-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "java-21-deprecate-thread-00000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "openliberty-database-00001",
+            "sourceCategory": "openliberty-database",
+            "solution": "bare/openliberty-migration/openliberty-database"
+        },
+        {
+            "ruleId": "openliberty-database-00002",
+            "sourceCategory": "openliberty-database",
+            "solution": "bare/openliberty-migration/openliberty-database"
+        },
+        {
+            "ruleId": "openliberty-database-00003",
+            "sourceCategory": "openliberty-database",
+            "solution": "bare/openliberty-migration/openliberty-database"
+        },
+        {
+            "ruleId": "openliberty-database-00004",
+            "sourceCategory": "openliberty-database",
+            "solution": "bare/openliberty-migration/openliberty-database"
+        },
+        {
+            "ruleId": "openliberty-database-00005",
+            "sourceCategory": "openliberty-database",
+            "solution": "bare/openliberty-migration/openliberty-database"
+        },
+        {
+            "ruleId": "openliberty-database-00006",
+            "sourceCategory": "openliberty-database",
+            "solution": "bare/openliberty-migration/openliberty-database"
+        },
+        {
+            "ruleId": "openliberty-database-00007",
+            "sourceCategory": "openliberty-database",
+            "solution": "bare/openliberty-migration/openliberty-database"
+        },
+        {
+            "ruleId": "openliberty-database-00008",
+            "sourceCategory": "openliberty-database",
+            "solution": "bare/openliberty-migration/openliberty-database"
+        },
+        {
+            "ruleId": "openliberty-database-00009",
+            "sourceCategory": "openliberty-database",
+            "solution": "bare/openliberty-migration/openliberty-database"
+        },
+        {
+            "ruleId": "openliberty-filesystem-00001",
+            "sourceCategory": "openliberty-filesystem",
+            "solution": "bare/openliberty-migration/openliberty-filesystem"
+        },
+        {
+            "ruleId": "openliberty-filesystem-00002",
+            "sourceCategory": "openliberty-filesystem",
+            "solution": "bare/openliberty-migration/openliberty-filesystem"
+        },
+        {
+            "ruleId": "openliberty-filesystem-00003",
+            "sourceCategory": "openliberty-filesystem",
+            "solution": "bare/openliberty-migration/openliberty-filesystem"
+        },
+        {
+            "ruleId": "openliberty-filesystem-00004",
+            "sourceCategory": "openliberty-filesystem",
+            "solution": "bare/openliberty-migration/openliberty-filesystem"
+        },
+        {
+            "ruleId": "openliberty-jms-00001",
+            "sourceCategory": "openliberty-jms",
+            "solution": "bare/openliberty-migration/openliberty-jms"
+        },
+        {
+            "ruleId": "openliberty-jms-00002",
+            "sourceCategory": "openliberty-jms",
+            "solution": "bare/openliberty-migration/openliberty-jms"
+        },
+        {
+            "ruleId": "openliberty-jms-00003",
+            "sourceCategory": "openliberty-jms",
+            "solution": "bare/openliberty-migration/openliberty-jms"
+        },
+        {
+            "ruleId": "openliberty-jms-00004",
+            "sourceCategory": "openliberty-jms",
+            "solution": "bare/openliberty-migration/openliberty-jms"
+        },
+        {
+            "ruleId": "openliberty-jms-00005",
+            "sourceCategory": "openliberty-jms",
+            "solution": "bare/openliberty-migration/openliberty-jms"
+        },
+        {
+            "ruleId": "openliberty-jms-00006",
+            "sourceCategory": "openliberty-jms",
+            "solution": "bare/openliberty-migration/openliberty-jms"
+        },
+        {
+            "ruleId": "openliberty-logging-00001",
+            "sourceCategory": "openliberty-logging",
+            "solution": "bare/openliberty-migration/openliberty-logging"
+        },
+        {
+            "ruleId": "openliberty-logging-00002",
+            "sourceCategory": "openliberty-logging",
+            "solution": "bare/openliberty-migration/openliberty-logging"
+        },
+        {
+            "ruleId": "azure-database-microsoft-oracle-07000",
+            "sourceCategory": "oracle",
+            "solution": "oracle-to-postgresql"
+        },
+        {
+            "ruleId": "database-reliability-01000",
+            "solution": "bare/database-migration/database-reliability"
+        },
+        {
+            "ruleId": "eclipse-00002",
+            "sourceCategory": "eclipse",
+            "solution": "eclipse-project-to-maven-project"
+        },
+        {
+            "ruleId": "ant-build-tool-00001",
+            "sourceCategory": "ant",
+            "solution": "ant-project-to-maven-project"
+        },
+        {
+            "ruleId": "google-pubsub-to-azure-service-bus-01000",
+            "sourceCategory": "google-pubsub",
+            "solution": "google-cloud-pub-sub-to-azure-service-bus"
+        },
+        {
+            "ruleId": "google-gcr-to-azure-acr-01000",
+            "sourceCategory": "google-gcr",
+            "solution": "google-gcr-to-azure-acr"
+        },
+        {
+            "ruleId": "sybase-ase-to-azure-database-01000",
+            "sourceCategory": "sybase-ase",
+            "solution": "sybase-ase-to-azure-postgresql"
+        },
+        {
+            "ruleId": "google-firestore-to-azure-cosmosdb-01000",
+            "sourceCategory": "google-firestore",
+            "solution": "google-firestore-to-azure-cosmos-db"
+        },
+        {
+            "ruleId": "google-cloud-bigtable-to-azure-cosmosdb-01000",
+            "sourceCategory": "google-cloud-bigtable",
+            "solution": "google-cloud-bigtable-to-azure-cosmos-db"
+        },
+        {
+            "ruleId": "google-cloud-spanner-to-azure-postgresql-01000",
+            "sourceCategory": "google-cloud-spanner",
+            "solution": "google-cloud-spanner-to-azure-postgresql"
+        },
+        {
+            "ruleId": "apache-pulsar-to-azure-eventhubs-01000",
+            "sourceCategory": "apache-pulsar",
+            "solution": "apache-pulsar-to-azure-event-hubs"
+        },
+        {
+            "ruleId": "ibm-db2-to-azure-postgresql-01000",
+            "sourceCategory": "ibm-db2",
+            "solution": "ibm-db2-to-azure-postgresql"
+        },
+        {
+            "ruleId": "firebird-to-azure-postgresql-01000",
+            "sourceCategory": "firebird",
+            "solution": "firebird-to-azure-postgresql"
+        },
+        {
+            "ruleId": "sqlite-to-azure-postgresql-01000",
+            "sourceCategory": "sqlite",
+            "solution": "sqlite-to-azure-postgresql"
+        },
+        {
+            "ruleId": "google-cloud-functions-to-azure-functions-01000",
+            "sourceCategory": "google-cloud-functions",
+            "solution": "google-cloud-functions-to-azure-functions"
+        },
+        {
+            "ruleId": "aws-lambda-to-azure-functions-01000",
+            "sourceCategory": "aws-lambda",
+            "solution": "aws-lambda-to-azure-functions"
+        },
+        {
+            "ruleId": "quartz-scheduler-to-azure-functions-01000",
+            "sourceCategory": "quartz-scheduler",
+            "solution": "quartz-scheduler-to-azure-functions"
+        },
+        {
+            "ruleId": "spring-batch-to-azure-durable-functions-01000",
+            "sourceCategory": "spring-batch",
+            "solution": "spring-batch-to-azure-durable-functions"
+        },
+        {
+            "ruleId": "google-cloud-storage-to-azure-blob-storage-01000",
+            "sourceCategory": "google-cloud-storage",
+            "solution": "google-cloud-storage-to-azure-blob-storage"
+        },
+        {
+            "ruleId": "amazon-sns-to-azure-servicebus-01000",
+            "sourceCategory": "amazon-sns",
+            "solution": "amazon-sns-to-azure-service-bus"
+        },
+        {
+            "ruleId": "tibco-ems-jms-to-azure-servicebus-jms-01000",
+            "sourceCategory": "tibco-ems-jms",
+            "solution": "tibco-ems-jms-to-azure-service-bus"
+        },
+        {
+            "ruleId": "solace-pubsubplus-to-azure-servicebus-01000",
+            "sourceCategory": "solace-pubsubplus",
+            "solution": "solace-pubsub-to-azure-service-bus"
+        },
+        {
+            "ruleId": "amazon-kinesis-to-azure-eventhubs-01000",
+            "sourceCategory": "amazon-kinesis",
+            "solution": "amazon-kinesis-to-azure-event-hubs"
+        },
+        {
+            "ruleId": "jakarta-auth-00001",
+            "sourceCategory": "jakarta-auth",
+            "solution": "bare/jakarta-auth-migration"
+        },
+        {
+            "ruleId": "jakarta-database-00001",
+            "sourceCategory": "jakarta-nosql",
+            "solution": "bare/jakarta-nosql-migration"
+        },
+        {
+            "ruleId": "jakarta-database-00002",
+            "sourceCategory": "jakarta-persistence",
+            "solution": "bare/jakarta-persistence-migration"
+        },
+        {
+            "ruleId": "jakarta-database-00003",
+            "sourceCategory": "jakarta-data",
+            "solution": "bare/jakarta-data-migration"
+        },
+        {
+            "ruleId": "jakarta-service-00001",
+            "sourceCategory": "jakarta-websocket",
+            "solution": "bare/jakarta-websocket-migration"
+        },
+        {
+            "ruleId": "jakarta-service-00002",
+            "sourceCategory": "jakarta-jaxrs",
+            "solution": "bare/jakarta-jaxrs-migration"
+        },
+        {
+            "ruleId": "websphere-to-azure-app-service",
+            "sourceCategory": "websphere-to-azure-app-service",
+            "solution": "bare/websphere-to-azure-app-service"
+        },
+        {
+            "ruleId": "websphere-to-aks",
+            "sourceCategory": "websphere-to-aks",
+            "solution": "bare/websphere-to-aks"
+        },
+        {
+            "ruleId": "websphere-to-azure-container-apps",
+            "sourceCategory": "websphere-to-azure-container-apps",
+            "solution": "bare/websphere-to-azure-container-apps"
+        },
+        {
+            "ruleId": "weblogic-to-azure-app-service",
+            "sourceCategory": "weblogic-to-azure-app-service",
+            "solution": "bare/weblogic-to-azure-app-service"
+        },
+        {
+            "ruleId": "weblogic-to-aks",
+            "sourceCategory": "weblogic-to-aks",
+            "solution": "bare/weblogic-to-aks"
+        },
+        {
+            "ruleId": "weblogic-to-azure-container-apps",
+            "sourceCategory": "weblogic-to-azure-container-apps",
+            "solution": "bare/weblogic-to-azure-container-apps"
+        },
+        {
+            "ruleId": "jboss-eap-to-azure-app-service",
+            "sourceCategory": "jboss-eap-to-azure-app-service",
+            "solution": "bare/jboss-eap-to-azure-app-service"
+        },
+        {
+            "ruleId": "jboss-eap-to-aks",
+            "sourceCategory": "jboss-eap-to-aks",
+            "solution": "bare/jboss-eap-to-aks"
+        },
+        {
+            "ruleId": "jboss-eap-to-azure-container-apps",
+            "sourceCategory": "jboss-eap-to-azure-container-apps",
+            "solution": "bare/jboss-eap-to-azure-container-apps"
+        },
+        {
+            "ruleId": "jakarta-cdi-00002",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "jakarta-cdi-00003",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "jboss-dependencies-00006",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "jboss-eap5-7-java-03000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "jboss-eap5-7-java-08000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "jboss-eap4and5to6and7-java-01000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "jboss-eap5and6to7-java-08000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "base64-01000",
+            "solution": "deprecated-api-upgrade"
+        },
+        {
+            "ruleId": "seam-java-00010",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "seam-java-00040",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "seam-java-00070",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "seam-java-00030",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "seam-java-00080",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "commonj-weblogic-02000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "commonj-weblogic-03000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "commonj-weblogic-05000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "commonj-weblogic-06000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "commonj-weblogic-07000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "weblogic-jms-eap7-01000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "weblogic-portability-lifecycle-01000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "weblogic-portability-servlet-01000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "weblogic-webservices-eap7-01000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "weblogic-webapp-eap7-07000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "commonj-websphere-02000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "commonj-websphere-03000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "commonj-websphere-05000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "commonj-websphere-06000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "commonj-websphere-07000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "websphere-jms-eap7-01000",
+            "solution": "bare/appserver-api-migration-to-standard-java"
+        },
+        {
+            "ruleId": "azure-java-sdk-legacy-migration-01000",
+            "solution": "azure-legacy-java-sdk-upgrade"
+        },
+        {
+            "ruleId": "cra-weak-crypto-md5-01000",
+            "solution": "bare/weak-cryptography"
+        },
+        {
+            "ruleId": "cra-weak-crypto-sha1-02000",
+            "solution": "bare/weak-cryptography"
+        },
+        {
+            "ruleId": "cra-weak-crypto-des-03000",
+            "solution": "bare/weak-cryptography"
+        },
+        {
+            "ruleId": "cra-weak-crypto-rc4-04000",
+            "solution": "bare/weak-cryptography"
+        },
+        {
+            "ruleId": "cra-weak-crypto-ecb-05000",
+            "solution": "bare/weak-cryptography"
+        },
+        {
+            "ruleId": "cra-weak-crypto-blowfish-06000",
+            "solution": "bare/weak-cryptography"
+        },
+        {
+            "ruleId": "cra-weak-crypto-password-hash-07000",
+            "solution": "bare/weak-cryptography"
+        },
+        {
+            "ruleId": "cra-insecure-tls-protocol-01000",
+            "solution": "bare/insecure-tls"
+        },
+        {
+            "ruleId": "cra-insecure-tls-config-02000",
+            "solution": "bare/insecure-tls"
+        },
+        {
+            "ruleId": "cra-insecure-tls-trust-all-03000",
+            "solution": "bare/insecure-tls"
+        },
+        {
+            "ruleId": "cra-insecure-tls-hostname-verify-04000",
+            "solution": "bare/insecure-tls"
+        },
+        {
+            "ruleId": "cra-insecure-tls-cipher-suite-05000",
+            "solution": "bare/insecure-tls"
+        },
+        {
+            "ruleId": "cra-hardcoded-credential-password-01000",
+            "solution": "bare/hardcoded-credentials"
+        },
+        {
+            "ruleId": "cra-hardcoded-credential-apikey-02000",
+            "solution": "bare/hardcoded-credentials"
+        },
+        {
+            "ruleId": "cra-hardcoded-credential-config-03000",
+            "solution": "bare/hardcoded-credentials"
+        },
+        {
+            "ruleId": "cra-hardcoded-credential-default-pwd-04000",
+            "solution": "bare/hardcoded-credentials"
+        },
+        {
+            "ruleId": "cra-hardcoded-credential-crypto-key-05000",
+            "solution": "bare/hardcoded-credentials"
+        },
+        {
+            "ruleId": "cra-insecure-random-01000",
+            "solution": "bare/insecure-random"
+        },
+        {
+            "ruleId": "cra-insecure-random-math-02000",
+            "solution": "bare/insecure-random"
+        },
+        {
+            "ruleId": "cra-insecure-random-threadlocal-03000",
+            "solution": "bare/insecure-random"
+        },
+        {
+            "ruleId": "aws-bedrock-to-azure-ai-06000",
+            "sourceCategory": "aws-bedrock",
+            "solution": "bare/aws-bedrock-to-azure-ai"
+        },
+        {
+            "ruleId": "aws-bedrock-to-azure-ai-06001",
+            "sourceCategory": "aws-bedrock",
+            "solution": "bare/aws-bedrock-to-azure-ai"
+        },
+        {
+            "ruleId": "aws-bedrock-to-azure-ai-06002",
+            "sourceCategory": "aws-bedrock",
+            "solution": "bare/aws-bedrock-to-azure-ai"
+        }
+    ]
+}

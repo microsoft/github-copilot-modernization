@@ -1,7 +1,7 @@
 ---
 name: modernize-azure-java
 description: 'Modernize the Java application'
-user-invocable: true
+user-invocable: false
 argument-hint: Describe what to modernize (Java)
 
 tools:

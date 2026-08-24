@@ -4,6 +4,7 @@ description: |
   Executes a batch of implementation tasks with TDD workflow, source-anchored rewrite for behavioral fidelity, guideline-based code transformation, and full requirement tracing. Returns a structured batch report.
   Triggers: "implement tasks", "execute the batch", "write code for these tasks", "implement with source anchoring", "run the implementation".
   NOT for: task generation (use breaking-down-tasks), implementation planning (use creating-implementation-plan).
+user-invocable: false
 ---
 
 ## User Input
@@ -120,7 +121,7 @@ For tasks with `[Source:]`, follow `references/source-anchored-rewrite.md`.
 
 **Guideline-Based Transformation:**
 For tasks marked `[GUIDELINE:skill-name]`:
-1. Load the guideline from `skills/guidelines/`
+1. Load each top-level guideline skill named in the plan
 2. Apply transformation rules, import changes, method mappings
 3. Use before/after examples as reference
 

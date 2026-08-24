@@ -1,0 +1,19 @@
+version: 1
+default_groups:
+  - security-cve
+  - security-cwe
+  - infrastructure
+  - configuration
+  - application-facts
+output:
+  format: markdown
+  verbosity: concise
+behavior:
+  per_group_pause: true
+  auto_apply_suppressions: true
+  proactive_curator: true
+  curator_threshold: 3
+language_overrides:
+  java:
+    target_runtime: openjdk21
+    target_compute: [azure-container-apps]

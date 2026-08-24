@@ -4,6 +4,7 @@ description: |
   Creates or updates the project constitution that defines migration principles, constraints, and conventions.
   Triggers: "set up constitution", "define migration principles", "create project rules", "establish conventions", "establish migration constitution".
   NOT for: implementation, implementation planning, task generation.
+user-invocable: false
 ---
 
 ## User Input

@@ -3,7 +3,7 @@ name: 'modernize-java-upgrade'
 description: 'Upgrades Java projects to target versions (e.g., Java 25, Spring Boot 3.5) via incremental planning and execution.'
 model: 'Claude Sonnet 4.6'
 argument-hint: 'Target versions (e.g., Java 25, Spring Boot 3.5) and project context.'
-user-invocable: true
+user-invocable: false
 tools:
   - tool_search
   - vscode/toolSearch

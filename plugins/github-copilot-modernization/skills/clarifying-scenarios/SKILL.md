@@ -4,6 +4,7 @@ description: |
   Evaluates whether a user's modernization/rewrite request provides enough scenario context to proceed (e.g., target component library, screenshots, design system for frontend; API contract policy, data migration strategy for backend). Produces a deterministic clarity score, asks the user for missing required fields via a structured form, and writes a canonical `clarification.md` artifact consumed by all downstream agents.
   Triggers: "clarification gate", "scenario clarification", "elicit missing context", "evaluate prompt completeness", "ask user for screenshots / target library / design system".
   NOT for: feature specification (use feature-inventory), planning (use creating-implementation-plan), implementation (use implementing-code), or resolving spec-time `[NEEDS CLARIFICATION]` markers (those remain owned by feature-inventory).
+user-invocable: false
 ---
 
 ## Purpose

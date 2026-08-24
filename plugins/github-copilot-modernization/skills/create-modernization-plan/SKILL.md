@@ -1,6 +1,7 @@
 ---
 name: create-modernization-plan
 description: Create a modernization plan to migrate the project to Azure
+user-invocable: false
 ---
 
 # Create modernization plan
