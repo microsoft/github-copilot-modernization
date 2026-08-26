@@ -65,11 +65,10 @@ Provide **either** an assessment report path **or** multiple direct task specifi
 
 In Mode B, skip all assessment and plan generation steps. Instead, follow the **Mode B — List and Select Existing Plan** process below.
 
-## MCP Tools Available
+## Plan Generation Skill
 
-- `create_upgrade_plan` - Generate upgrade plan from assessment
-  - Input: `{ "assessmentResults": {...}, "targetVersion": "21" }`
-  - Output: Structured plan with tasks
+- Use the `create-modernization-plan` skill to generate `plan.md` and `.metadata/tasks.json`.
+- Pass assessment results, direct task specifications, rulebook constraints, and detected language through the skill inputs described below.
 
 ## Mode B — List and Select Existing Plan
 
@@ -108,15 +107,16 @@ When `intent` is `list-and-select-plan`:
      - Use target versions/services from rulebook (overrides assessment recommendations)
      - Respect constraints from rulebook (exclude prohibited patterns)
      - Apply requirements from rulebook (ensure compliance in task definitions)
-   - Merge rulebook requirements with assessment results before invoking MCP tool
+  - Merge rulebook requirements with assessment results before invoking the skill
 
 3. **Generate Plan**
-   - Invoke `create_upgrade_plan` MCP tool or the `create-modernization-plan` skill with:
-     - Assessment results (filtered if `selected-categories` was provided)
-     - Rulebook constraints (extracted from all rulebook files)
-     - **Language parameter**: Pass `language: "java"` or `language: "dotnet"` based on detected language
+   - Invoke the `create-modernization-plan` skill with:
+     - `modernization-prompt`: The selected assessment solutions or direct task specifications, including applicable rulebook constraints
+     - `modernization-work-folder`: `.github/modernize/<plan-name>`
+     - `assessment-report`: Assessment results filtered to `selected-categories`, when provided
+     - `language`: `"java"` or `"dotnet"` based on detected language
      - **Integration testing intent**: If the original user request or selected categories explicitly request integration tests, pass that requirement through to `create-modernization-plan`.
-   - Receive tasks.json structure that honors rulebook requirements
+   - The skill generates `plan.md` and `.metadata/tasks.json` and must honor all rulebook requirements.
 
 4. **Task Schema** (see [`skills/create-modernization-plan/tasks-schema.json`](../skills/create-modernization-plan/tasks-schema.json) for the authoritative schema)
    ```json
@@ -160,18 +160,18 @@ When `intent` is `list-and-select-plan`:
    - Write to `.github/modernize/<plan-name>/plan.md`
    - Write tasks to `.github/modernize/<plan-name>/.metadata/tasks.json`
 
-6. **MANDATORY: Preview Plan**
-   - Call `#appmod-preview-markdown` with the generated `plan.md` file path to open the plan preview for the user
-   - **DO NOT skip this step** — the user must see the plan before proceeding
+6. **Preview Plan (VS Code only)**
+  - If `#appmod-preview-markdown` is available, call it with the generated `plan.md` file path.
+  - If the tool is unavailable or preview fails, continue successfully and return the saved plan path. Preview failure does not block plan creation or filesystem persistence.
 
 7. **Return to Orchestrator**
    - Summary: Detected language, number of tasks, task breakdown, plan file path
-   - Confirm: "Plan preview has been opened for the user"
+   - Report whether the preview was opened or skipped because the tool was unavailable or failed
 
 ## Error Handling
 
-- MCP tool fails → Retry with simplified input
-- Still fails → Generate basic plan from assessment or user-specified tasks manually
+- `create-modernization-plan` skill fails → Retry with simplified input while preserving user scope and mandatory constraints
+- Still fails → Surface the failure with context to the orchestrator; do not invent an unavailable plan-generation tool
 - Invalid task schema → Validate and fix
 - Surface errors with context to orchestrator
 - Workspace inspection fails during Option A2 → Ask the orchestrator for the missing information (language, build file path) before proceeding
@@ -191,11 +191,11 @@ You:
 3. Check for rulebook → Found .github/modernize/rulebook/
 4. Read rulebook files → all .md files in rulebook folder
 5. Merge rulebook constraints with assessment
-6. Invoke create_upgrade_plan(assessmentResults={...}, rulebookConstraints={...}, language="java")
-7. Receive plan → 8 tasks (honoring rulebook requirements)
+6. Invoke create-modernization-plan with the assessment results, rulebook constraints, and language="java"
+7. Skill generates plan → 8 tasks (honoring rulebook requirements)
 8. Validate task schema → Pass, metadata.language = "java"
 9. Save results → .github/modernize/my-app/plan.md + .metadata/tasks.json
-10. Call #appmod-preview-markdown to open plan preview
+10. If available, call #appmod-preview-markdown to open plan preview; otherwise continue with the saved plan
 11. Return summary to orchestrator
 ```
 
@@ -217,11 +217,11 @@ You:
    - "Java Version Upgrade" has 1 solution → use directly
    - "Cloud Readiness - RabbitMQ" has 2 solutions → **STOP and ask the user to pick one** → user picks "Azure Service Bus"
 4. Check for rulebook → No rulebook found, skip
-5. Invoke create_upgrade_plan with filtered assessment (one solution per category), language="java"
-6. Receive plan → 2 tasks (one per selected category, scoped to the picked solution)
+5. Invoke create-modernization-plan with the filtered assessment (one solution per category), language="java"
+6. Skill generates plan → 2 tasks (one per selected category, scoped to the picked solution)
 7. Validate task schema → Pass, metadata.language = "java"
 8. Save results → .github/modernize/my-app/plan.md + .metadata/tasks.json
-9. Call #appmod-preview-markdown to open plan preview
+9. If available, call #appmod-preview-markdown to open plan preview; otherwise continue with the saved plan
 10. Return summary to orchestrator
 ```
 
@@ -240,7 +240,7 @@ You:
 5. Receive plan → 3 tasks (Azure SQL, Azure Redis, Entra ID)
 6. Validate task schema → Pass, metadata.language = "dotnet"
 7. Save results → .github/modernize/my-dotnet-app/plan.md + .metadata/tasks.json
-8. Call #appmod-preview-markdown to open plan preview
+8. If available, call #appmod-preview-markdown to open plan preview; otherwise continue with the saved plan
 9. Return summary to orchestrator
 ```
 
@@ -263,6 +263,6 @@ You:
 5. Skill generates tasks.json (tasks-schema.json format) + plan.md
 6. Validate task schema → Pass, metadata.language = "java"
 7. Save results → .github/modernize/s3-migration-java21/plan.md + .metadata/tasks.json
-8. Call #appmod-preview-markdown to open plan preview
+8. If available, call #appmod-preview-markdown to open plan preview; otherwise continue with the saved plan
 9. Return summary to orchestrator
 ```
