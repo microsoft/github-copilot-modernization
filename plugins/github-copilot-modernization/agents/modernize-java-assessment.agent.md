@@ -19,7 +19,6 @@ tools:
   - uploadAssessSummaryReport
   - migration_assessmentReport
   - migration_assessmentReportsList
-model: 'Claude Sonnet 4.6'
 ---
 
 # Code Reviewer

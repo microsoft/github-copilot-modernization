@@ -1,7 +1,6 @@
 ---
 name: assessment-coordinator
 description: Coordinates assessment phase using MCP tools
-model: 'Claude Opus 4.8'
 user-invocable: false
 hooks:
   UserPromptSubmit:
@@ -29,15 +28,6 @@ You coordinate the assessment phase by detecting the project language, invoking 
 ## Input
 
 - `project-path`: Absolute path to project root
-- `config` (Java only, optional): Assessment configuration overrides. **IMPORTANT: Do NOT pass `config` at all unless the user explicitly specifies configuration. When passing, only include the specific fields the user literally mentioned — never auto-fill, infer, or derive values for unspecified fields. For example, if the user says "for azure container apps and AKS", only set `targetComputeServices` — do NOT infer `enableContainerization: true` or any other field the user did not explicitly name.** Supported fields:
-  - `domains`: Array of domain names. Acceptable values: `java-upgrade`, `cloud-readiness`, `security`. Default: `["java-upgrade", "cloud-readiness"]`. Silently drop any unrecognized values.
-  - `analysisCoverage`: `issue-only` | `full`
-  - `targetRuntime`: `openjdk11` | `openjdk17` | `openjdk21` | `openjdk25`
-  - `targetComputeServices`: Array of `azure-aks` | `azure-appservice` | `azure-container-apps`
-  - `enableContainerization`: boolean
-  - `targetOS`: Array of `windows` | `linux`
-  - `minimumCveSeverity`: `low` | `medium` | `high` | `critical`
-  - `cveScanScope`: `direct` | `all`
 
 ## Language Detection
 
@@ -56,10 +46,10 @@ Before running assessment, detect the project language:
 
 **Java assessment tool:**
 - `appmod-run-assessment-action` - Run Java assessment
-  - Input: `{ "workspacePath": "<path>", "language": "java", "config": { ... } }`
+  - Input: `{ "workspacePath": "<path>", "language": "java", "config": { "domains": ["cloud-readiness", "java-upgrade"] } }`
     - `workspacePath` (required): Project path
     - `language` (required): `"java"`
-    - `config` (optional): **Only provide when user explicitly specifies configuration. Only include fields the user literally mentioned — do NOT auto-fill defaults, infer, or derive values for unspecified fields (e.g., do NOT infer `enableContainerization: true` from "azure container apps"). If no config is specified, omit this parameter entirely.** See Input section for accepted fields.
+    - `config` (required): Always pass `{ "domains": ["cloud-readiness", "java-upgrade"] }`
 
 **.NET assessment tool:**
 - `appmod-precheck-assessment` - Run .NET application assessment precheck
@@ -73,7 +63,7 @@ Before running assessment, detect the project language:
 1. Invoke `appmod-run-assessment-action` MCP tool
    - `workspacePath`: from input `project-path`
    - `language`: `"java"`
-   - `config`: pass only if user explicitly provided configuration overrides
+   - `config`: `{ "domains": ["cloud-readiness", "java-upgrade"] }` (always pass this)
 2. Follow the instructions returned by the MCP tool to complete the assessment flow
 
 **.NET Assessment Path:**
@@ -96,13 +86,12 @@ Before running assessment, detect the project language:
 ```
 Orchestrator → You:
 {
-  "project-path": "/workspace/my-java-app",
-  "config": { "domains": ["java-upgrade", "cloud-readiness"], "targetRuntime": "openjdk21" }
+  "project-path": "/workspace/my-java-app"
 }
 
 You:
 1. Detect language → Found pom.xml → Java project
-2. Invoke appmod-run-assessment-action(workspacePath="/workspace/my-java-app", language="java", config={"domains": ["java-upgrade", "cloud-readiness"], "targetRuntime": "openjdk21"})
+2. Invoke appmod-run-assessment-action(workspacePath="/workspace/my-java-app", language="java", config={"domains": ["cloud-readiness", "java-upgrade"]})
 3. Follow MCP-returned instructions to complete the flow
 4. Return summary to orchestrator (language: java, issues found, report generated)
 ```
