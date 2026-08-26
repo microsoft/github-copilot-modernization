@@ -1,0 +1,201 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aka.ms/ghcp-appmod/assessment-report.schema.json",
+  "title": "Assessment Report (Unified)",
+  "description": "Canonical assessment report contract consumed by the GitHub Copilot App Modernization extension. Assessment providers should emit a single JSON document conforming to this schema (typically named report.json) under each report folder.",
+  "type": "object",
+  "required": ["version", "producer", "metadata", "projects", "rules"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version of this document (semver). Use \"1.0.0\" for the initial release."
+    },
+    "producer": {
+      "type": "string",
+      "description": "Human-readable name of the tool that generated this report."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Top-level report identity and analysis configuration.",
+      "required": ["id", "name", "status", "analysisStartTime", "domains", "targetIds"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "description": "Stable report identifier; also used as the on-disk folder name." },
+        "name": { "type": "string", "description": "Display title shown in the report header (e.g. \"Report_202604161657\")." },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "running", "completed", "failed", "cancelled"],
+          "description": "Lifecycle status. The UI shows progress while not in a terminal state."
+        },
+        "analysisStartTime": { "type": "string", "format": "date-time" },
+        "analysisEndTime": { "type": "string", "format": "date-time" },
+        "mode": {
+          "type": "string",
+          "enum": ["issue-only", "full"],
+          "description": "Analysis coverage mode."
+        },
+        "domains": {
+          "type": "array",
+          "description": "Assessment domains included in this report. Drives the Issue Summary donuts and the per-domain tables.",
+          "items": { "type": "string", "enum": ["cloud-readiness", "java-upgrade", "security"] },
+          "uniqueItems": true
+        },
+        "targetIds": {
+          "type": "array",
+          "description": "Internal target identifiers (e.g. \"azure-appservice\", \"openjdk21\", \"containerization\").",
+          "items": { "type": "string" }
+        },
+        "targetDisplayNames": {
+          "type": "array",
+          "description": "Display labels matching targetIds 1:1 (e.g. \"Azure App Service\"). Shown in the Target Service dropdown.",
+          "items": { "type": "string" }
+        },
+        "capabilities": {
+          "type": "array",
+          "description": "Selected analysis capabilities (e.g. \"openjdk21\", \"containerization\").",
+          "items": { "type": "string" }
+        },
+        "os": {
+          "type": "array",
+          "description": "Target OS list for containerization scenarios.",
+          "items": { "type": "string" }
+        },
+        "privacyMode": { "type": "string" },
+        "privacyModeHelpUrl": { "type": "string", "format": "uri" }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "description": "One entry per analyzed project/module. The first entry drives the Application Information panel for single-project (Java) reports; .NET reports merge incidents across all entries.",
+      "items": { "$ref": "#/definitions/Project" }
+    },
+    "rules": {
+      "type": "object",
+      "description": "Catalog of rules referenced by incidents, keyed by ruleId. Centralizing rule metadata avoids duplication on each incident.",
+      "additionalProperties": { "$ref": "#/definitions/Rule" }
+    },
+    "security": {
+      "type": "array",
+      "description": "Security-domain findings. Required only when metadata.domains contains \"security\".",
+      "items": { "$ref": "#/definitions/SecurityFinding" }
+    }
+  },
+  "definitions": {
+    "Severity": {
+      "type": "string",
+      "enum": ["mandatory", "potential", "optional", "information"]
+    },
+    "Link": {
+      "type": "object",
+      "required": ["url", "title"],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "title": { "type": "string" }
+      }
+    },
+    "TargetOverride": {
+      "type": "object",
+      "description": "Per-target override of effort and/or severity for a single incident.",
+      "additionalProperties": false,
+      "properties": {
+        "effort": { "type": "integer", "minimum": 0 },
+        "severity": { "$ref": "#/definitions/Severity" }
+      }
+    },
+    "Project": {
+      "type": "object",
+      "required": ["path", "properties", "incidents"],
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string", "description": "Workspace-relative project root." },
+        "properties": {
+          "type": "object",
+          "required": ["appName"],
+          "additionalProperties": false,
+          "properties": {
+            "appName": { "type": "string" },
+            "jdkVersion": { "type": "string" },
+            "tools": { "type": "array", "items": { "type": "string" } },
+            "frameworks": { "type": "array", "items": { "type": "string" } },
+            "languages": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "incidents": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Incident" }
+        }
+      }
+    },
+    "Incident": {
+      "type": "object",
+      "description": "A single occurrence of a rule violation or insight.",
+      "required": ["ruleId", "incidentId", "location", "locationKind"],
+      "additionalProperties": false,
+      "properties": {
+        "ruleId": { "type": "string" },
+        "incidentId": { "type": "string" },
+        "location": { "type": "string" },
+        "locationKind": { "type": "string" },
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 },
+        "message": { "type": "string" },
+        "snippet": { "type": "string" },
+        "targets": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/TargetOverride" }
+        },
+        "labels": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "Rule": {
+      "type": "object",
+      "required": ["id", "title", "severity", "effort", "domain", "category"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "severity": { "$ref": "#/definitions/Severity" },
+        "effort": { "type": "integer", "minimum": 0 },
+        "domain": {
+          "type": "string",
+          "enum": ["cloud-readiness", "java-upgrade", "security"]
+        },
+        "category": { "type": "string" },
+        "labels": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "containerization": { "type": "boolean" },
+        "links": { "type": "array", "items": { "$ref": "#/definitions/Link" } }
+      }
+    },
+    "SecurityFinding": {
+      "type": "object",
+      "required": ["id", "title", "category", "severity", "description", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "severity": { "type": "string", "enum": ["mandatory", "potential", "optional"] },
+        "description": { "type": "string" },
+        "storyPoint": { "type": "integer", "minimum": 0 },
+        "evidence": {
+          "type": "object",
+          "required": ["files", "explanation"],
+          "additionalProperties": false,
+          "properties": {
+            "files": { "type": "array", "items": { "type": "string" } },
+            "explanation": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

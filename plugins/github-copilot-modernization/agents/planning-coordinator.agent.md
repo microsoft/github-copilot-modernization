@@ -1,7 +1,6 @@
 ---
 name: planning-coordinator
 description: Generates plan.md and tasks.json from assessment results or direct task specifications
-model: 'Claude Opus 4.8'
 user-invocable: false
 hooks:
   UserPromptSubmit:
@@ -116,6 +115,7 @@ When `intent` is `list-and-select-plan`:
      - Assessment results (filtered if `selected-categories` was provided)
      - Rulebook constraints (extracted from all rulebook files)
      - **Language parameter**: Pass `language: "java"` or `language: "dotnet"` based on detected language
+     - **Integration testing intent**: If the original user request or selected categories explicitly request integration tests, pass that requirement through to `create-modernization-plan`.
    - Receive tasks.json structure that honors rulebook requirements
 
 4. **Task Schema** (see [`skills/create-modernization-plan/tasks-schema.json`](../skills/create-modernization-plan/tasks-schema.json) for the authoritative schema)

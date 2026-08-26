@@ -21,10 +21,12 @@
         "oneOf": [
           { "$ref": "#/$defs/transformTask" },
           { "$ref": "#/$defs/upgradeTask" },
+          { "$ref": "#/$defs/integrationTestTask" },
           { "$ref": "#/$defs/containerizationTask" },
           { "$ref": "#/$defs/deploymentTask" },
           { "$ref": "#/$defs/securityTask" },
-          { "$ref": "#/$defs/infrastructureTask" }
+          { "$ref": "#/$defs/infrastructureTask" },
+          { "$ref": "#/$defs/setupBaselineTask" }
         ]
       }
     },
@@ -267,6 +269,22 @@
         }
       ]
     },
+    "integrationTestTask": {
+      "allOf": [
+        { "$ref": "#/$defs/taskBase" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": {
+              "const": "integrationTest",
+              "description": "Integration test task template - Generate and run integration tests for migrated Azure services. Only include when user explicitly requests integration testing. This task runs after all transform/upgrade tasks but before containerization."
+            }
+          }
+        }
+      ]
+    },
     "securityTask": {
       "allOf": [
         { "$ref": "#/$defs/taskBase" },
@@ -315,6 +333,28 @@
               "description": "The skill used for this task, e.g., 'infrastructure-bicep-generation' or 'infrastructure-terraform-generation'",
               "items": { "$ref": "#/$defs/skill" }
             }
+          }
+        }
+      ]
+    },
+    "setupBaselineTask": {
+      "allOf": [
+        { "$ref": "#/$defs/taskBase" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": {
+              "const": "setupBaseline",
+              "description": "Setup baseline task template - Establish the modernization baseline by capturing the current state of the application before any changes are made."
+            },
+            "snapshotFolder": {
+              "type": "string",
+              "description": "Project source folder to snapshot before baseline analysis, relative to the project root."
+            },
+            "successCriteria": { "$ref": "#/$defs/successCriteria" },
+            "successCriteriaStatus": { "$ref": "#/$defs/successCriteriaStatus" }
           }
         }
       ]

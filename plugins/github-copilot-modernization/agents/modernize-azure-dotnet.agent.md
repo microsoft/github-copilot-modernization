@@ -40,7 +40,6 @@ tools:
   - shell
   - todo
 
-model: 'Claude Sonnet 4.6'
 
 hooks:
   UserPromptSubmit:

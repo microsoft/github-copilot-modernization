@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Run Summary",
+  "description": "Schema for .metadata/summary.json — the post-run goal-status document produced by the team while finalizing tasks. Each entry corresponds to one task in tasks.json (joined by 'id'). The CLI reads this file to render the post-run summary tables (per-task goal/result, overall application status, reference documents).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "taskSummaries"],
+  "properties": {
+    "$schema": { "type": "string", "description": "Optional schema URI." },
+    "version": { "type": "string", "description": "Schema version. Use \"1.0\"." },
+    "taskSummaries": {
+      "type": "array",
+      "description": "One entry per task in tasks.json that has reached a terminal state. Joined to tasks.json by 'id'.",
+      "items": { "$ref": "#/$defs/runSummaryEntry" }
+    }
+  },
+  "$defs": {
+    "runSummaryEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "goalStatus"],
+      "description": "A per-task goal-status entry. The shape of 'goalStatus' is selected by 'type'.",
+      "properties": {
+        "id": { "type": "string", "description": "Task id matching the corresponding task in tasks.json." },
+        "type": {
+          "type": "string",
+          "enum": ["setupBaseline", "upgrade", "transform", "security", "integrationTest", "infrastructure", "containerization", "deployment"],
+          "description": "Task type discriminator matching the corresponding task type in tasks.json."
+        },
+        "goalStatus": {
+          "description": "Structured goal status object. Use the per-type shape selected by 'type' from the matching $defs entry below."
+        },
+        "risks": {
+          "type": "array",
+          "maxItems": 3,
+          "items": { "type": "string", "maxLength": 200 },
+          "description": "Up to 3 short, concrete residual risks introduced or left behind by this task (e.g., 'Spring upgrade still uses deprecated WebSecurityConfigurerAdapter'). Omit or use [] when there are none. Do not invent risks to fill space; do not include generic platitudes."
+        },
+        "followUps": {
+          "type": "array",
+          "maxItems": 3,
+          "items": { "type": "string", "maxLength": 200 },
+          "description": "Up to 3 short, actionable items the user/team should do next (e.g., 'Pin docker base image digest', 'Add IT coverage for OAuth refresh path'). Omit or use [] when there are none."
+        }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "setupBaseline" } } }, "then": { "properties": { "goalStatus": { "$ref": "#/$defs/setupBaselineGoalStatus" } } } },
+        { "if": { "properties": { "type": { "const": "upgrade" } } }, "then": { "properties": { "goalStatus": { "$ref": "#/$defs/upgradeGoalStatus" } } } },
+        { "if": { "properties": { "type": { "const": "transform" } } }, "then": { "properties": { "goalStatus": { "$ref": "#/$defs/transformGoalStatus" } } } },
+        { "if": { "properties": { "type": { "const": "security" } } }, "then": { "properties": { "goalStatus": { "$ref": "#/$defs/securityGoalStatus" } } } },
+        { "if": { "properties": { "type": { "const": "integrationTest" } } }, "then": { "properties": { "goalStatus": { "$ref": "#/$defs/integrationTestGoalStatus" } } } },
+        { "if": { "properties": { "type": { "const": "infrastructure" } } }, "then": { "properties": { "goalStatus": { "$ref": "#/$defs/infrastructureGoalStatus" } } } },
+        { "if": { "properties": { "type": { "const": "containerization" } } }, "then": { "properties": { "goalStatus": { "$ref": "#/$defs/containerizationGoalStatus" } } } },
+        { "if": { "properties": { "type": { "const": "deployment" } } }, "then": { "properties": { "goalStatus": { "$ref": "#/$defs/deploymentGoalStatus" } } } }
+      ]
+    },
+    "setupBaselineGoalStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Goal status for a setupBaseline task. Populate when the task reaches a terminal state so the post-run summary can render concrete counts and link to the produced test-cases.md.",
+      "properties": {
+        "totalTestCases": { "type": "integer", "description": "Total number of test cases captured in the baseline spec." },
+        "passed": { "type": "integer", "description": "Number of baseline test cases that passed at the end of the run." },
+        "failed": { "type": "integer", "description": "Number of baseline test cases that failed at the end of the run." },
+        "allCasesPassed": { "type": "boolean", "description": "Convenience boolean: whether all captured test cases passed at the end of the run. Equivalent to failed == 0 when passed/failed are both populated." },
+        "testCasesFile": { "type": "string", "description": "Workspace-relative path to the produced test-cases.md file, forward-slash separated (e.g., 'src/test/test-cases/test-cases.md')." }
+      }
+    },
+    "upgradeGoalStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Goal status for an upgrade task. Populate when the task reaches a terminal state.",
+      "properties": {
+        "fromVersion": { "type": "string", "description": "Source version observed before the upgrade, e.g., 'Java 8', '.NET 6'." },
+        "targetVersion": { "type": "string", "description": "Target version reached, e.g., 'Java 17', '.NET 8'." }
+      }
+    },
+    "transformGoalStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Goal status for a transform task. Populate when the task reaches a terminal state.",
+      "properties": {
+        "migrationFrom": { "type": "string", "description": "Source component being replaced, e.g., 'RabbitMQ', 'AWS S3'." },
+        "migrationTo": { "type": "string", "description": "Azure destination component, e.g., 'Azure Service Bus', 'Azure Blob Storage'." }
+      }
+    },
+    "securityGoalStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Goal status for a security task. Populate when the task reaches a terminal state.",
+      "properties": {
+        "cvesFixed": { "type": "integer", "description": "Number of CVEs fixed during this task." },
+        "cvesRemaining": { "type": "integer", "description": "Number of CVEs that remain unfixed after this task." }
+      }
+    },
+    "integrationTestGoalStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Goal status for an integrationTest task. Populate when the task reaches a terminal state.",
+      "properties": {
+        "totalTestCases": { "type": "integer", "description": "Total number of integration test cases executed." },
+        "passed": { "type": "integer", "description": "Number of integration test cases that passed." },
+        "failed": { "type": "integer", "description": "Number of integration test cases that failed." },
+        "testCasesFile": { "type": "string", "description": "Workspace-relative path to the consumed test-cases.md file, forward-slash separated." }
+      }
+    },
+    "infrastructureGoalStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Goal status for an infrastructure task. Populate when the task reaches a terminal state.",
+      "properties": {
+        "provisioned": { "type": "boolean", "description": "Whether Azure resources were successfully provisioned." },
+        "resourceGroup": { "type": "string", "description": "Name of the Azure resource group used for provisioning." }
+      }
+    },
+    "containerizationGoalStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Goal status for a containerization task. Populate when the task reaches a terminal state.",
+      "properties": {
+        "imageBuilt": { "type": "boolean", "description": "Whether the container image was successfully built." },
+        "imageTag": { "type": "string", "description": "Built container image tag, e.g., 'myapp:1.0.0'." }
+      }
+    },
+    "deploymentGoalStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Goal status for a deployment task. Populate when the task reaches a terminal state.",
+      "properties": {
+        "deployed": { "type": "boolean", "description": "Whether the application was successfully deployed to the target Azure service." },
+        "resourceGroup": { "type": "string", "description": "Name of the Azure resource group the application was deployed into." },
+        "accessUrl": { "type": "string", "description": "Public URL or endpoint the user can use to access the deployed application." }
+      }
+    }
+  }
+}

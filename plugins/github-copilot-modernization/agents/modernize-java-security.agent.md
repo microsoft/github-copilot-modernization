@@ -1,7 +1,6 @@
 ---
 name: 'modernize-java-security'
 description: 'Scan and fix CVE vulnerabilities in Java project dependencies.'
-model: 'Claude Sonnet 4.6'
 argument-hint: 'Fix CVE vulnerabilities'
 user-invocable: true
 tools:

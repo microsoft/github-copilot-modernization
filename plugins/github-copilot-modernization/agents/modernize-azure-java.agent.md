@@ -59,7 +59,6 @@ tools:
   - appmod-mcp-server/appmod-install-jdk
   - appmod-mcp-server/appmod-install-maven
 
-model: 'Claude Sonnet 4.6'
 
 hooks:
   UserPromptSubmit:
