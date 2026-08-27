@@ -219,4 +219,3 @@ All artifacts are written to `.github/modernize/java-upgrade/<SESSION_ID>/` — 
 
 4. **Preview summary (VS Code only)**: If `#appmod-preview-markdown` is available, call it with the `summary.md` file path. If unavailable or preview fails, continue successfully and return the saved summary path; preview failure does not block completion.
 
-

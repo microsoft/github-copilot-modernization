@@ -33,7 +33,6 @@ tools:
   - appmod-mcp-server/appmod-dotnet-build-project
   - appmod-mcp-server/appmod-dotnet-run-test
   - appmod-mcp-server/appmod-search-file
-  - appmod-mcp-server/appmod-preview-markdown
   - appmod-mcp-server/appmod-version-control
   - appmod-mcp-server/appmod-create-migration-summary
   - appmod-build-java-project
