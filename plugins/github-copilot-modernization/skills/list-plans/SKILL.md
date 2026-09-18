@@ -3,7 +3,7 @@ name: list-plans
 description: |
   Discovers valid migration plans in the workspace and returns the selected plan path.
   A valid plan is a subdirectory of .github/modernize/ that contains plan.md AND tasks.json (tasks.json may be in the plan folder or in a .metadata subfolder).
-  Handles 0, 1, or multiple plans and prompts the user when a choice is needed.
+    Handles 0, 1, or multiple plans and returns structured NEEDS_INPUT when a choice is needed.
   Triggers: "list plans", "find plans", "select plan", "list-and-select-plan", "discover plans".
 ---
 
@@ -77,16 +77,18 @@ Return its path immediately — no user prompt needed:
 ### Multiple plans found
 
 1. For each plan, read `.github/modernize/<folder>/plan.md`, extract the first heading, strip the leading `# ` and any prefix of the form `<Word> Plan: ` (e.g. `Modernization Plan: `, `Migration Plan: `), and use the remainder as the title.
-2. Print: `Searched for plan.md and tasks.json files... There are multiple plans in this repository.`
-3. Ask the user to select a plan:
-   - `header`: `plan-selection`
-   - `question`: `Which plan would you like to execute?`
-   - `allowFreeformInput`: `false`
-   - `options`: one entry per plan — `label` = folder name, `description` = plan title from step 1
+2. Do not invoke a question tool. Return exactly these two lines to `planning-coordinator`, with compact JSON on the second line and no surrounding prose or Markdown fence:
+
+```text
+NEEDS_INPUT
+{"schemaVersion":1,"coordinator":"planning-coordinator","requestType":"plan-selection","questions":[{"header":"plan-selection","question":"Which plan would you like to execute?","allowFreeformInput":false,"options":[{"label":"<folder>","description":"<plan title>"}]}],"resumeContext":{"plans":[{"label":"<folder>","planPath":".github/modernize/<folder>/plan.md"}]}}
+```
+
+Include one option and one matching `resumeContext.plans` entry per discovered plan, preserving discovery order. The option label is the folder name and its description is the title from step 1. Never select the first plan by default.
 
 ## Step 3 — Return
 
-Return the selected plan path to the caller:
+After `planning-coordinator` receives the top-level structured answer, it resolves the selected label through `resumeContext.plans` and returns that path:
 
 ```
 .github/modernize/<selected-folder>/plan.md

@@ -1,0 +1,4 @@
+  PostToolUse:
+    - type: command
+      command: node "$APPMOD_HOOK_SCRIPTS_DIR/guardModernizeDelegation.mjs" --post
+      windows: "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"& node (Join-Path $env:APPMOD_HOOK_SCRIPTS_DIR 'guardModernizeDelegation.mjs') --post\""

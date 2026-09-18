@@ -34,3 +34,23 @@ Applied to **all** brownfield and greenfield tasks regardless of scope (frontend
   - `"partial: <list>"` — specific test suites must pass (e.g., "E2E must pass, unit tests can be rewritten")
 - **Default if skipped**: `"must pass"` (safe default; ImplementationAgent classifies failures as migration-caused vs pre-existing)
 - **Why it matters**: determines the BUILD GATE criteria in Phase 5 and whether failing tests block batch completion
+
+---
+
+### target.output_location
+- **Importance**: required — but **only when `assessment.change_type` is `rewrite` or `extract`**; omit the field entirely for `upgrade` (in-place is inherent). Same conditional-inclusion mechanism as `visual.screenshots`.
+- **Label**: Rewrite output location — where should the rewritten code go?
+- **Accepted evidence**: explicit output directory in the prompt (e.g., "Output all generated code into a new top-level folder named `petclinic-new`"), `"in-place"`, or an explicit relative/absolute target path
+- **Default if skipped**: `"new sibling directory: <project-name>-new"`
+- **Why it matters**: decides the scaffold target directory and the working directory for all build/test/validation commands, and guarantees the original source tree stays untouched during a rewrite. Collected here so the coordinator never has to interrupt the run with a separate interactive question.
+- **Question generation note**: render as `single_select` with concrete option values — `<project-name>-new` sibling directory (pre-select), `in-place` — plus the automatic free-text row for a custom path.
+
+---
+
+### constraints.additional
+- **Importance**: optional — but the question itself is **always included** in the question set (fixed G5), regardless of scope or evidence.
+- **Label**: Additional Constraints — requirements, exclusions, dependencies, compliance rules, or operational constraints not covered above
+- **Accepted evidence**: none — this field is never scored and never counts toward the clarity gate; it exists purely to catch constraints the catalog has no field for.
+- **Default if skipped**: `"None beyond the decisions listed in this specification."`
+- **Why it matters**: gives the user one guaranteed free-text outlet for compliance rules, hard dependencies, or exclusions that would otherwise surface late as blocking review feedback.
+- **Question generation note**: render as `text`, prefilled with the default so the user can accept it unchanged or overwrite it with their own constraints.

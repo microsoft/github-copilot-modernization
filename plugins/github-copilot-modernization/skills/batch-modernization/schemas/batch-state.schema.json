@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "batch-state.schema.json",
+  "title": "Batch state v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "batchId",
+    "status",
+    "revision",
+    "createdAt",
+    "updatedAt",
+    "activeLeaseDigest",
+    "executionUnits",
+    "progress"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "batchId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "ready",
+        "running",
+        "awaiting_input",
+        "paused",
+        "completed",
+        "completed_with_issues",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "createdAt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "updatedAt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "activeLeaseDigest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "executionUnits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "repoId",
+          "executionUnitId",
+          "phase",
+          "attempt",
+          "invocationId",
+          "status",
+          "resultPath",
+          "startedAt",
+          "finishedAt"
+        ],
+        "properties": {
+          "repoId": {
+            "type": "string"
+          },
+          "executionUnitId": {
+            "type": "string"
+          },
+          "phase": {
+            "enum": [
+              "assessment",
+              "planning",
+              "execution"
+            ]
+          },
+          "attempt": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "invocationId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "preparing",
+              "running",
+              "needs_input",
+              "completed",
+              "completed_with_issues",
+              "protocol_error",
+              "failed",
+              "not_applicable",
+              "excluded",
+              "blocked",
+              "interrupted"
+            ]
+          },
+          "resultPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "startedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "finishedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "progress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wave",
+        "eligible",
+        "terminal",
+        "successful",
+        "issues",
+        "failed"
+      ],
+      "properties": {
+        "wave": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "eligible": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "terminal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "successful": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "issues": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}
