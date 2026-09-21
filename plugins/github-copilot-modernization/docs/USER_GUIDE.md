@@ -48,12 +48,12 @@ Update to the latest version:
    copilot --agent=github-copilot-modernization:modernize
    ```
 
-   **Important:** Only `modernize` is user-invocable. All other agents are internal and automatically invoked by the orchestrator:
+   **Recommended:** Use `modernize` for the guided end-to-end workflow. Specialist agents can also be selected directly for focused scenarios. Internal agents, including the following coordinators and workers, are invoked automatically:
    - `assessment-coordinator` - Internal coordinator for assessment phase
    - `planning-coordinator` - Internal coordinator for planning phase
    - `execution-coordinator` - Internal coordinator for execution phase
-   - `modernize-java-upgrade` - Internal agent for Java version upgrades
-   - `modernize-azure-java` - Internal agent for Azure migrations
+   - `modernize-azure-integration-tester` - Internal integration-test worker
+   - `modernize-rearchitecture-worker` - Internal rearchitecture worker
 
 3. The orchestrator will automatically:
    - Assess your application

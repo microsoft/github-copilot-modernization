@@ -83,7 +83,7 @@ copilot> upgrade this app to Java 21
 copilot> migrate this Spring Boot app to Azure
 ```
 
-**Note:** Only `modernize` is user-invocable. All other agents are internal and routed to automatically by the orchestrator.
+**Note:** Use `modernize` for the guided end-to-end workflow. Specialist agents can also be selected directly for focused scenarios; coordinator and worker agents are internal and routed automatically.
 
 ## Workflow
 
