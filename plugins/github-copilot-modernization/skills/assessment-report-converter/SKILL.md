@@ -50,7 +50,7 @@ flowchart LR
 
 - `csv-path` (mandatory): Path to the source CSV file.
 - `workspace-path` (optional): Output root. Defaults to the current directory. The report is written to
-  `{workspace-path}/.github/modernize/reports/report-{reportId}/report.json`.
+  `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`.
 - `producer` (optional): A label identifying the source tool, stored in `report.producer` (e.g. `"Black Duck"`).
   Defaults to `"CSV import"`.
 
@@ -217,9 +217,9 @@ Write `report.json` to the versioned location ([Output location](#output-locatio
 
 ```bash
 # bash + jq
-./report_tools.sh validate "<workspace>/.github/modernize/reports/report-<id>/report.json"
+./report_tools.sh validate "<workspace>/.github/modernize/assessment/reports/report-<id>/report.json"
 # …or PowerShell 7+
-pwsh ./report_tools.ps1 validate "<workspace>/.github/modernize/reports/report-<id>/report.json"
+pwsh ./report_tools.ps1 validate "<workspace>/.github/modernize/assessment/reports/report-<id>/report.json"
 ```
 
 Resolve every reported consistency error before finishing.
@@ -236,7 +236,7 @@ Report a concise conversion summary:
 
 ## Output location
 
-- `{workspace-path}/.github/modernize/reports/report-{reportId}/report.json`
+- `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`
 - `reportId` = the report's `metadata.id` from Step 5 (`analysisStartTime` as `yyyyMMddHHmmss`, UTC).
 - Consider copying the original CSV next to `report.json` as `source.csv` for provenance.
 
