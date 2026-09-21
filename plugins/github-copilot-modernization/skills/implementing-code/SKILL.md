@@ -120,7 +120,7 @@ For tasks with `[Source:]`, follow `references/source-anchored-rewrite.md`.
 
 **Guideline-Based Transformation:**
 For tasks marked `[GUIDELINE:skill-name]`:
-1. Load the guideline from `skills/guidelines/`
+1. Load each top-level guideline skill named in the plan
 2. Apply transformation rules, import changes, method mappings
 3. Use before/after examples as reference
 

@@ -2,7 +2,7 @@
 
 > ⚠️ **Agent-only reference. DO NOT print this template to the user.**
 >
-> This file is the canonical list of fields the `clarifying-scenarios` skill may ask about. It is **never written to disk** and **never shown to the user as a form**. Per `SKILL.md`, when fields are missing the skill returns `NEEDS_INPUT` with a structured JSON question array, and the coordinator presents questions **interactively** (one structured prompt with options/defaults) — not as a markdown form for the user to fill in and send back.
+> This file is the canonical list of fields the `clarifying-scenarios` skill may ask about. It is **never shown to the user as a form**. Per `SKILL.md`, when fields are missing the skill writes the **complete one-shot question set** to `{{BASE_PATH}}/clarification-questions.json` (every applicable field across all importance levels; every select question carries an "Other" free-text choice) and returns `NEEDS_INPUT <path>`. External tooling renders that JSON into a webview/markdown; the user's answers come back as an answers markdown. Questions are never asked interactively in chat, never printed as a form, and never grouped into rounds.
 >
 > Use this file to:
 > - Identify the field set per scope (frontend / backend / generic).
@@ -55,5 +55,7 @@
 | G1 | Definition of "done" | ❗ Required | `<your answer>` | feature parity with current system |
 | G2 | Explicit out-of-scope items | Recommended | `<your answer>` | agent infers from project structure |
 | G3 | Existing test suite policy | Recommended | `<your answer>` | must pass |
+| G4 | Rewrite output location (`rewrite`/`extract` only — omit for `upgrade`) | ❗ Required | `<your answer>` | new sibling directory: `<project>-new` |
+| G5 | Additional constraints (always included; fixed free-text question) | Optional | `<your answer>` | None beyond the decisions listed in this specification. |
 
 <!-- SECTION_END: generic -->
