@@ -55,6 +55,8 @@ blocking_gaps: []     # required fields with no answer and no default — surfac
 - **Success definition**: <!-- e.g., all existing user flows work identically in the new stack -->
 - **Out of scope**: <!-- e.g., legacy admin panel, payment gateway integration -->
 - **Existing test posture**: <!-- e.g., must pass (default) -->
+- **Output location**: <!-- rewrite/extract only — e.g., new sibling directory ./petclinic-new, or in-place -->
+- **Additional constraints**: <!-- e.g., None beyond the decisions listed in this specification. (default) -->
 
 ---
 

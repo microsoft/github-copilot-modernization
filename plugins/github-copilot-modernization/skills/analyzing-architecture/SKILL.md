@@ -106,7 +106,7 @@ For how downstream agents consume these artifacts, load `references/consumption-
 
 ---
 
-`target_idiom` is NOT produced here — lives in `guidelines/<source>-to-<target>/`.
+`target_idiom` is NOT produced here — it lives in the top-level `skills/<source>-to-<target>/SKILL.md` guideline skill.
 
 ### Architecture index artifact — implementation guide
 
@@ -152,7 +152,7 @@ Load `references/unit-decomposition.md` for schema and split-driver vocabulary.
 
 ## Workflow
 
-1. **Load context** — source/target framework, existing KG, `guidelines/<source>-to-<target>/`, and any **user-declared seams** (cut points the user specified).
+1. **Load context** — source/target framework, existing KG, `skills/<source>-to-<target>/SKILL.md`, and any **user-declared seams** (cut points the user specified).
 1b. **Load extraction signals** — read `references/extraction-signals.md` and map discovered signals into the structured artifacts.
 1c. **Produce global prose views** — alongside the structured per-unit artifacts, emit `project-structure.md` (functional domains, layers, project type), `tech-stack.md` (frameworks, deps, runtime versions, migration blockers), and `data-model.md` (entity inventory + key-entities summary) per their reference schemas. These global views are consumed by creating-implementation-plan, feature-inventory, and the spec-quality gate; the structured YAML artifacts do not replace them.
 2. **Build `unit_graph.yaml`** (spine). Resolve `exported_signature` from public signatures only. Seed `shared_modules.yaml` same pass; flag god-class + reference-cliff candidates.
@@ -199,7 +199,7 @@ Load `references/unit-decomposition.md` for schema and split-driver vocabulary.
 |---|---|---|
 | 1 | Dropped side-effect | `behavior.yaml::side_effects[must_preserve]` |
 | 2 | Dropped framework binding | `bindings.yaml::bindings[must_appear_in_target]` |
-| 3 | Hallucinated target API | `guidelines/<source>-to-<target>/` (out of scope) |
+| 3 | Hallucinated target API | `skills/<source>-to-<target>/SKILL.md` (out of scope) |
 | 4 | Broken caller (signature unsync) | `unit_graph.yaml::depends_on` + `exported_signature` |
 | 5 | Dead-code removal of reflection/DI class | `unit_graph.yaml::dynamic_entrypoints` |
 | 6 | Wire contract break | `wire_contracts.yaml::stability:frozen + target_contract` |
@@ -230,7 +230,7 @@ Load `references/unit-decomposition.md` for schema and split-driver vocabulary.
 - Performance baseline — cutover phase
 - Standalone risk register — inline `notes` / `stability`
 - Architecture summary prose — implementation agents need source-anchored contracts, not prose-only summaries
-- Idiom mapping — `guidelines/<source>-to-<target>/`
+- Idiom mapping — `skills/<source>-to-<target>/SKILL.md`
 - Function-level call graph beyond unit boundaries — `exported_signature` suffices
 - **Cohesion metrics / co-access clusters (LCOM4/TCC)** — structural numbers did not change design decisions. God-class smells live on `shared_modules.yaml::split_candidate`.
 - Pure syntax migration (Py2→3, Java 8→17)

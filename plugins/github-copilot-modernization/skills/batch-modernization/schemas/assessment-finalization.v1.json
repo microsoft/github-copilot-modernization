@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "assessment-finalization.v1.json",
+  "title": "Batch Assessment finalization journal v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "batchId",
+    "phase",
+    "status",
+    "summaryJsonDigest",
+    "summaryMarkdownDigest",
+    "reportDirectoryPath",
+    "reportIndexPath",
+    "aggregateReportPath",
+    "reportDirectoryDigest",
+    "reportIndexDigest",
+    "aggregateReportDigest",
+    "completedAt",
+    "releaseReady",
+    "released"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "batchId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "phase": {
+      "const": "assessment"
+    },
+    "status": {
+      "enum": [
+        "completed",
+        "completed_with_issues",
+        "failed"
+      ]
+    },
+    "summaryJsonDigest": {
+      "type": "string",
+      "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+    },
+    "summaryMarkdownDigest": {
+      "type": "string",
+      "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+    },
+    "reportDirectoryPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reportIndexPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "aggregateReportPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reportDirectoryDigest": {
+      "type": "string",
+      "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+    },
+    "reportIndexDigest": {
+      "type": "string",
+      "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+    },
+    "aggregateReportDigest": {
+      "type": "string",
+      "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+    },
+    "completedAt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "releaseReady": {
+      "const": true
+    },
+    "released": {
+      "type": "boolean"
+    }
+  }
+}

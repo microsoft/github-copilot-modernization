@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="{{REPORT_MODE}}">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Assess · {{INTENT_SLUG}} · {{RUN_ID}}</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --bg-alt: #161b22;
+    --panel: #1c2128;
+    --panel-2: #22272e;
+    --panel-3: #2a3038;
+    --border: #2d333b;
+    --border-strong: #444c56;
+    --fg: #e6edf3;
+    --fg-muted: #9da7b3;
+    --fg-dim: #6e7681;
+    --accent: #58a6ff;
+    --accent-soft: rgba(88, 166, 255, 0.15);
+    --critical: #f85149;
+    --high: #ff8a4c;
+    --medium: #d29922;
+    --low: #3fb950;
+    --info: #6e7681;
+    --crit-soft: rgba(248, 81, 73, 0.14);
+    --high-soft: rgba(255, 138, 76, 0.14);
+    --med-soft: rgba(210, 153, 34, 0.14);
+    --low-soft: rgba(63, 185, 80, 0.14);
+    --info-soft: rgba(110, 118, 129, 0.18);
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --radius: 8px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #ffffff;
+      --bg-alt: #f6f8fa;
+      --panel: #ffffff;
+      --panel-2: #f6f8fa;
+      --panel-3: #eaeef2;
+      --border: #d0d7de;
+      --border-strong: #afb8c1;
+      --fg: #1f2328;
+      --fg-muted: #59636e;
+      --fg-dim: #818b97;
+      --accent: #0969da;
+      --accent-soft: rgba(9, 105, 218, 0.10);
+      --info: #59636e;
+      --crit-soft: rgba(207, 34, 46, 0.10);
+      --high-soft: rgba(188, 76, 0, 0.10);
+      --med-soft: rgba(154, 103, 0, 0.10);
+      --low-soft: rgba(31, 136, 61, 0.10);
+      --info-soft: rgba(89, 99, 110, 0.10);
+      --shadow: 0 4px 14px rgba(31, 35, 40, 0.10);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
+  body {
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+      system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ------- top bar ------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--bg-alt);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  }
+  .topbar .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .topbar .brand h1 { margin: 0; font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+  .topbar .sub { color: var(--fg-muted); font-size: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .topbar .sub code { background: var(--panel-2); padding: 1px 6px; border-radius: 4px; font-size: 11.5px; }
+  .topbar .spacer { flex: 1 1 auto; }
+  .topbar .actions { display: flex; gap: 8px; align-items: center; }
+  .mode-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em; }
+  .mode-pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .mode-pill[data-tier="ai-narrated"] { background: var(--accent-soft); color: var(--accent); }
+  .mode-pill[data-tier="ai-narrated"] .dot { background: var(--accent); }
+  .mode-pill[data-tier="partial"]     { background: var(--med-soft); color: var(--medium); }
+  .mode-pill[data-tier="partial"] .dot { background: var(--medium); }
+  .mode-pill[data-tier="raw"]         { background: var(--info-soft); color: var(--fg-muted); }
+  .mode-pill[data-tier="raw"] .dot { background: var(--fg-muted); }
+
+  .btn {
+    background: var(--panel); color: var(--fg);
+    border: 1px solid var(--border);
+    padding: 5px 10px; border-radius: 6px;
+    font-size: 12px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: var(--panel-2); border-color: var(--border-strong); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn .kbd { background: var(--panel-3); padding: 1px 5px; border-radius: 3px; font-size: 10.5px; color: var(--fg-muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+
+  /* ------- stats strip ------- */
+  .stats { display: flex; gap: 8px; padding: 16px 28px 8px; flex-wrap: wrap; max-width: 1240px; margin: 0 auto; }
+  .stat { flex: 1 1 110px; min-width: 110px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); }
+  .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); margin-bottom: 4px; }
+  .stat .value { font-size: 22px; font-weight: 600; line-height: 1; }
+  .stat .delta { font-size: 11px; color: var(--fg-muted); margin-top: 4px; }
+  .stat[data-sev="critical"] { border-left: 3px solid var(--critical); }
+  .stat[data-sev="high"]     { border-left: 3px solid var(--high); }
+  .stat[data-sev="medium"]   { border-left: 3px solid var(--medium); }
+  .stat[data-sev="low"]      { border-left: 3px solid var(--low); }
+  .stat[data-sev="info"]     { border-left: 3px solid var(--info); }
+  .stat.clickable { cursor: pointer; }
+  .stat.clickable:hover { background: var(--panel-2); }
+  .stat.active { background: var(--accent-soft); border-color: var(--accent); }
+
+  /* ------- main layout ------- */
+  main { max-width: 1240px; margin: 0 auto; padding: 8px 28px 80px; }
+
+  .briefing {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 24px; margin: 16px 0 24px;
+  }
+  .briefing p { margin: 0 0 12px; font-size: 15px; line-height: 1.6; }
+  .briefing p:last-child { margin-bottom: 0; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 9px; border-radius: 999px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--fg-muted); font-size: 11.5px;
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+  }
+  .chip:hover { background: var(--panel-3); color: var(--fg); }
+  .chip.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+  .chip[data-facet="severity"][data-value="critical"] { color: var(--critical); border-color: rgba(248,81,73,0.4); background: var(--crit-soft); }
+  .chip[data-facet="severity"][data-value="high"]     { color: var(--high);     border-color: rgba(255,138,76,0.4); background: var(--high-soft); }
+  .chip[data-facet="severity"][data-value="medium"]   { color: var(--medium);   border-color: rgba(210,153,34,0.4); background: var(--med-soft); }
+  .chip[data-facet="severity"][data-value="low"]      { color: var(--low);      border-color: rgba(63,185,80,0.4);  background: var(--low-soft); }
+  .chip[data-facet="severity"][data-value="info"]     { color: var(--info);     border-color: var(--border);        background: var(--info-soft); }
+
+  /* ------- headlines ------- */
+  .headlines { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 24px 0; }
+  .headline {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+    cursor: pointer; transition: transform 0.08s, border-color 0.1s;
+  }
+  .headline:hover { transform: translateY(-1px); border-color: var(--border-strong); }
+  .headline .kind { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); display: flex; align-items: center; gap: 6px; }
+  .headline .kind .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--info); }
+  .headline[data-kind="critical-risk"] .dot { background: var(--critical); }
+  .headline[data-kind="warning"] .dot      { background: var(--high); }
+  .headline[data-kind="effort"] .dot       { background: var(--medium); }
+  .headline[data-kind="opportunity"] .dot  { background: var(--low); }
+  .headline[data-kind="trend"] .dot        { background: var(--accent); }
+  .headline .title { font-size: 14px; font-weight: 600; line-height: 1.35; }
+  .headline .body { font-size: 12.5px; color: var(--fg-muted); line-height: 1.5; }
+  .headline .target { font-size: 11px; color: var(--accent); margin-top: auto; }
+
+  /* ------- change narrative ------- */
+  .changes { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 22px; margin: 24px 0; }
+  .changes h3 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+  .changes .summary { color: var(--fg-muted); margin: 0 0 14px; }
+  .changes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .change {
+    border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px;
+    background: var(--panel-2); display: flex; flex-direction: column; gap: 4px; min-width: 0;
+  }
+  .change .kind { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg-muted); }
+  .change[data-kind="added"]    .kind { color: var(--low); }
+  .change[data-kind="resolved"] .kind { color: var(--low); }
+  .change[data-kind="escalated"].kind, .change[data-kind="escalated"] .kind { color: var(--high); }
+  .change[data-kind="regressed"] .kind { color: var(--critical); }
+  .change .title { font-size: 13px; font-weight: 500; }
+  .change .body { font-size: 12px; color: var(--fg-muted); }
+  .change .refs { font-size: 11px; color: var(--accent); cursor: pointer; }
+
+  /* ------- active filter bar ------- */
+  .filterbar {
+    position: sticky; top: 56px; z-index: 40;
+    background: var(--bg);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    display: none;
+  }
+  .filterbar.active { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .filterbar .label { font-size: 11px; text-transform: uppercase; color: var(--fg-muted); }
+  .filterbar .count { font-size: 12px; color: var(--fg-muted); margin-left: auto; }
+  .filterbar .clear { font-size: 11px; color: var(--accent); cursor: pointer; background: none; border: none; padding: 0; }
+
+  /* ------- theme sections ------- */
+  .theme {
+    margin: 28px 0;
+    border-top: 1px solid var(--border); padding-top: 22px;
+  }
+  .theme.empty { display: none; }
+  .theme-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+  .theme-head h2 { margin: 0; font-size: 18px; font-weight: 600; cursor: pointer; user-select: none; }
+  .theme-head h2 .caret { display: inline-block; color: var(--fg-dim); margin-right: 4px; transition: transform 0.12s; }
+  .theme.collapsed .theme-head h2 .caret { transform: rotate(-90deg); }
+  .theme-head .badge { font-size: 11.5px; color: var(--fg-muted); background: var(--panel-2); padding: 1px 8px; border-radius: 999px; }
+  .theme-head .auto-tag { font-size: 10.5px; text-transform: uppercase; color: var(--fg-dim); letter-spacing: 0.05em; }
+  .theme .summary { color: var(--fg-muted); margin: 0 0 14px; max-width: 800px; }
+  .theme.collapsed .findings-grid, .theme.collapsed .summary { display: none; }
+
+  .findings-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 900px) {
+    .findings-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ------- finding card ------- */
+  .finding {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+    transition: border-color 0.1s, transform 0.08s;
+  }
+  .finding:hover { border-color: var(--border-strong); }
+  .finding.focused { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .finding.hidden { display: none; }
+  .finding-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .sev-badge { font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sev-badge[data-sev="critical"] { background: var(--crit-soft); color: var(--critical); }
+  .sev-badge[data-sev="high"]     { background: var(--high-soft); color: var(--high); }
+  .sev-badge[data-sev="medium"]   { background: var(--med-soft); color: var(--medium); }
+  .sev-badge[data-sev="low"]      { background: var(--low-soft); color: var(--low); }
+  .sev-badge[data-sev="info"]     { background: var(--info-soft); color: var(--info); }
+  .state-badge { font-size: 10.5px; padding: 2px 7px; border-radius: 4px; color: var(--fg-muted); background: var(--panel-2); border: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.05em; }
+  .state-badge[data-state="acknowledged"] { color: var(--medium); }
+  .state-badge[data-state="suppressed"]   { color: var(--fg-dim); }
+  .state-badge[data-state="escalated"]    { color: var(--critical); }
+  .state-badge[data-state="resolved"]     { color: var(--low); }
+  .new-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .finding-id { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; color: var(--fg-dim); margin-left: auto; }
+  .finding .title { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .finding .why { font-size: 13px; color: var(--fg); line-height: 1.55; }
+  .finding .raw-rationale { font-size: 12.5px; color: var(--fg-muted); line-height: 1.55; white-space: pre-wrap; }
+  .finding .locations { font-size: 11.5px; color: var(--fg-muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; word-break: break-all; }
+  .finding .locations .more { color: var(--accent); cursor: pointer; }
+  .finding .tags { margin-top: 2px; }
+  .finding .meta-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 11.5px; color: var(--fg-muted); }
+  .finding .what { font-size: 12.5px; color: var(--fg-muted); }
+  .finding .what strong { color: var(--fg); font-weight: 600; }
+  .finding .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .action {
+    font-size: 11.5px; padding: 3px 9px; border-radius: 5px;
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--fg-muted);
+    cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .action:hover { background: var(--panel-3); color: var(--fg); }
+  .action[data-kind="plan"], .action[data-kind="plan-with-related"] { color: var(--accent); border-color: rgba(88,166,255,0.4); }
+  .action[data-kind="suppress"] { color: var(--fg-dim); }
+
+  /* ------- next steps ------- */
+  .next-steps {
+    background: linear-gradient(180deg, var(--panel) 0%, var(--bg-alt) 100%);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 24px; margin: 32px 0;
+  }
+  .next-steps h2 { margin: 0 0 14px; font-size: 16px; font-weight: 600; }
+  .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .step {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px;
+    padding: 14px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .step .kind { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg-muted); }
+  .step[data-kind="plan-now"]   .kind { color: var(--critical); }
+  .step[data-kind="plan-soon"]  .kind { color: var(--medium); }
+  .step[data-kind="monitor"]    .kind { color: var(--accent); }
+  .step[data-kind="defer"]      .kind { color: var(--fg-dim); }
+  .step .title { font-size: 14px; font-weight: 600; }
+  .step .body  { font-size: 12.5px; color: var(--fg-muted); }
+  .step .meta  { font-size: 11px; color: var(--fg-muted); }
+  .step .copy  { align-self: flex-start; }
+
+  /* ------- appendix ------- */
+  .appendix { margin-top: 40px; border-top: 1px solid var(--border); padding-top: 20px; }
+  .appendix details {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    margin-bottom: 10px; overflow: hidden;
+  }
+  .appendix summary {
+    cursor: pointer; padding: 12px 16px; font-weight: 600; font-size: 13px;
+    background: var(--panel-2); border-bottom: 1px solid transparent;
+    list-style: none; user-select: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .appendix summary::-webkit-details-marker { display: none; }
+  .appendix summary::before { content: "▸"; color: var(--fg-dim); font-size: 11px; transition: transform 0.12s; }
+  .appendix details[open] summary::before { transform: rotate(90deg); }
+  .appendix details[open] summary { border-bottom-color: var(--border); }
+  .appendix .body { padding: 14px 16px; font-size: 12.5px; }
+  .appendix .body ul { margin: 0; padding-left: 18px; }
+  .appendix .body code { background: var(--panel-2); padding: 1px 5px; border-radius: 3px; font-size: 11.5px; }
+  .appendix .body pre {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px; max-height: 480px; overflow: auto; font-size: 11.5px;
+    margin: 0;
+  }
+  .appendix .warnings li { color: var(--medium); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11.5px; }
+
+  /* ------- raw mode banner ------- */
+  .raw-banner {
+    background: var(--med-soft); border: 1px solid rgba(210,153,34,0.4);
+    color: var(--medium); padding: 12px 16px; border-radius: var(--radius);
+    margin: 16px 0 8px; font-size: 13px; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .raw-banner.partial { background: var(--med-soft); }
+  .raw-banner strong { color: var(--fg); }
+
+  /* ------- enrichment-warnings banner (prominent) ------- */
+  .warnings-banner {
+    background: var(--med-soft); border: 1px solid rgba(210,153,34,0.4);
+    color: var(--medium); padding: 10px 14px; border-radius: var(--radius);
+    margin: 8px 0 12px; font-size: 12.5px;
+  }
+  .warnings-banner strong { color: var(--fg); }
+  .warnings-banner a { color: var(--medium); text-decoration: underline; }
+
+  /* ------- risks ------- */
+  .risks-section {
+    margin: 32px 0 24px;
+  }
+  .risks-section h2 {
+    margin: 0 0 4px; font-size: 16px; font-weight: 600;
+  }
+  .risks-section .lede { color: var(--fg-muted); font-size: 12.5px; margin: 0 0 14px; }
+  .risks-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;
+  }
+  .risk {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+    border-left: 3px solid var(--fg-dim);
+  }
+  .risk[data-sev="critical"] { border-left-color: var(--critical); }
+  .risk[data-sev="high"]     { border-left-color: var(--high); }
+  .risk[data-sev="medium"]   { border-left-color: var(--medium); }
+  .risk[data-sev="low"]      { border-left-color: var(--low); }
+  .risk[data-sev="info"]     { border-left-color: var(--accent); }
+  .risk .head { display: flex; align-items: baseline; gap: 8px; }
+  .risk .head .sev {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--fg-muted);
+  }
+  .risk .title { font-size: 14px; font-weight: 600; }
+  .risk .body, .risk .mitigation { font-size: 12.5px; color: var(--fg-muted); }
+  .risk .mitigation strong { color: var(--fg); }
+  .risk .links { font-size: 11.5px; color: var(--fg-muted); }
+  .risk .links code { background: var(--panel-2); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+
+  /* ------- cost estimate ------- */
+  .cost-section {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 22px; margin: 24px 0;
+  }
+  .cost-section h2 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+  .cost-section .lede { color: var(--fg-muted); font-size: 12.5px; margin: 0 0 14px; }
+  .cost-headline {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin-bottom: 14px;
+  }
+  .cost-tile {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .cost-tile .label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--fg-muted);
+  }
+  .cost-tile .value { font-size: 18px; font-weight: 600; margin-top: 4px; }
+  .cost-tile .unit  { font-size: 11.5px; color: var(--fg-muted); margin-top: 2px; }
+  .cost-breakdown { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .cost-breakdown th, .cost-breakdown td {
+    text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border);
+  }
+  .cost-breakdown th { font-weight: 600; color: var(--fg-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .cost-breakdown td .note { display: block; color: var(--fg-muted); font-size: 11.5px; }
+  .cost-notes { margin-top: 12px; font-size: 12px; color: var(--fg-muted); }
+
+  /* ------- drawer ------- */
+  .drawer-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 90;
+    opacity: 0; pointer-events: none; transition: opacity 0.15s;
+  }
+  .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: min(520px, 92vw); background: var(--bg-alt);
+    border-left: 1px solid var(--border); box-shadow: var(--shadow);
+    transform: translateX(100%); transition: transform 0.18s ease;
+    z-index: 100; display: flex; flex-direction: column;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .drawer-head .title { font-weight: 600; flex: 1 1 auto; }
+  .drawer-head .close { background: none; border: none; color: var(--fg-muted); font-size: 18px; cursor: pointer; }
+  .drawer-body { padding: 18px; overflow-y: auto; flex: 1 1 auto; }
+  .drawer-body h4 { margin: 16px 0 6px; font-size: 13px; }
+  .drawer-body p { margin: 0 0 10px; line-height: 1.55; }
+  .drawer-body ol { padding-left: 22px; margin: 0 0 12px; }
+  .drawer-body ol li { margin-bottom: 6px; line-height: 1.5; }
+  .drawer-body .ref {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px;
+    margin-bottom: 6px; font-size: 12px;
+  }
+  .drawer-body .ref a { color: var(--accent); text-decoration: none; flex: 1 1 auto; word-break: break-all; }
+  .drawer-body .ref .tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .drawer-body .ref .tag.unverified { background: var(--med-soft); color: var(--medium); }
+  .drawer-body .ref .tag.verified   { background: var(--low-soft);  color: var(--low); }
+
+  /* ------- palette ------- */
+  .palette-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 110;
+    display: none; align-items: flex-start; justify-content: center; padding-top: 12vh;
+  }
+  .palette-backdrop.open { display: flex; }
+  .palette {
+    background: var(--bg-alt); border: 1px solid var(--border); border-radius: 10px;
+    width: min(560px, 92vw); box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .palette input {
+    width: 100%; padding: 14px 18px; background: transparent;
+    color: var(--fg); border: none; border-bottom: 1px solid var(--border);
+    font-size: 14px; outline: none;
+  }
+  .palette ul { list-style: none; padding: 6px; margin: 0; max-height: 50vh; overflow-y: auto; }
+  .palette li { padding: 8px 12px; border-radius: 5px; cursor: pointer; display: flex; gap: 10px; align-items: center; }
+  .palette li.active, .palette li:hover { background: var(--panel-2); }
+  .palette li .kind { font-size: 10.5px; text-transform: uppercase; color: var(--fg-dim); width: 70px; flex-shrink: 0; letter-spacing: 0.05em; }
+  .palette li .label { flex: 1 1 auto; font-size: 13px; }
+  .palette li .hint { font-size: 11px; color: var(--fg-muted); }
+  .palette .empty { padding: 16px 18px; color: var(--fg-muted); font-size: 13px; text-align: center; }
+
+  /* ------- toast ------- */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--panel); color: var(--fg); border: 1px solid var(--border-strong);
+    padding: 10px 18px; border-radius: 8px; box-shadow: var(--shadow);
+    font-size: 13px; opacity: 0; transition: opacity 0.15s, transform 0.15s;
+    z-index: 120; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ------- misc ------- */
+  .muted { color: var(--fg-muted); }
+  .empty-state { padding: 32px; text-align: center; color: var(--fg-muted); font-size: 13px; background: var(--panel); border: 1px dashed var(--border); border-radius: var(--radius); }
+  a { color: var(--accent); }
+  a:hover { text-decoration: underline; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <h1 id="t-project">{{PROJECT_LABEL}}</h1>
+    <span class="mode-pill" data-tier="{{REPORT_MODE}}" title="Report depth">
+      <span class="dot"></span><span id="t-mode-label">{{REPORT_MODE}}</span>
+    </span>
+  </div>
+  <div class="sub">
+    <span>intent <code>{{INTENT_SLUG}}</code></span>
+    <span>run <code>{{RUN_ID}}</code></span>
+    <span>generated {{GENERATED_AT}}</span>
+  </div>
+  <div class="spacer"></div>
+  <div class="actions">
+    <button class="btn" id="open-palette" title="Open command palette">⌘ Jump <span class="kbd">/</span></button>
+    <button class="btn" id="reset-filters" title="Reset filters">Reset</button>
+  </div>
+</div>
+
+<div class="stats" id="stats">
+  <div class="stat clickable" data-facet="state" data-value="new"><div class="label">New this run</div><div class="value">{{NEW_FINDINGS}}</div><div class="delta">of {{TOTAL_FINDINGS}} total</div></div>
+  <div class="stat clickable" data-facet="severity" data-value="critical" data-sev="critical"><div class="label">Critical</div><div class="value">{{CRITICAL_COUNT}}</div></div>
+  <div class="stat clickable" data-facet="severity" data-value="high" data-sev="high"><div class="label">High</div><div class="value">{{HIGH_COUNT}}</div></div>
+  <div class="stat clickable" data-facet="severity" data-value="medium" data-sev="medium"><div class="label">Medium</div><div class="value">{{MEDIUM_COUNT}}</div></div>
+  <div class="stat clickable" data-facet="severity" data-value="low" data-sev="low"><div class="label">Low</div><div class="value">{{LOW_COUNT}}</div></div>
+</div>
+
+<main>
+  <div id="mode-banner"></div>
+  <div id="warnings-banner"></div>
+
+  <section id="briefing" class="hidden">
+    <div class="briefing">
+      <div id="briefing-body"></div>
+      <div class="tags" id="briefing-tags"></div>
+    </div>
+  </section>
+
+  <section id="headlines-section" class="hidden">
+    <div class="headlines" id="headlines"></div>
+  </section>
+
+  <section id="changes-section" class="hidden">
+    <div class="changes">
+      <h3 id="changes-title">What changed since last scan</h3>
+      <p class="summary" id="changes-summary"></p>
+      <div class="changes-grid" id="changes-grid"></div>
+    </div>
+  </section>
+
+  <div class="filterbar" id="filterbar">
+    <span class="label">Filters:</span>
+    <span id="active-filter-chips"></span>
+    <span class="count" id="filter-count"></span>
+    <button class="clear" id="clear-filters">Clear all</button>
+  </div>
+
+  <div id="themes-container"></div>
+
+  <section id="risks-section" class="hidden">
+    <div class="risks-section">
+      <h2>Risks</h2>
+      <p class="lede">Cross-cutting risks not tied to a single finding &mdash; data migration, operational unknowns, third-party SLAs.</p>
+      <div class="risks-grid" id="risks-grid"></div>
+    </div>
+  </section>
+
+  <section id="cost-section" class="hidden">
+    <div class="cost-section">
+      <h2>Cost estimate</h2>
+      <p class="lede">Coarse effort + monthly run-cost range. Confirm with your platform team before quoting externally.</p>
+      <div class="cost-headline" id="cost-headline"></div>
+      <table class="cost-breakdown" id="cost-breakdown"></table>
+      <p class="cost-notes" id="cost-notes"></p>
+    </div>
+  </section>
+
+  <section id="nextsteps-section" class="hidden">
+    <div class="next-steps">
+      <h2>Suggested next steps</h2>
+      <div class="steps-grid" id="next-steps-grid"></div>
+    </div>
+  </section>
+
+  <div class="appendix">
+    <details>
+      <summary>Scope &amp; selection</summary>
+      <div class="body" id="appendix-scope"></div>
+    </details>
+    <details>
+      <summary>Suppressions &amp; preferences</summary>
+      <div class="body" id="appendix-suppress"></div>
+    </details>
+    <details id="warnings-section" class="hidden">
+      <summary>Enrichment warnings</summary>
+      <div class="body warnings"><ul id="enrichment-warnings"></ul></div>
+    </details>
+    <details>
+      <summary>Raw payload</summary>
+      <div class="body">
+        <p class="muted">The full JSON payload backing this report. Useful when filing issues against the assess skill.</p>
+        <pre id="raw-payload"></pre>
+      </div>
+    </details>
+  </div>
+</main>
+
+<!-- Drawer for related knowledge -->
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <span class="title" id="drawer-title">Related knowledge</span>
+    <button class="close" id="drawer-close" aria-label="Close">×</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</aside>
+
+<!-- Command palette -->
+<div class="palette-backdrop" id="palette-backdrop">
+  <div class="palette" role="dialog" aria-label="Command palette">
+    <input id="palette-input" type="text" placeholder="Jump to finding, theme, or tag…" autocomplete="off" />
+    <ul id="palette-list"></ul>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="application/json" id="report-data">{{REPORT_DATA_JSON}}</script>
+
+<script>
+(function () {
+  "use strict";
+
+  // ----- data load -----
+  const DATA = JSON.parse(document.getElementById("report-data").textContent);
+  const ENR = DATA.enrichment || null;
+  const MODE = (DATA.meta && DATA.meta.report_mode) || "raw";
+  const FINDINGS = Array.isArray(DATA.findings) ? DATA.findings : [];
+  const FINDINGS_BY_ID = Object.fromEntries(FINDINGS.map(f => [f.id, f]));
+  const ENR_FINDINGS_BY_ID = (ENR && Array.isArray(ENR.findings))
+    ? Object.fromEntries(ENR.findings.map(e => [e.id, e]))
+    : {};
+  const THEMES = (ENR && Array.isArray(ENR.themes)) ? ENR.themes : null;
+
+  // ----- helpers -----
+  const $ = id => document.getElementById(id);
+  function escapeHtml(s) {
+    return (s == null ? "" : String(s))
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  // Minimal inline markdown for narrative fields: **bold**, `code`, [text](url),
+  // newlines→paragraph breaks. No HTML allowed in source.
+  function mdInline(s) {
+    if (s == null) return "";
+    let h = escapeHtml(s);
+    h = h.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    h = h.replace(/`([^`]+)`/g, "<code>$1</code>");
+    h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, t, u) => {
+      const safeUrl = /^(https?:|mailto:|#)/.test(u) ? u : "#";
+      return '<a href="' + escapeHtml(safeUrl) + '" target="_blank" rel="noopener">' + t + "</a>";
+    });
+    return h;
+  }
+  function mdParagraphs(s) {
+    if (s == null) return "";
+    return s.split(/\n\s*\n/).map(p => "<p>" + mdInline(p).replace(/\n/g, "<br>") + "</p>").join("");
+  }
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove("show"), 1800);
+  }
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => toast("Copied to clipboard"),
+        () => toast("Copy failed"),
+      );
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); toast("Copied to clipboard"); }
+      catch (e) { toast("Copy failed"); }
+      document.body.removeChild(ta);
+    }
+  }
+  function severityOf(f) { return (f.severity || "info").toLowerCase(); }
+  function stateOf(f)    { return (f.state || "new").toLowerCase(); }
+  function isNew(f)      { return (f.first_seen_run || "") === DATA.meta.run_id; }
+
+  // ----- mode banner -----
+  (function renderModeBanner() {
+    const wrap = $("mode-banner");
+    if (MODE === "ai-narrated") return; // no banner; the pill suffices
+    let html;
+    if (MODE === "partial") {
+      html = '<div class="raw-banner partial">' +
+        '<strong>Partial narrative.</strong> Some enrichment fields are missing &mdash; ' +
+        'cards below fall back to mechanical evidence where AI commentary is unavailable.' +
+        '</div>';
+    } else {
+      html = '<div class="raw-banner">' +
+        '<strong>Raw data view.</strong> No enrichment.yaml was found for this run, ' +
+        'so this report shows mechanical findings only. Run the enrichment step to add ' +
+        'narrative, themes, and related-knowledge context.' +
+        '</div>';
+    }
+    wrap.innerHTML = html;
+  })();
+
+  // ----- briefing -----
+  (function renderBriefing() {
+    if (!ENR || !ENR.briefing) return;
+    const b = ENR.briefing;
+    if (!b.paragraph && (!b.project_tags || !b.project_tags.length)) return;
+    $("briefing").classList.remove("hidden");
+    $("briefing-body").innerHTML = b.paragraph ? mdParagraphs(b.paragraph) : "";
+    const tags = $("briefing-tags");
+    (b.project_tags || []).forEach(tag => {
+      const c = document.createElement("span");
+      c.className = "chip"; c.textContent = tag;
+      c.dataset.facet = "tag"; c.dataset.value = tag;
+      tags.appendChild(c);
+    });
+  })();
+
+  // ----- headlines -----
+  (function renderHeadlines() {
+    if (!ENR || !Array.isArray(ENR.headlines) || !ENR.headlines.length) return;
+    const wrap = $("headlines"); $("headlines-section").classList.remove("hidden");
+    ENR.headlines.forEach(h => {
+      const el = document.createElement("div");
+      el.className = "headline";
+      el.dataset.kind = (h.kind || "").toLowerCase();
+      const j = h.jump_to || null;
+      let targetLabel = "";
+      if (j && j.kind === "finding") targetLabel = "Jump to finding →";
+      else if (j && j.kind === "theme") targetLabel = "Jump to theme →";
+      el.innerHTML =
+        '<div class="kind"><span class="dot"></span>' + escapeHtml(h.kind || "note") + '</div>' +
+        '<div class="title">' + mdInline(h.title || "") + '</div>' +
+        (h.body ? '<div class="body">' + mdInline(h.body) + '</div>' : '') +
+        (targetLabel ? '<div class="target">' + targetLabel + '</div>' : '');
+      if (j) {
+        el.addEventListener("click", () => jumpTo(j.kind, j.id));
+      }
+      wrap.appendChild(el);
+    });
+  })();
+
+  // ----- change narrative -----
+  (function renderChanges() {
+    if (!ENR || !ENR.change_narrative) return;
+    const cn = ENR.change_narrative;
+    if (!cn.summary && (!cn.highlights || !cn.highlights.length)) return;
+    $("changes-section").classList.remove("hidden");
+    if (cn.baseline_run_id) {
+      $("changes-title").textContent = "Since baseline run " + cn.baseline_run_id;
+    }
+    $("changes-summary").innerHTML = mdInline(cn.summary || "");
+    const grid = $("changes-grid");
+    (cn.highlights || []).forEach(h => {
+      const el = document.createElement("div");
+      el.className = "change"; el.dataset.kind = (h.kind || "").toLowerCase();
+      const refs = Array.isArray(h.finding_ids) ? h.finding_ids : [];
+      el.innerHTML =
+        '<div class="kind">' + escapeHtml(h.kind || "change") + '</div>' +
+        '<div class="title">' + mdInline(h.title || "") + '</div>' +
+        (h.body ? '<div class="body">' + mdInline(h.body) + '</div>' : '') +
+        (refs.length ? '<div class="refs">' + refs.length + ' finding' + (refs.length === 1 ? '' : 's') + ' →</div>' : '');
+      if (refs.length) {
+        el.addEventListener("click", () => {
+          setFilter("id", refs);
+          jumpToTop();
+        });
+      }
+      grid.appendChild(el);
+    });
+  })();
+
+  // ----- themes / findings -----
+  function buildThemeList() {
+    if (THEMES) return THEMES;
+    // Raw fallback: group by severity tier.
+    const buckets = { critical: [], high: [], medium: [], low: [], info: [] };
+    FINDINGS.forEach(f => buckets[severityOf(f)].push(f.id));
+    const out = [];
+    [["critical","Critical findings"],["high","High findings"],["medium","Medium findings"],
+     ["low","Low findings"],["info","Informational findings"]].forEach(([k,label]) => {
+      if (buckets[k].length) out.push({ id: "sev-" + k, label, summary: "", finding_ids: buckets[k] });
+    });
+    return out;
+  }
+
+  function renderThemes() {
+    const container = $("themes-container");
+    container.innerHTML = "";
+    const list = buildThemeList();
+    list.forEach(t => container.appendChild(renderTheme(t)));
+  }
+
+  function renderTheme(theme) {
+    const sec = document.createElement("section");
+    sec.className = "theme"; sec.dataset.themeId = theme.id;
+    if (loadCollapsed(theme.id)) sec.classList.add("collapsed");
+
+    const head = document.createElement("div");
+    head.className = "theme-head";
+    head.innerHTML =
+      '<h2><span class="caret">▾</span>' + escapeHtml(theme.label || theme.id) + '</h2>' +
+      '<span class="badge">' + (theme.finding_ids || []).length + '</span>' +
+      (theme.auto_bucketed ? '<span class="auto-tag">auto-bucketed</span>' : '');
+    head.querySelector("h2").addEventListener("click", () => {
+      sec.classList.toggle("collapsed");
+      saveCollapsed(theme.id, sec.classList.contains("collapsed"));
+    });
+    sec.appendChild(head);
+
+    if (theme.summary) {
+      const p = document.createElement("p"); p.className = "summary";
+      p.innerHTML = mdInline(theme.summary);
+      sec.appendChild(p);
+    }
+
+    const grid = document.createElement("div"); grid.className = "findings-grid";
+    (theme.finding_ids || []).forEach(fid => {
+      const f = FINDINGS_BY_ID[fid];
+      if (!f) return;
+      grid.appendChild(renderFinding(f));
+    });
+    sec.appendChild(grid);
+    return sec;
+  }
+
+  function renderFinding(f) {
+    const enr = ENR_FINDINGS_BY_ID[f.id] || null;
+    const sev = severityOf(f);
+    const st = stateOf(f);
+    const el = document.createElement("article");
+    el.className = "finding"; el.id = "f-" + cssIdSafe(f.id);
+    el.dataset.findingId = f.id;
+    el.dataset.severity = sev;
+    el.dataset.state = st;
+    el.dataset.tags = ((enr && enr.tags) || []).join(",");
+    el.dataset.source = (f.source || "");
+    if (isNew(f)) el.dataset.new = "1";
+
+    // head row
+    const head = document.createElement("div"); head.className = "finding-head";
+    head.innerHTML =
+      '<span class="sev-badge" data-sev="' + sev + '">' + sev + '</span>' +
+      '<span class="state-badge" data-state="' + st + '">' + st + '</span>' +
+      (isNew(f) ? '<span class="new-dot" title="New this run"></span>' : '') +
+      '<span class="finding-id" title="' + escapeHtml(f.id) + '">' + escapeHtml(shortId(f.id)) + '</span>';
+    el.appendChild(head);
+
+    // title (use enrichment why_it_matters first line if no native title)
+    const titleText = pickTitle(f, enr);
+    if (titleText) {
+      const t = document.createElement("div"); t.className = "title";
+      t.innerHTML = mdInline(titleText);
+      el.appendChild(t);
+    }
+
+    // why_it_matters / rationale fallback
+    if (enr && enr.why_it_matters) {
+      const w = document.createElement("div"); w.className = "why";
+      w.innerHTML = mdParagraphs(enr.why_it_matters);
+      el.appendChild(w);
+    } else if (f.rationale) {
+      const w = document.createElement("div"); w.className = "raw-rationale";
+      w.textContent = f.rationale;
+      el.appendChild(w);
+    }
+
+    // locations
+    const locs = collectLocations(f);
+    if (locs.length) {
+      const wrap = document.createElement("div"); wrap.className = "locations";
+      const first = locs.slice(0, 2).map(escapeHtml).join("  ·  ");
+      const extra = locs.length > 2;
+      wrap.innerHTML = first + (extra ? ' <span class="more">+' + (locs.length - 2) + ' more</span>' : '');
+      if (extra) {
+        wrap.querySelector(".more").addEventListener("click", e => {
+          e.stopPropagation();
+          wrap.innerHTML = locs.map(escapeHtml).join("<br>");
+        });
+      }
+      el.appendChild(wrap);
+    }
+
+    // what to do
+    if (enr && enr.what_to_do) {
+      const w = document.createElement("div"); w.className = "what";
+      w.innerHTML = '<strong>What to do:</strong> ' + mdInline(enr.what_to_do);
+      el.appendChild(w);
+    }
+
+    // tags + meta row (related count, knowledge count, source)
+    const tagsRow = document.createElement("div"); tagsRow.className = "tags";
+    ((enr && enr.tags) || []).forEach(tag => {
+      const c = chip("tag", tag, tag);
+      tagsRow.appendChild(c);
+    });
+    if (f.source) {
+      const c = chip("source", f.source, f.source);
+      tagsRow.appendChild(c);
+    }
+    if (tagsRow.children.length) el.appendChild(tagsRow);
+
+    const meta = document.createElement("div"); meta.className = "meta-row";
+    const relIds = collectRelated(enr);
+    if (relIds.length) {
+      const b = document.createElement("button"); b.className = "action";
+      b.innerHTML = '↪ ' + relIds.length + ' related';
+      b.addEventListener("click", () => {
+        setFilter("id", [f.id].concat(relIds));
+        jumpToTop();
+      });
+      meta.appendChild(b);
+    }
+    const knowledge = (enr && Array.isArray(enr.related_knowledge)) ? enr.related_knowledge : [];
+    if (knowledge.length) {
+      const b = document.createElement("button"); b.className = "action";
+      b.innerHTML = '📖 ' + knowledge.length + ' knowledge';
+      b.addEventListener("click", () => openDrawer(f, enr));
+      meta.appendChild(b);
+    }
+    if (meta.children.length) el.appendChild(meta);
+
+    // quick actions
+    const qa = (enr && Array.isArray(enr.quick_actions)) ? enr.quick_actions : [];
+    if (qa.length) {
+      const ar = document.createElement("div"); ar.className = "actions";
+      qa.forEach(a => {
+        const b = document.createElement("button");
+        b.className = "action"; b.dataset.kind = a.kind || "";
+        b.textContent = a.label || a.kind || "Action";
+        b.addEventListener("click", () => handleQuickAction(a, f));
+        ar.appendChild(b);
+      });
+      el.appendChild(ar);
+    }
+
+    el.addEventListener("click", e => {
+      if (e.target.closest("button, a, .chip, .more")) return;
+      el.classList.toggle("focused");
+    });
+    return el;
+  }
+
+  function pickTitle(f, enr) {
+    if (f.title) return f.title;
+    if (f.summary) return f.summary;
+    if (enr && enr.why_it_matters) {
+      const first = enr.why_it_matters.split(/\n/)[0];
+      if (first.length < 110) return null; // first sentence will already appear in why block
+    }
+    return f.id;
+  }
+
+  function collectLocations(f) {
+    const out = [];
+    if (Array.isArray(f.locations)) {
+      f.locations.forEach(l => {
+        if (typeof l === "string") out.push(l);
+        else if (l && l.path) out.push(l.path + (l.line ? ":" + l.line : ""));
+      });
+    }
+    if (f.location && typeof f.location === "string") out.push(f.location);
+    return out;
+  }
+
+  function collectRelated(enr) {
+    if (!enr || !Array.isArray(enr.related_findings)) return [];
+    const ids = [];
+    enr.related_findings.forEach(r => (r.finding_ids || []).forEach(i => ids.push(i)));
+    return Array.from(new Set(ids));
+  }
+
+  function shortId(id) {
+    if (!id) return "";
+    if (id.length <= 28) return id;
+    return id.slice(0, 26) + "…";
+  }
+  function cssIdSafe(s) { return (s || "").replace(/[^A-Za-z0-9_-]/g, "_"); }
+
+  // ----- chip factory -----
+  function chip(facet, value, label) {
+    const c = document.createElement("span");
+    c.className = "chip"; c.textContent = label;
+    c.dataset.facet = facet; c.dataset.value = value;
+    return c;
+  }
+
+  // ----- filters -----
+  const FILTERS = { tag: new Set(), severity: new Set(), state: new Set(), source: new Set(), id: new Set() };
+  function setFilter(facet, values) {
+    Object.keys(FILTERS).forEach(k => FILTERS[k].clear());
+    (Array.isArray(values) ? values : [values]).forEach(v => FILTERS[facet].add(v));
+    applyFilters(); persistFilters();
+  }
+  function toggleFilter(facet, value) {
+    if (!FILTERS[facet]) return;
+    if (FILTERS[facet].has(value)) FILTERS[facet].delete(value);
+    else FILTERS[facet].add(value);
+    applyFilters(); persistFilters();
+  }
+  function clearFilters() {
+    Object.keys(FILTERS).forEach(k => FILTERS[k].clear());
+    applyFilters(); persistFilters();
+  }
+  function hasFilters() {
+    return Object.values(FILTERS).some(s => s.size > 0);
+  }
+  function applyFilters() {
+    let visible = 0;
+    document.querySelectorAll(".finding").forEach(el => {
+      const fid = el.dataset.findingId;
+      const sev = el.dataset.severity;
+      const st = el.dataset.state;
+      const tags = (el.dataset.tags || "").split(",").filter(Boolean);
+      const src = el.dataset.source;
+      const newF = el.dataset.new === "1";
+      let show = true;
+      if (FILTERS.severity.size && !FILTERS.severity.has(sev)) show = false;
+      if (show && FILTERS.state.size) {
+        if (FILTERS.state.has("new")) {
+          if (!newF) show = false;
+        } else if (!FILTERS.state.has(st)) show = false;
+      }
+      if (show && FILTERS.source.size && !FILTERS.source.has(src)) show = false;
+      if (show && FILTERS.tag.size) {
+        const ok = Array.from(FILTERS.tag).every(t => tags.includes(t));
+        if (!ok) show = false;
+      }
+      if (show && FILTERS.id.size && !FILTERS.id.has(fid)) show = false;
+      el.classList.toggle("hidden", !show);
+      if (show) visible++;
+    });
+    // hide empty themes
+    document.querySelectorAll(".theme").forEach(t => {
+      const visibleCount = t.querySelectorAll(".finding:not(.hidden)").length;
+      t.classList.toggle("empty", visibleCount === 0);
+    });
+    // update chips active state
+    document.querySelectorAll(".chip").forEach(c => {
+      const set = FILTERS[c.dataset.facet];
+      c.classList.toggle("active", !!(set && set.has(c.dataset.value)));
+    });
+    document.querySelectorAll(".stat.clickable").forEach(s => {
+      const set = FILTERS[s.dataset.facet];
+      s.classList.toggle("active", !!(set && set.has(s.dataset.value)));
+    });
+    // filter bar
+    const bar = $("filterbar");
+    bar.classList.toggle("active", hasFilters());
+    const fc = $("filter-count"); fc.textContent = visible + " of " + FINDINGS.length + " findings";
+    const chips = $("active-filter-chips"); chips.innerHTML = "";
+    Object.keys(FILTERS).forEach(facet => {
+      FILTERS[facet].forEach(v => {
+        const c = document.createElement("span"); c.className = "chip active";
+        c.textContent = facet + ": " + v + "  ×";
+        c.dataset.facet = facet; c.dataset.value = v;
+        c.addEventListener("click", () => { FILTERS[facet].delete(v); applyFilters(); persistFilters(); });
+        chips.appendChild(c);
+      });
+    });
+  }
+  function persistFilters() {
+    const payload = {};
+    Object.keys(FILTERS).forEach(k => { if (FILTERS[k].size) payload[k] = Array.from(FILTERS[k]); });
+    try { localStorage.setItem(storageKey("filters"), JSON.stringify(payload)); } catch (e) {}
+    const hash = encodeURIComponent(JSON.stringify(payload));
+    if (Object.keys(payload).length) location.hash = "f=" + hash;
+    else if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+  }
+  function restoreFilters() {
+    // URL hash wins over localStorage
+    const m = (location.hash || "").match(/[#&]f=([^&]+)/);
+    let payload = null;
+    if (m) {
+      try { payload = JSON.parse(decodeURIComponent(m[1])); } catch (e) {}
+    }
+    if (!payload) {
+      try { payload = JSON.parse(localStorage.getItem(storageKey("filters")) || "{}"); } catch (e) { payload = {}; }
+    }
+    Object.keys(payload || {}).forEach(k => {
+      if (FILTERS[k]) (payload[k] || []).forEach(v => FILTERS[k].add(v));
+    });
+    applyFilters();
+  }
+  function storageKey(suffix) { return "assess-report::" + DATA.meta.run_id + "::" + suffix; }
+
+  // collapsed-theme persistence
+  function loadCollapsed(id) {
+    try { return (JSON.parse(localStorage.getItem(storageKey("collapsed")) || "{}"))[id] === true; }
+    catch (e) { return false; }
+  }
+  function saveCollapsed(id, val) {
+    let st = {};
+    try { st = JSON.parse(localStorage.getItem(storageKey("collapsed")) || "{}"); } catch (e) {}
+    st[id] = val;
+    try { localStorage.setItem(storageKey("collapsed"), JSON.stringify(st)); } catch (e) {}
+  }
+
+  // ----- chip + stat click handlers (event-delegated) -----
+  document.addEventListener("click", e => {
+    const chipEl = e.target.closest(".chip");
+    if (chipEl && chipEl.dataset.facet) {
+      toggleFilter(chipEl.dataset.facet, chipEl.dataset.value);
+      return;
+    }
+    const stat = e.target.closest(".stat.clickable");
+    if (stat) { toggleFilter(stat.dataset.facet, stat.dataset.value); }
+  });
+  $("clear-filters").addEventListener("click", clearFilters);
+  $("reset-filters").addEventListener("click", () => { clearFilters(); toast("Filters cleared"); });
+
+  // ----- jumping -----
+  function jumpTo(kind, id) {
+    if (kind === "finding") {
+      const el = document.getElementById("f-" + cssIdSafe(id));
+      if (el) {
+        // ensure parent theme not collapsed
+        const theme = el.closest(".theme");
+        if (theme && theme.classList.contains("collapsed")) {
+          theme.classList.remove("collapsed");
+          saveCollapsed(theme.dataset.themeId, false);
+        }
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("focused");
+        setTimeout(() => el.classList.remove("focused"), 2400);
+      }
+    } else if (kind === "theme") {
+      const theme = document.querySelector('.theme[data-theme-id="' + id + '"]');
+      if (theme) {
+        if (theme.classList.contains("collapsed")) {
+          theme.classList.remove("collapsed");
+          saveCollapsed(theme.dataset.themeId, false);
+        }
+        theme.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  }
+  function jumpToTop() { window.scrollTo({ top: 0, behavior: "smooth" }); }
+
+  // ----- drawer -----
+  function openDrawer(f, enr) {
+    const body = $("drawer-body");
+    const title = $("drawer-title");
+    title.textContent = pickTitle(f, enr) || f.id;
+    let html = "";
+    (enr && enr.related_knowledge || []).forEach(k => {
+      html += '<section style="margin-bottom:22px">';
+      html += '<h4>' + mdInline(k.title || "Knowledge pack") + '</h4>';
+      if (k.body) html += mdParagraphs(k.body);
+      if (Array.isArray(k.steps) && k.steps.length) {
+        html += '<ol>' + k.steps.map(s => '<li>' + mdInline(s) + '</li>').join("") + '</ol>';
+      }
+      if (Array.isArray(k.references) && k.references.length) {
+        k.references.forEach(r => {
+          const verified = r.verified === true;
+          const tag = verified
+            ? '<span class="tag verified">verified</span>'
+            : '<span class="tag unverified">AI-suggested · verify</span>';
+          const url = r.url ? escapeHtml(r.url) : "";
+          const label = escapeHtml(r.title || r.label || r.url || "Reference");
+          html += '<div class="ref">' +
+            (url ? '<a href="' + url + '" target="_blank" rel="noopener">' + label + '</a>' : '<span>' + label + '</span>') +
+            tag + '</div>';
+        });
+      }
+      html += '</section>';
+    });
+    body.innerHTML = html || '<p class="muted">No related knowledge attached to this finding.</p>';
+    $("drawer-backdrop").classList.add("open");
+    $("drawer").classList.add("open");
+    $("drawer").setAttribute("aria-hidden", "false");
+  }
+  function closeDrawer() {
+    $("drawer-backdrop").classList.remove("open");
+    $("drawer").classList.remove("open");
+    $("drawer").setAttribute("aria-hidden", "true");
+  }
+  $("drawer-close").addEventListener("click", closeDrawer);
+  $("drawer-backdrop").addEventListener("click", closeDrawer);
+
+  // ----- quick actions -----
+  function handleQuickAction(a, f) {
+    const kind = (a.kind || "").toLowerCase();
+    if (kind === "plan" || kind === "plan-with-related") {
+      const ids = kind === "plan-with-related"
+        ? [f.id].concat(collectRelated(ENR_FINDINGS_BY_ID[f.id]))
+        : [f.id];
+      const prompt = a.prompt
+        || "Open the create-modernization-plan skill and draft a plan focused on these findings:\n" +
+           ids.map(i => "- " + i).join("\n");
+      copyToClipboard(prompt);
+      toast("Prompt copied — paste into chat");
+    } else if (kind === "suppress") {
+      const yaml = "  - id: " + f.id + "\n" +
+                   "    reason: " + (a.reason || "team accepted risk") + "\n" +
+                   "    set_by: " + (a.set_by || "team") + "\n" +
+                   "    expires: " + (a.expires || "");
+      copyToClipboard(yaml);
+      toast("Suppression block copied — paste into suppressions.yaml");
+    } else if (kind === "link" && a.target) {
+      window.open(a.target, "_blank", "noopener");
+    } else {
+      toast("Quick action: " + (a.label || a.kind));
+    }
+  }
+
+  // ----- risks -----
+  (function renderRisks() {
+    if (!ENR || !Array.isArray(ENR.risks) || !ENR.risks.length) return;
+    $("risks-section").classList.remove("hidden");
+    const grid = $("risks-grid");
+    ENR.risks.forEach(r => {
+      const el = document.createElement("div");
+      el.className = "risk";
+      el.id = "risk-" + (r.id || "");
+      el.dataset.sev = (r.severity || "medium").toLowerCase();
+      let links = "";
+      if (Array.isArray(r.finding_ids) && r.finding_ids.length) {
+        links = '<div class="links">Linked findings: ' +
+          r.finding_ids.map(fid => '<code>' + escapeHtml(shortId(fid)) + '</code>').join(" ") +
+          '</div>';
+      }
+      el.innerHTML =
+        '<div class="head">' +
+          '<span class="sev">' + escapeHtml(r.severity || "medium") + '</span>' +
+        '</div>' +
+        '<div class="title">' + mdInline(r.title || "") + '</div>' +
+        '<div class="body">' + mdParagraphs(r.body || "") + '</div>' +
+        (r.mitigation ? '<div class="mitigation"><strong>Mitigation.</strong> ' + mdInline(r.mitigation) + '</div>' : '') +
+        links;
+      grid.appendChild(el);
+    });
+  })();
+
+  // ----- cost estimate -----
+  (function renderCostEstimate() {
+    if (!ENR || !ENR.cost_estimate) return;
+    const c = ENR.cost_estimate;
+    const eff = c.effort_person_days || null;
+    const mrc = c.monthly_run_cost || null;
+    const bd = Array.isArray(c.breakdown) ? c.breakdown : [];
+    if (!eff && !mrc && !bd.length && !c.notes) return;
+    $("cost-section").classList.remove("hidden");
+
+    const tiles = [];
+    if (eff && (eff.low != null || eff.high != null)) {
+      const range = eff.low != null && eff.high != null && eff.low !== eff.high
+        ? eff.low + "\u2013" + eff.high
+        : (eff.low != null ? eff.low : eff.high);
+      tiles.push(
+        '<div class="cost-tile">' +
+          '<div class="label">Effort</div>' +
+          '<div class="value">' + escapeHtml(String(range)) + '</div>' +
+          '<div class="unit">person-days</div>' +
+        '</div>'
+      );
+    }
+    if (mrc && (mrc.low != null || mrc.high != null)) {
+      const currency = mrc.currency || "USD";
+      const range = mrc.low != null && mrc.high != null && mrc.low !== mrc.high
+        ? mrc.low + "\u2013" + mrc.high
+        : (mrc.low != null ? mrc.low : mrc.high);
+      tiles.push(
+        '<div class="cost-tile">' +
+          '<div class="label">Monthly run cost</div>' +
+          '<div class="value">' + escapeHtml(String(range)) + ' <span style="font-size:13px;color:var(--fg-muted);">' + escapeHtml(currency) + '</span></div>' +
+          '<div class="unit">recurring cloud spend</div>' +
+        '</div>'
+      );
+    }
+    $("cost-headline").innerHTML = tiles.join("");
+
+    const table = $("cost-breakdown");
+    if (bd.length) {
+      let h = '<thead><tr><th>Item</th><th>Monthly</th></tr></thead><tbody>';
+      bd.forEach(item => {
+        h += '<tr><td>' + mdInline(item.item || "") +
+          (item.note ? '<span class="note">' + mdInline(item.note) + '</span>' : '') +
+          '</td><td>' + escapeHtml(item.monthly != null ? String(item.monthly) : "\u2014") + '</td></tr>';
+      });
+      h += '</tbody>';
+      table.innerHTML = h;
+    } else {
+      table.style.display = "none";
+    }
+
+    if (c.notes) {
+      $("cost-notes").innerHTML = mdParagraphs(c.notes);
+    } else {
+      $("cost-notes").style.display = "none";
+    }
+  })();
+
+  // ----- warnings banner (prominent) -----
+  (function renderWarningsBanner() {
+    const warnings = (DATA.meta && DATA.meta.enrichment_warnings) || [];
+    if (!warnings.length) return;
+    const wrap = $("warnings-banner");
+    const sample = warnings.slice(0, 3).map(w => "&middot; " + escapeHtml(w)).join("<br>");
+    const more = warnings.length > 3 ? '<br><span class="muted">&hellip; and ' + (warnings.length - 3) + ' more &mdash; see the Enrichment warnings panel in the appendix.</span>' : '';
+    wrap.innerHTML = '<div class="warnings-banner">' +
+      '<strong>' + warnings.length + ' enrichment warning' + (warnings.length === 1 ? '' : 's') + ' from the AI narrative layer.</strong> ' +
+      'These references were dropped at render time &mdash; the report still works, but the AI authoring deviated from the schema. ' +
+      '<a href="#warnings-section" onclick="document.getElementById(\'warnings-section\').open=true;">Open details</a>.' +
+      '<div style="margin-top:8px; font-size:11.5px; font-family:ui-monospace,SFMono-Regular,Consolas,monospace;">' + sample + more + '</div>' +
+      '</div>';
+  })();
+
+  // ----- next steps -----
+  (function renderNextSteps() {
+    if (!ENR || !Array.isArray(ENR.next_steps) || !ENR.next_steps.length) return;
+    $("nextsteps-section").classList.remove("hidden");
+    const grid = $("next-steps-grid");
+    ENR.next_steps.forEach(s => {
+      const el = document.createElement("div");
+      el.className = "step"; el.dataset.kind = (s.kind || "").toLowerCase();
+      const eff = s.effort_hint ? '<div class="meta">Effort: ' + escapeHtml(s.effort_hint) + '</div>' : '';
+      el.innerHTML =
+        '<div class="kind">' + escapeHtml(s.kind || "step") + '</div>' +
+        '<div class="title">' + mdInline(s.title || "") + '</div>' +
+        (s.body ? '<div class="body">' + mdInline(s.body) + '</div>' : '') +
+        eff +
+        (s.prompt ? '<button class="btn primary copy">Copy prompt</button>' : '');
+      const btn = el.querySelector(".copy");
+      if (btn) btn.addEventListener("click", () => copyToClipboard(s.prompt));
+      grid.appendChild(el);
+    });
+  })();
+
+  // ----- palette -----
+  const PALETTE_ITEMS = (function () {
+    const items = [];
+    FINDINGS.forEach(f => {
+      const enr = ENR_FINDINGS_BY_ID[f.id];
+      items.push({
+        kind: "finding",
+        label: pickTitle(f, enr) || f.id,
+        hint: severityOf(f) + " · " + shortId(f.id),
+        target: { kind: "finding", id: f.id },
+      });
+    });
+    (THEMES || []).forEach(t => {
+      items.push({
+        kind: "theme",
+        label: t.label || t.id,
+        hint: (t.finding_ids || []).length + " findings",
+        target: { kind: "theme", id: t.id },
+      });
+    });
+    return items;
+  })();
+  function renderPalette(query) {
+    const ul = $("palette-list"); ul.innerHTML = "";
+    const q = (query || "").toLowerCase().trim();
+    const filtered = q
+      ? PALETTE_ITEMS.filter(it => it.label.toLowerCase().includes(q) || (it.hint || "").toLowerCase().includes(q))
+      : PALETTE_ITEMS;
+    if (!filtered.length) { ul.innerHTML = '<li class="empty">No matches</li>'; return; }
+    filtered.slice(0, 40).forEach((it, idx) => {
+      const li = document.createElement("li");
+      if (idx === 0) li.classList.add("active");
+      li.innerHTML = '<span class="kind">' + it.kind + '</span><span class="label">' + escapeHtml(it.label) + '</span><span class="hint">' + escapeHtml(it.hint || "") + '</span>';
+      li.addEventListener("click", () => { closePalette(); jumpTo(it.target.kind, it.target.id); });
+      li.dataset.targetKind = it.target.kind; li.dataset.targetId = it.target.id;
+      ul.appendChild(li);
+    });
+  }
+  function openPalette() {
+    $("palette-backdrop").classList.add("open");
+    $("palette-input").value = ""; renderPalette("");
+    setTimeout(() => $("palette-input").focus(), 30);
+  }
+  function closePalette() { $("palette-backdrop").classList.remove("open"); }
+  $("open-palette").addEventListener("click", openPalette);
+  $("palette-backdrop").addEventListener("click", e => { if (e.target === $("palette-backdrop")) closePalette(); });
+  $("palette-input").addEventListener("input", e => renderPalette(e.target.value));
+  $("palette-input").addEventListener("keydown", e => {
+    const items = Array.from($("palette-list").querySelectorAll("li"));
+    if (!items.length) return;
+    let active = items.findIndex(i => i.classList.contains("active"));
+    if (e.key === "ArrowDown") { e.preventDefault(); items[active]?.classList.remove("active"); items[(active + 1) % items.length].classList.add("active"); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); items[active]?.classList.remove("active"); items[(active - 1 + items.length) % items.length].classList.add("active"); }
+    else if (e.key === "Enter") { e.preventDefault(); const cur = items[active] || items[0]; cur.click(); }
+  });
+
+  // ----- keyboard -----
+  document.addEventListener("keydown", e => {
+    if (e.target.matches("input, textarea")) return;
+    const isMeta = e.metaKey || e.ctrlKey;
+    if (e.key === "/" || (isMeta && e.key.toLowerCase() === "k")) {
+      e.preventDefault(); openPalette(); return;
+    }
+    if (e.key === "Escape") {
+      if ($("palette-backdrop").classList.contains("open")) closePalette();
+      else if ($("drawer").classList.contains("open")) closeDrawer();
+      return;
+    }
+    if (e.key === "j" || e.key === "k") {
+      e.preventDefault();
+      const dir = e.key === "j" ? 1 : -1;
+      const visible = Array.from(document.querySelectorAll(".finding:not(.hidden)"));
+      if (!visible.length) return;
+      const focused = document.querySelector(".finding.focused");
+      let idx = focused ? visible.indexOf(focused) : -1;
+      idx = (idx + dir + visible.length) % visible.length;
+      visible.forEach(v => v.classList.remove("focused"));
+      visible[idx].classList.add("focused");
+      visible[idx].scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  });
+
+  // ----- appendix -----
+  (function renderAppendix() {
+    const scope = $("appendix-scope");
+    const sel = DATA.selected_groups || []; const skip = DATA.skipped_groups || [];
+    const intent = DATA.intent || {};
+    const skills = DATA.selected_skills || {};
+    const skillNames = Array.isArray(skills.skills) ? skills.skills.map(s => s.name || s.id || JSON.stringify(s)) : [];
+    scope.innerHTML =
+      '<p><strong>User concern:</strong> ' + escapeHtml(intent.user_concern || "—") + '</p>' +
+      '<p><strong>Selected groups:</strong> ' + (sel.length ? sel.map(g => '<code>' + escapeHtml(g) + '</code>').join(" ") : '<span class="muted">none</span>') + '</p>' +
+      '<p><strong>Skipped groups:</strong> ' + (skip.length ? skip.map(g => '<code>' + escapeHtml(g) + '</code>').join(" ") : '<span class="muted">none</span>') + '</p>' +
+      (skillNames.length ? '<p><strong>Skills run:</strong> ' + skillNames.map(n => '<code>' + escapeHtml(n) + '</code>').join(" ") + '</p>' : '');
+
+    const sup = $("appendix-suppress");
+    const rules = DATA.suppressions || [];
+    const prefs = DATA.preferences || {};
+    let h = "";
+    if (rules.length) {
+      h += '<p><strong>Suppression rules (' + rules.length + ')</strong></p><ul>';
+      rules.forEach(r => {
+        h += '<li><code>' + escapeHtml(r.id || "—") + '</code>: ' + escapeHtml(r.reason || "") +
+          (r.set_by ? ' <span class="muted">— ' + escapeHtml(r.set_by) + '</span>' : '') + '</li>';
+      });
+      h += '</ul>';
+    } else {
+      h += '<p class="muted">No suppression rules.</p>';
+    }
+    if (prefs && Object.keys(prefs).length) {
+      h += '<p style="margin-top:14px"><strong>Team preferences</strong></p><pre>' + escapeHtml(JSON.stringify(prefs, null, 2)) + '</pre>';
+    }
+    sup.innerHTML = h;
+
+    const warnings = (DATA.meta && DATA.meta.enrichment_warnings) || [];
+    if (warnings.length) {
+      $("warnings-section").classList.remove("hidden");
+      const ul = $("enrichment-warnings"); ul.innerHTML = "";
+      warnings.forEach(w => { const li = document.createElement("li"); li.textContent = w; ul.appendChild(li); });
+    }
+
+    $("raw-payload").textContent = JSON.stringify(DATA, null, 2);
+  })();
+
+  // ----- boot -----
+  renderThemes();
+  restoreFilters();
+
+  // Update mode label to a friendlier form
+  const labels = { "ai-narrated": "AI-narrated", "partial": "Partial narrative", "raw": "Raw data" };
+  if (labels[MODE]) $("t-mode-label").textContent = labels[MODE];
+})();
+</script>
+</body>
+</html>

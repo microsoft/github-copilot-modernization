@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "exec": "node",
+        "args": [
+          "com.github.copilot/hooks/scripts/guardModernizeDelegation.mjs",
+          "--cli-global"
+        ],
+        "timeoutSec": 5
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "exec": "node",
+        "args": [
+          "com.github.copilot/hooks/scripts/guardModernizeDelegation.mjs",
+          "--cli-global",
+          "--post"
+        ],
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
