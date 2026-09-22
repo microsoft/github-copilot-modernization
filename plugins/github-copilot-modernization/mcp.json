@@ -1,0 +1,15 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "appmod-mcp-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@microsoft/github-copilot-app-modernization-mcp-server@1.24.0",
+        "--callerType",
+        "github-copilot-modernization-plugin"
+      ]
+    }
+  }
+}

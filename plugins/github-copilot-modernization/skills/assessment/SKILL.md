@@ -1,197 +1,307 @@
 ---
 name: assessment
-description: Run application assessment for a single repository
+description: Run a fully local application assessment for one Java, .NET, or JavaScript/TypeScript repository
 ---
 
 # Application Assessment
 
-This skill performs application assessment for a single repository. It supports Java, .NET, and JavaScript/TypeScript projects.
+Assess one repository using only plugin-shipped skills, scripts, AppCAT, npm-check-updates, and GitHub advisory access. Assessment must not call any MCP tool. The App Modernization MCP server remains available to other phases, but it is outside this skill's execution path.
 
-## Input Parameters
+## Inputs
 
-- `workspace-path` (optional): Path to the project to assess. Defaults to the current directory (repository root) when not specified. All assessment outputs are written relative to this path (e.g. `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`). For a repository with multiple sub-projects, pass the sub-project directory path so that each sub-project's outputs are isolated.
+- `workspace-path`: Absolute project root. Defaults to the current directory.
+- `invocation-mode`: `standalone`, `coordinator`, or `batch-headless`.
+- `attempt-request-path` (batch-headless only): Absolute v1 request artifact created by the batch control plane.
+- `config` (optional): Explicit user overrides only. Never infer or fill unspecified fields.
+  - `domains`: `java-upgrade`, `cloud-readiness`, `security`
+  - `analysisCoverage`: `issue-only` or `full`
+  - `targetRuntime`, `targetComputeServices`, `enableContainerization`, `targetOS`
+  - `minimumCveSeverity`, `cveScanScope`
 
-## When to Use This Skill
+For `standalone` and `coordinator`, `config.analysisCoverage` is the only authority for a non-default coverage. A missing field always resolves to coverage `issue-only` with source `default`; a present valid field resolves to that exact value with source `explicit-user`. Never infer coverage from the request wording, repository content, size, complexity, technologies, or expected findings. For `batch-headless`, use the approved `request.decisions.analysisCoverage` with source `approved-batch`.
 
-Use this skill when you need to:
+Defaults:
 
-- Assess a Java or .NET application for cloud readiness and migration issues
-- Assess a JavaScript/TypeScript project for outdated dependencies and available updates
-- Generate detailed assessment reports with issue analysis and recommendations
-- Understand application dependencies, frameworks, and potential migration blockers
+- Java: domains `java-upgrade,cloud-readiness`; coverage `issue-only`; capability `openjdk25`; target OS `windows,linux`; minimum CVE severity `high`; CVE scan scope `direct`.
+- .NET: domain `cloud-readiness`; coverage `issue-only`.
+- JavaScript/TypeScript: local dependency assessment; automated Planning remains unsupported.
 
-## What This Skill Does
+In `batch-headless` mode, never call `ask_user`. Read workspace, scope, approval, config, attempt scratch, and result path only from the request artifact. Batch Assessment accepts only fully approved input; missing required information fails the attempt instead of selecting a default or starting a persisted `NeedsInput` exchange.
 
-This skill performs a simplified assessment workflow:
+## Hard Boundaries
 
-1. **Check Project Type and Prerequisites**:
-   - **For Java projects**: Check MCP tool availability in this order:
-     1. **Primary**: Check if 'appmod-run-assessment-action' MCP tool is available
-        - If available, use ONLY this tool. It handles everything (prerequisite checks, installation, and assessment execution) in a single call.
-        - Do NOT call any other assessment MCP tools when this tool is available.
-     2. **Fallback**: If 'appmod-run-assessment-action' is NOT available, check if 'appmod-precheck-assessment' MCP tool is available
-        - If available, use the legacy workflow: call 'appmod-precheck-assessment' first, then follow its guidance for 'appmod-install-appcat' and 'appmod-run-assessment'.
-     3. If neither tool is configured, return immediately with setup instructions.
-   - **For .NET projects**: Check if .NET SDK is available
-     - No MCP tools required for .NET assessment
-   - **For JavaScript/TypeScript projects**: Check if Node.js and npm are available
-     - No MCP tools required for JS/TS assessment
+- Do not invoke any MCP tool during assessment.
+- Do not discover or execute skills outside the plan produced by `assessment-catalog.mjs`.
+- Do not modify application source or build manifests.
+- Subagent text is not completion evidence; verify files and normalize results through `assess-cli.mjs`.
 
-2. **Run Assessment**:
-   - **For Java projects**: Trigger AppCAT analysis via Assessment MCP server
-     - **If 'appmod-run-assessment-action' is available (primary path)**:
-       - Call 'appmod-run-assessment-action' MCP tool only
-       - The MCP tool automatically saves the report to the versioned directory
-     - **If falling back to 'appmod-precheck-assessment' (legacy path)**:
-       - Call 'appmod-precheck-assessment' to check prerequisites
-       - Call 'appmod-install-appcat' to install AppCAT if needed
-       - Call 'appmod-run-assessment' to run the assessment
-   - **For .NET projects**: Install and run AppCAT directly
-     - Install: `dotnet tool update dotnet-appcat`
-     - Find all .csproj files under `{workspace-path}`
-     - Join project paths with semicolons: `projectPaths="project1.csproj;project2.csproj"`
-     - Run: `appcat analyze $projectPaths --source Solution --target Any --serializer APPMODJSON --code --privacyMode Restricted --non-interactive --report {workspace-path}\.github\modernize\appcat\result\report.json`
-   - **For JavaScript/TypeScript projects**: Install and run npm-check-updates
-     - Install: `npm install -g npm-check-updates@19.6.3 --prefix {tool-install-dir}`
-     - Run: `ncu --format group --packageFile {workspace-path}/package.json`
-     - Generate the `reportId` as a UTC timestamp formatted as `yyyyMMddHHmmss` (e.g. `2024-06-15T14:30:52Z` becomes `20240615143052`)
-     - Create the versioned directory: `mkdir -p {workspace-path}/.github/modernize/assessment/reports/report-{reportId}`
-     - Save the output to `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/js-assessment-report.md`
-     - Do NOT save a copy to the top-level assessment directory
-   - Analyzes code for cloud migration issues or dependency updates
-   - Generates structured assessment data
+## 1. Bootstrap And Detect Language
 
-3. **Save Report to Versioned Directory (All languages)**:
-   - **For Java projects (primary path — 'appmod-run-assessment-action')**: The MCP tool automatically saves the report to `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json` — no manual saving needed
-   - **For Java projects (legacy fallback path — 'appmod-precheck-assessment')**:
-     1. Find `report.json` under `{workspace-path}/.github/modernize/appcat/result/`
-     2. Read the report and extract `metadata.analysisStartTime`
-     3. Format the timestamp as `yyyyMMddHHmmss` to produce the `reportId` (e.g. `2024-06-15T14:30:52Z` becomes `20240615143052`)
-     4. Create the versioned directory: `mkdir -p {workspace-path}/.github/modernize/assessment/reports/report-{reportId}`
-     5. Move the report to `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`
-   - **For .NET projects**:
-     1. Find `report.json` at `{workspace-path}/.github/modernize/appcat/result/report.json`
-     2. Read the report and extract `metadata.analysisStartTime`
-     3. Format the timestamp as `yyyyMMddHHmmss` to produce the `reportId` (e.g. `2024-06-15T14:30:52Z` becomes `20240615143052`)
-     4. Create the versioned directory: `mkdir -p {workspace-path}/.github/modernize/assessment/reports/report-{reportId}`
-     5. Move the report to `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`
-   - This versioned report should be included in the pull request
+The coordinator derives the source CLI from this skill's absolute loaded `SKILL.md` path and bootstraps the workspace runtime on demand at:
 
-## How to Use
+```text
+.github/modernize/.runtime/assessment/assess-cli.mjs
+```
 
-### Prerequisites
+Bootstrap the supplied `workspace-path` directly from the loaded skill before using the workspace runtime:
 
-**For Java projects**:
-- **Primary**: MCP tool 'appmod-run-assessment-action' — preferred, handles everything in one call
-- **Fallback**: If primary tool is not available, use 'appmod-precheck-assessment' → 'appmod-install-appcat' → 'appmod-run-assessment' workflow
-- If neither tool is configured, the skill will return instructions for setup
+```bash
+node <loaded-assessment-skill>/scripts/assess-cli.mjs bootstrap \
+  --workspace-path <workspace-path>
+```
 
-**For .NET projects**:
-- .NET SDK must be installed
-- No MCP tools required - appcat will be installed and run directly via .NET CLI
-- The assessment will automatically install `dotnet-appcat` tool if not already present
+Never guess the loaded skill path or derive it from a plugin-root environment variable.
 
-**For JavaScript/TypeScript projects**:
-- Node.js and npm must be installed
-- No MCP tools required - npm-check-updates will be installed and run directly via npm
-- The assessment will automatically install `npm-check-updates` if not already present
+Detect from the supplied root:
 
-### Triggering Assessment
+- Java: `pom.xml`, `build.gradle`, `build.gradle.kts`, or Java source.
+- .NET: `.sln`, `.slnx`, `.csproj`, or C# source.
+- JavaScript/TypeScript: `package.json`.
+- Mixed Java/.NET root: assess each detected project root independently.
+- No supported indicator: stop with an actionable error.
 
-Simply express the intent to assess the application. Example prompts:
+## 2. Prepare The Local Run
 
-- "Assess the application"
-- "Run assessment for this project"
+Create a UTC `yyyyMMddHHmmss` run ID, then call:
 
-The assessment process automatically:
-- Detects project language and framework within `{workspace-path}`
-- **For Java**: Uses MCP tool to run AppCAT and automatically save report to versioned directory
-- **For .NET**: Installs dotnet-appcat tool and runs analysis directly
-- **For JavaScript/TypeScript**: Installs npm-check-updates and runs dependency analysis
-- Executes comprehensive analysis
-- **For Java (primary)**: Report is automatically saved to `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`
-- **For Java (legacy fallback)**: Generates report at `{workspace-path}/.github/modernize/appcat/result/`, then moved to versioned directory
-- **For .NET**: Generates report at `{workspace-path}/.github/modernize/appcat/result/report.json`
-- **For JavaScript/TypeScript**: Generates report at `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/js-assessment-report.md`
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs prepare-run \
+  --workspace-path <workspace-path> \
+  --run-id <run-id> \
+  --language <java|dotnet|javascript|typescript> \
+  --domains <comma-separated-domains> \
+  --coverage <effective-coverage> \
+  --coverage-source <default|explicit-user|approved-batch>
+```
 
-### Report Saving
+The coverage value and source must be the pair resolved from the input contract above. In particular, `config: {}` requires `--coverage issue-only --coverage-source default`; `config: {"analysisCoverage":"full"}` requires `--coverage full --coverage-source explicit-user`.
 
-**For Java projects**:
-1. **If using 'appmod-run-assessment-action' (primary path)**: The MCP tool automatically saves the report to `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json` — no manual report moving is needed
-2. **If using legacy fallback path ('appmod-precheck-assessment')**:
-   - Find `report.json` under `{workspace-path}/.github/modernize/appcat/result/`
-   - Read the report and extract `metadata.analysisStartTime`, format as `yyyyMMddHHmmss` to get `reportId`
-   - Move the report to `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`
-3. Include this versioned report in the pull request
+Treat its JSON output as the only assessment task plan. It prepares run state, removes stale canonical outputs, and returns paths for AppCAT, findings, reports, and independent subagent batches.
 
-**For .NET projects**:
-1. Report is initially generated at `{workspace-path}/.github/modernize/appcat/result/report.json`
-2. Read the report and extract `metadata.analysisStartTime`, format as `yyyyMMddHHmmss` to get `reportId`
-3. Move the report to `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`
-4. Include this versioned report in the pull request
+For `batch-headless`, also pass attempt-scoped controls from the request:
 
-**For JavaScript/TypeScript projects**:
-1. Generate the `reportId` as a UTC timestamp formatted as `yyyyMMddHHmmss` (e.g. `2024-06-15T14:30:52Z` becomes `20240615143052`)
-2. Create the versioned directory: `mkdir -p {workspace-path}/.github/modernize/assessment/reports/report-{reportId}`
-3. Save the ncu output to `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/js-assessment-report.md`
-4. Include this versioned report in the pull request
+```bash
+  --attempt-scratch-root <attempt-directory>/scratch \
+  --max-concurrency <request.decisions.maxConcurrency>
+```
 
-## Report Output Location
+These options isolate AI task outputs and cap each wave. Omitting them preserves the single-repository paths and 6/7 task ceilings.
 
-Report location depends on project type:
+## 3. Run Deterministic Local Engines
 
-**For Java projects** (via MCP server):
-- **Primary path ('appmod-run-assessment-action')**: Automatically saved to: `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`
-- **Legacy fallback path ('appmod-precheck-assessment')**: Initially stored under `{workspace-path}/.github/modernize/appcat/result/`, then moved to versioned directory: `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`
+### Java And .NET AppCAT
 
-**For .NET projects** (direct execution):
-- Initially generated at: `{workspace-path}/.github/modernize/appcat/result/report.json`
-- Moved to versioned directory: `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`
+Run AppCAT when `cloud-readiness` or `java-upgrade` is selected:
 
-**For JavaScript/TypeScript projects** (direct execution):
-- Saved to versioned directory: `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/js-assessment-report.md`
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs ensure-appcat \
+  --language <java|dotnet>
 
-## Success Criteria
+node .github/modernize/.runtime/assessment/assess-cli.mjs run-appcat \
+  --language <java|dotnet> \
+  --workspace-path <workspace-path> \
+  --run-dir <appcat-dir> \
+  --mode issue-only
+```
 
-Assessment is complete when:
-- ✅ **For Java**: MCP server is available (or clear instructions provided if not)
-- ✅ **For .NET**: .NET SDK is available and dotnet-appcat tool is installed
-- ✅ **For JavaScript/TypeScript**: Node.js and npm are available and npm-check-updates is installed
-- ✅ AppCAT analysis executes without errors (Java/.NET) or ncu analysis executes without errors (JS/TS)
-- ✅ **For Java and .NET**: Report generated at `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/report.json`
-- ✅ **For JavaScript/TypeScript**: Report generated at `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/js-assessment-report.md`
-- ✅ Report metadata includes assessment tool version, timestamp, and configuration
+Pass only explicitly requested targets, capabilities, or target OS to `run-appcat`. Do not turn the public report metadata defaults into AppCAT execution filters; the canonical publisher supplies Java capability `openjdk25` and target OS `windows,linux` when no override was requested. Full coverage does not change AppCAT mode: it adds the six fact documents in the next section.
 
-## Troubleshooting
+Normalize the produced report:
 
-**Prerequisites Not Met**:
-- **For Java**: First check for 'appmod-run-assessment-action', then fall back to 'appmod-precheck-assessment'
-  - Return immediately with setup instructions if neither tool is available
-  - Do not attempt to run assessment without MCP
-- **For .NET**: Verify .NET SDK is installed
-  - Check with `dotnet --version` command
-  - Provide installation instructions if .NET SDK is missing
-- **For JavaScript/TypeScript**: Verify Node.js and npm are installed
-  - Check with `npm --version` command
-  - Provide installation instructions if npm is missing
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs integrate-appcat \
+  --report <appcat-dir>/report.json \
+  --findings <findings-path> \
+  --run-id <run-id>
+```
 
-**Assessment Failures**:
-- Unsupported project type (only Java, .NET, and JavaScript/TypeScript supported)
-- **For Java**: MCP server communication errors
-- **For .NET**:
-  - dotnet-appcat tool installation failure
-  - appcat command execution errors
-- **For JavaScript/TypeScript**:
-  - npm-check-updates installation failure
-  - ncu command execution errors
-  - No package.json found at `{workspace-path}/package.json`
-- Invalid project structure or build configuration
+If AppCAT fails, continue only with explicitly selected batches that do not require it and return `partial`.
 
-**Report Generation Issues**:
-- **For Java (primary)**: No report.json found under `{workspace-path}/.github/modernize/assessment/reports/report-*/report.json` after MCP execution
-- **For Java (legacy fallback)**: No report.json found under `{workspace-path}/.github/modernize/appcat/result/` after MCP execution
-- **For .NET**: Report not generated at `{workspace-path}/.github/modernize/appcat/result/report.json`, or `metadata.analysisStartTime` missing from report
-- **For JavaScript/TypeScript**: Report not generated at `{workspace-path}/.github/modernize/assessment/reports/report-{reportId}/js-assessment-report.md`
-- Report file is corrupted or invalid JSON (Java/.NET only)
+### JavaScript/TypeScript Dependencies
 
-For any failure, provide clear error messages and troubleshooting steps.
+Run the pinned npm-check-updates release without modifying `package.json`:
+
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs run-ncu \
+  --package-json <workspace-path>/package.json \
+  --output-dir <run-dir>/javascript \
+  --run-id <run-id> \
+  --findings <findings-path>
+```
+
+Record the generated JSON result through `record-result`. Return `planningSupported: false`.
+
+## 4. Execute Plugin-Owned AI Batches
+
+Use only the batches returned by `prepare-run`. Execute batches one at a time and execute every catalog task yourself, serially, in catalog order. Never invoke a subagent, general-purpose agent, coordinator, router, or phase agent. Load exactly the task's `skill-id`, pass its absolute `workspace-path`, plan-provided absolute `output-path`, and explicit task settings, then finish and normalize that result before loading the next skill. The returned `maxConcurrency` is a ceiling; serial execution is required in standalone, coordinator, and `batch-headless` modes.
+
+### Full-Coverage Facts: Exactly 6
+
+Coverage `full` contains exactly these plugin-level skills:
+
+1. `architecture-diagram`
+2. `dependency-map`
+3. `api-service-contracts`
+4. `data-architecture`
+5. `configuration-inventory`
+6. `business-workflows`
+
+Each skill execution receives `workspace-path` and its plan-provided output path. Each owns one Markdown file under `.github/modernize/assessment/engines/facts/`. Execute all six serially and verify all six files exist. Do not launch granular `fact-*` skills; they are not part of this implementation.
+
+### Security: Exactly 7
+
+The local security batch contains:
+
+- `cve-known-vulnerabilities`; and
+- six CWE category skills:
+  - `cwe-code-quality`
+  - `cwe-concurrency-synchronization`
+  - `cwe-credentials-secrets`
+  - `cwe-file-path-security`
+  - `cwe-injection-attacks`
+  - `cwe-memory-safety`
+
+All seven are independent top-level plugin skills under `skills/<skill-id>/SKILL.md`; none is nested under `assessment`.
+
+Execute all seven serially. Save each complete skill result to its plan-provided JSON output path, then normalize every result:
+
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs record-result \
+  --skill <skill-id> \
+  --input <output-path> \
+  --findings <findings-path> \
+  --run-id <run-id> \
+  --run-dir <run-dir>
+```
+
+Every CWE rule must end as FOUND or NOT_FOUND. A missing/malformed result or PENDING rule makes security partial; never synthesize an empty success.
+
+### Concurrency
+
+There is no subagent scheduler. Facts and security tasks run serially in separate batches; AppCAT-only Assessment has no AI task batch. When both security and full coverage are selected, finish one batch before starting the next. The catalog retains a maximum concurrency value for request compatibility, but the phase agent always operates at effective concurrency 1.
+
+## 5. Generate And Verify Reports
+
+Generate the self-contained local report from normalized findings:
+
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs generate-report \
+  --memory-dir <memory-dir> \
+  --run-id <run-id> \
+  --output-dir <html-reports-dir> \
+  --project-root <workspace-path> \
+  --enrichment /dev/null
+```
+
+Generate the internal normalized Assessment after every deterministic engine and AI batch has finished:
+
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs generate-normalized-assessment \
+  --memory-dir <memory-dir> \
+  --run-id <run-id> \
+  --language <java|dotnet|javascript|typescript> \
+  --solution-mapping .github/modernize/.runtime/assessment/solution-mapping.json
+```
+
+This writes `.github/modernize/.memory/runs/<run-id>/normalized-assessment.json`. It is an internal Planning and Batch validation sidecar, not a public assessment report. Do not show its path in the user-facing Assessment summary.
+
+For Java/.NET runs with an AppCAT report, publish the public canonical report after normalization so plugin-owned CVE/CWE findings can be merged into `security[]`:
+
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs publish-appcat-report \
+  --source <appcat-dir>/report.json \
+  --memory-dir <memory-dir> \
+  --output-dir <reports-dir> \
+  --run-id <run-id> \
+  --language <java|dotnet> \
+  --domains <comma-separated-domains> \
+  --coverage <issue-only|full>
+```
+
+For JavaScript/TypeScript and security-only runs without AppCAT, synthesize the same public Unified report shape from complete assessment memory:
+
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs generate-canonical-report \
+  --memory-dir <memory-dir> \
+  --output-dir <reports-dir> \
+  --workspace-path <workspace-path> \
+  --run-id <run-id> \
+  --language <java|dotnet|javascript|typescript> \
+  --domains <comma-separated-domains> \
+  --coverage <issue-only|full>
+```
+
+Both paths create `.github/modernize/assessment/reports/report-<run-id>/report.json` with the established public `producer + metadata + summary + projects + rules + security` structure. The internal normalized sidecar uses `schemaVersion: 1` and never reuses the public report's `version` field.
+
+For full coverage, archive and verify all six fact documents beside the canonical report:
+
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs archive-facts \
+  --workspace-path <workspace-path> \
+  --report <canonical-report-path> \
+  --coverage full \
+  --facts-root <attempt-directory>/scratch/engines/facts
+```
+
+Omit `--facts-root` outside batch mode to preserve the canonical single-repository source path.
+
+Finally, validate the completed run and derive the return evidence from disk. For `batch-headless`, use the machine JSON presentation:
+
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs verify-artifacts \
+  --workspace-path <workspace-path> \
+  --run-id <run-id> \
+  --language <java|dotnet|javascript|typescript> \
+  --domains <comma-separated-domains> \
+  --coverage <issue-only|full> \
+  --report <absolute-canonical-report-path> \
+  --normalized-assessment <absolute-normalized-assessment-path> \
+  --html <absolute-versioned-html-report-path> \
+  --appcat-report <absolute-appcat-report-path> \
+  --security-root <absolute-security-output-directory>
+```
+
+For `coordinator` or `standalone`, pass the same artifact roles and request the deterministic public-style presentation:
+
+```bash
+node .github/modernize/.runtime/assessment/assess-cli.mjs verify-artifacts \
+  --workspace-path <workspace-path> \
+  --run-id <run-id> \
+  --language <java|dotnet|javascript|typescript> \
+  --domains <comma-separated-domains> \
+  --coverage <issue-only|full> \
+  --report <absolute-canonical-report.json> \
+  --normalized-assessment <absolute-normalized-assessment.json> \
+  --html <absolute-versioned-html-report-path> \
+  --appcat-report <absolute-appcat-report-path> \
+  --presentation user
+```
+
+Omit `--appcat-report` when no AppCAT domain was selected. Omit `--security-root` when security was not selected; outside batch mode its canonical default is used. This command is the only completion authority. Do not return `success` unless it exits zero and its receipt's `artifactValidation` is exactly `passed`. The user presentation writes that complete receipt to `verification.json` beside canonical `report.json` and includes the exact `Verification: passed` line plus its path. In coordinator mode, this must be the final tool call: immediately return its complete stdout verbatim with no wrapper, summary, field renaming, additional command, or recalculation. In standalone or batch-headless mode, copy paths, finding counts, top recommendation, and partial task IDs only from that receipt; do not infer or reconstruct them from prior command output or subagent text. A nonzero exit makes the run `partial` or `failed` with the verifier error and must never be converted into success.
+
+Completion requires:
+
+- public-compatible versioned `report.json` exists and parses for every language and domain combination;
+- internal `normalized-assessment.json` exists, validates against its v1 schema, and matches the run request;
+- HTML report exists;
+- AppCAT report exists when an AppCAT domain was selected;
+- all seven security outputs have terminal data when security was selected;
+- all six fact Markdown files are archived when coverage is full.
+
+## Required Return
+
+Return:
+
+- status: `success`, `partial`, `cancelled`, or `failed`;
+- the complete final verifier output without changing any field;
+- `artifactValidation`: exactly `passed` for `success`;
+- the verifier's nested `completionEvidence` object;
+- detected language;
+- selected domains and coverage;
+- finding counts and top recommendations;
+- canonical report, HTML, and verification paths; the normalized sidecar remains inside the verification receipt;
+- six fact paths for full coverage;
+- failed or missing local tasks;
+- `planningSupported`: true for Java/.NET, false for JavaScript/TypeScript.
+
+Coordinator mode returns the verifier's deterministic natural-language summary and persisted `verification.json` evidence. Batch-headless returns machine JSON and does not show a standalone next-action menu. Standalone mode presents the report and stops; implementation fixes are outside this skill.
