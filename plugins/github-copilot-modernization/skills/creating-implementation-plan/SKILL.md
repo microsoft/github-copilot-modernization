@@ -49,7 +49,7 @@ checkpoints/plan-to-tasks.yaml   ← plan item → task traceability
 2. **Fill plan template** (`templates/plan-template.md`):
    - Technical Context: derive HOW decisions from design artifacts + constitution + guidelines.
    - Constitution Check from constitution principles.
-3. **Integrate guidelines**: Scan `skills/guidelines/` for matching tech patterns. Document under "Applied Guidelines".
+3. **Integrate guidelines**: Load the `guidelines` lookup skill, then select matching top-level guideline skills. Document them under "Applied Guidelines".
 4. **Map every plan item** to at least one REQ-XXX.
 5. **Tag plan items with G-groups**: If a project topology was loaded in Step 1.5, every Implementation Step that maps to a specific module group MUST include the G-group label in its title (e.g., `### Step 3: [G1] Payment gateway integration`). Cross-cutting steps that span all groups use `[Cross-cutting]` instead. This enables downstream DAG generation to extract group membership directly from the plan.
 6. **Write `plan.md`** section by section (write each section before moving to the next):
@@ -139,7 +139,7 @@ Report completion with:
 Before generating the plan, check for applicable guidelines:
 
 1. Identify technologies from feature spec and design artifacts.
-2. Search `skills/guidelines/` for matching patterns.
+2. Use the `guidelines` lookup contract to find matching top-level guideline skills.
 3. For each match: extract relevant rules, integrate into plan, document in "Applied Guidelines" section.
 
 ## General Rules

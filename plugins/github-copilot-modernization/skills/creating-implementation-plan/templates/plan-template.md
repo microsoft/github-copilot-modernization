@@ -24,7 +24,7 @@
 
 ## Applied Guidelines
 
-[List any matching migration/transformation guidelines from `skills/guidelines/` and how they influence the plan.]
+[List any matching top-level migration/transformation skills discovered through the `guidelines` lookup skill and how they influence the plan.]
 
 ## Implementation Steps
 

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "event.schema.json",
+  "title": "Batch state event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "eventId",
+    "sequence",
+    "batchId",
+    "type",
+    "at",
+    "repoId",
+    "executionUnitId",
+    "invocationId",
+    "payload"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "eventId": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9-]{36}$"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "batchId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "enum": [
+        "batch_created",
+        "lease_acquired",
+        "lease_released",
+        "takeover_recorded",
+        "attempt_started",
+        "attempt_finished",
+        "input_requested",
+        "input_answered",
+        "pause_requested",
+        "batch_paused",
+        "batch_completed"
+      ]
+    },
+    "at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repoId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "executionUnitId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "invocationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    }
+  }
+}
